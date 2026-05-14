@@ -155,7 +155,19 @@ export const en = {
     "veggie": "Rau/củ",
     "repair": "Sửa chữa",
     "tip": "Tip",
-    "registerStatus": "TT"
+    "registerStatus": "TT",
+    "holidayTitle": "Ngày lễ / Tết",
+    "holidayDesc": "Danh sách ngày lễ dùng để kích hoạt phụ thu ngày lễ",
+    "addHolidayBtn": "Thêm ngày lễ",
+    "holidayUsageTitle": "📅 Cách dùng:",
+    "holidayUsageDetail": "Nếu có → tự động áp dụng phụ thu vào hóa đơn.",
+    "upcomingOrOngoing": "Sắp tới / Đang diễn ra",
+    "recurringYearly": "Lặp hàng năm",
+    "past": "Đã qua",
+    "holidayName": "Tên ngày lễ",
+    "holidayDate": "Ngày",
+    "recurringLabel": "Lặp lại hàng năm",
+    "holidayPlaceholder": "VD: Tết Nguyên Đán"
   },
   "cash": {
     "title": "Cash",

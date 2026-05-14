@@ -22,9 +22,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
+    const cookieLocale = document.cookie.split("; ").find(r => r.startsWith("pos-locale="))?.split("=")[1];
     if (stored && ["vi", "en", "zh", "ko", "ja"].includes(stored)) {
       setLocaleState(stored);
       setT(getDictionary(stored));
+      // Set cookie on initial load so server components can pick up the locale
+      if (cookieLocale !== stored) {
+        document.cookie = `pos-locale=${stored};path=/;max-age=31536000;SameSite=Lax`;
+      }
     }
   }, []);
 

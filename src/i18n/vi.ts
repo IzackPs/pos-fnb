@@ -174,6 +174,7 @@ export const vi = {
     "noProductsYet": "Chưa có món nào",
     "toppingTooltip": "Tuỳ chọn topping",
     "recipeTooltip": "Định lượng món",
+    "next": "Sau",
     "previous": "Trước",
     "recipeFor": "Định lượng:",
     "noRecipeYet": "Chưa có định lượng",

@@ -240,7 +240,7 @@ export function ProductsManager({
             <button key={p} className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${p === page ? "bg-amber-500 text-white" : "text-gray-500 hover:bg-gray-100"}`} onClick={() => setPage(p)}>{p}</button>
           ))}
           <Button variant="outline" size="sm" className="h-8 text-xs" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-            Sau <ChevronRight className="h-3.5 w-3.5 ml-1" />
+{t.inventory.next} <ChevronRight className="h-3.5 w-3.5 ml-1" />
           </Button>
         </div>
       )}

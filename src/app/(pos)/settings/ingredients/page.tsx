@@ -1,10 +1,10 @@
 import { getIngredients, createIngredient, updateIngredient, deleteIngredient } from "@/server/settings/actions";
 import { DataTable } from "../data-table";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getServerDictionary } from "@/lib/locale";
 
 export default async function IngredientsPage() {
   const items = await getIngredients();
-  const t = getDictionary("vi");
+  const t = await getServerDictionary();
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.settings.ingredients}</h2>

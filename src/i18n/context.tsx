@@ -32,6 +32,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     setLocaleState(l);
     setT(getDictionary(l));
     localStorage.setItem(STORAGE_KEY, l);
+    // Set cookie so server components can read locale
+    document.cookie = `pos-locale=${l};path=/;max-age=31536000;SameSite=Lax`;
   }, []);
 
   return (

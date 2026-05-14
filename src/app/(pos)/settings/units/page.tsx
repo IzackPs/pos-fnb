@@ -1,10 +1,10 @@
 import { getUnits, createUnit, updateUnit, deleteUnit } from "@/server/settings/actions";
 import { DataTable } from "../data-table";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getServerDictionary } from "@/lib/locale";
 
 export default async function UnitsPage() {
   const units = await getUnits();
-  const t = getDictionary("vi");
+  const t = await getServerDictionary();
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.settings.units}</h2>

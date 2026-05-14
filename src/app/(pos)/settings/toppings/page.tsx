@@ -1,12 +1,12 @@
 import { getToppingGroups, createToppingGroup, updateToppingGroup, deleteToppingGroup, createTopping, updateTopping, deleteTopping, getCategories, getProducts, linkProductToppingGroup, unlinkProductToppingGroup } from "@/server/settings/actions";
 import { ToppingsManager } from "../components-toppings";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getServerDictionary } from "@/lib/locale";
 
 export default async function ToppingsPage() {
   const [groups, categories, products] = await Promise.all([
     getToppingGroups(), getCategories(), getProducts(),
   ]);
-  const t = getDictionary("vi");
+  const t = await getServerDictionary();
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.settings.toppings}</h2>

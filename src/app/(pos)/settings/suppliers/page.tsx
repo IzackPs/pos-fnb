@@ -1,10 +1,10 @@
 import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from "@/server/inventory/supplier-actions";
 import { DataTable } from "../data-table";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getServerDictionary } from "@/lib/locale";
 
 export default async function SuppliersPage() {
   const items = await getSuppliers();
-  const t = getDictionary("vi");
+  const t = await getServerDictionary();
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.settings.suppliers}</h2>

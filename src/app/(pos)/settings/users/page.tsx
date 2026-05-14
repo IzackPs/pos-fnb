@@ -1,11 +1,11 @@
 import { getUsers, getRoles } from "@/server/settings/actions";
 import { UsersManager } from "../components";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getServerDictionary } from "@/lib/locale";
 
 export default async function UsersPage() {
   const users = await getUsers();
   const roles = await getRoles();
-  const t = getDictionary("vi");
+  const t = await getServerDictionary();
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.settings.users}</h2>

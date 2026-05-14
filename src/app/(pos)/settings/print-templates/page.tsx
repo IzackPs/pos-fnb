@@ -1,10 +1,10 @@
 import { getPrintTemplates, getPrinters_list, createPrintTemplate, updatePrintTemplate, deletePrintTemplate } from "@/server/settings/actions";
 import { PrintTemplatesManager } from "../components-templates";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getServerDictionary } from "@/lib/locale";
 
 export default async function PrintTemplatesPage() {
   const [templates, printers] = await Promise.all([getPrintTemplates(), getPrinters_list()]);
-  const t = getDictionary("vi");
+  const t = await getServerDictionary();
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.printTemplate.title}</h2>

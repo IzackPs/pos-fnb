@@ -185,9 +185,9 @@ export function ProductsManager({
 
       {/* Stats */}
       <p className="text-xs text-gray-400 mb-3">
-        Hiển thị {filtered.length > 0 ? (page - 1) * perPage + 1 : 0}–{Math.min(page * perPage, filtered.length)} / tổng {filtered.length} món
-        {catFilter && <span className="ml-2">· Lọc: {categories.find(c => c.id === catFilter)?.name}</span>}
-        {search.trim() && <span className="ml-2">· Tìm: "{search.trim()}"</span>}
+        {t.inventory.showing} {filtered.length > 0 ? (page - 1) * perPage + 1 : 0}–{Math.min(page * perPage, filtered.length)} / {t.inventory.totalItems_products} {filtered.length}
+        {catFilter && <span className="ml-2">· {t.inventory.filterBy} {categories.find(c => c.id === catFilter)?.name}</span>}
+        {search.trim() && <span className="ml-2">· {t.inventory.searchFor} "{search.trim()}"</span>}
       </p>
 
       {/* Table */}
@@ -196,7 +196,7 @@ export function ProductsManager({
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.settings.name}</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">Loại</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.inventory.typeColumn}</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.settings.price}</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.settings.vat}</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">TTĐB</th>
@@ -206,7 +206,7 @@ export function ProductsManager({
           </thead>
           <tbody className="divide-y divide-gray-100">
             {pageItems.length === 0 && (
-              <tr><td colSpan={7} className="text-center py-12 text-gray-400">{catFilter ? "Không có món nào trong loại này" : "Chưa có món nào"}</td></tr>
+              <tr><td colSpan={7} className="text-center py-12 text-gray-400">{catFilter ? t.inventory.noProductsInCategory : t.inventory.noProductsYet}</td></tr>
             )}
             {pageItems.map(p => (
               <tr key={p.id} className="hover:bg-amber-50/30 transition-colors">
@@ -220,8 +220,8 @@ export function ProductsManager({
                 <td className="px-4 py-3">{p.unit?.name}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setToppingProductId(p.id); setToppingProductName(p.name); setToppingOpen(true); }} title="Tuỳ chọn topping"><ListChecks className="h-3.5 w-3.5 text-amber-500" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openRecipe(p)} title="Định lượng món"><Beaker className="h-3.5 w-3.5 text-blue-500" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setToppingProductId(p.id); setToppingProductName(p.name); setToppingOpen(true); }} title={t.inventory.toppingTooltip}><ListChecks className="h-3.5 w-3.5 text-amber-500" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openRecipe(p)} title={t.inventory.recipeTooltip}><Beaker className="h-3.5 w-3.5 text-blue-500" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(p)}><Pencil className="h-3.5 w-3.5" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 hover:text-red-500" onClick={() => handleDelete(p.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
@@ -281,7 +281,7 @@ export function ProductsManager({
                   <SelectContent>{vats.map(v => <SelectItem key={v.id} value={v.id}>{v.name} ({(v.rate * 100).toFixed(0)}%)</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1"><Label>Thuế TTĐB (tùy chọn)</Label>
+              <div className="space-y-1"><Label>{t.settings.exciseTax} ({t.inventory.notApplied})</Label>
                 <Select value={form.exciseTaxId} onValueChange={v => setForm(f => ({ ...f, exciseTaxId: v ?? "" }))}>
                   <SelectTrigger><SelectValue placeholder={t.inventory.notApplied}>{form.exciseTaxId && form.exciseTaxId !== "none" ? exciseTaxes.find(e => e.id === form.exciseTaxId)?.name : t.inventory.notApplied}</SelectValue></SelectTrigger>
                   <SelectContent>
@@ -290,7 +290,7 @@ export function ProductsManager({
                 </Select>
               </div>
             </div>
-            <div className="space-y-1"><Label>Thứ tự</Label><Input type="number" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>{t.settings.sortOrder}</Label><Input type="number" value={form.sortOrder} onChange={e => setForm(f => ({ ...f, sortOrder: e.target.value }))} /></div>
           </div>
           <DialogFooter>
             <Button onClick={save} disabled={pending}>{pending ? t.common.saving : t.common.save}</Button>
@@ -304,7 +304,7 @@ export function ProductsManager({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Beaker className="h-5 w-5 text-blue-500" />
-              Định lượng: {recipeProductName}
+              {t.inventory.recipeFor} {recipeProductName}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
@@ -312,18 +312,18 @@ export function ProductsManager({
             {recipeItems.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground text-sm border rounded-lg bg-muted/30">
                 <Beaker className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                <p>Chưa có định lượng</p>
-                <p className="text-xs mt-1">Thêm nguyên liệu bên dưới để tính giá vốn & tự động trừ kho</p>
+                <p>{t.inventory.noRecipeYet}</p>
+                <p className="text-xs mt-1">{t.inventory.addIngredientToCalculateCost}</p>
               </div>
             ) : (
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Nguyên liệu hiện tại</Label>
+                <Label className="text-sm font-semibold">{t.inventory.currentIngredients}</Label>
                 {recipeItems.map(item => (
                   <div key={item.id} className="flex items-center justify-between border rounded-lg p-3 bg-muted/30">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{item.ingredient.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {item.quantity} {item.unit?.name || item.ingredient.baseUnit} / 1 {recipeProductName.toLowerCase().includes("phần") ? "phần" : "món"}
+                        {item.quantity} {item.unit?.name || item.ingredient.baseUnit} / {t.inventory.perServing} {recipeProductName.toLowerCase().includes("phần") ? t.inventory.portion : t.inventory.dish}
                       </div>
                     </div>
                     <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => handleRemoveRecipe(item.id)}>
@@ -336,7 +336,7 @@ export function ProductsManager({
 
             {/* Add new ingredient */}
             <div className="border-t pt-3">
-              <Label className="text-sm font-semibold mb-2 block">Thêm nguyên liệu</Label>
+              <Label className="text-sm font-semibold mb-2 block">{t.inventory.addIngredient}</Label>
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Select value={recipeForm.ingredientId} onValueChange={v => setRecipeForm(f => ({ ...f, ingredientId: v ?? "" }))}>
@@ -364,7 +364,7 @@ export function ProductsManager({
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground mt-2">
-                💡 Nhập số lượng nguyên liệu cần cho <strong>1 phần/món</strong>. Giá vốn sẽ được tự động tính từ giá nhập nguyên liệu.
+                {t.inventory.recipeHelpText}
               </p>
             </div>
           </div>
@@ -435,12 +435,12 @@ function ToppingLinkDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ListChecks className="h-5 w-5 text-amber-500" />
-            Tuỳ chọn cho: {productName}
+            {t.inventory.optionsFor} {productName}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto">
           {toppingGroups.length === 0 ? (
-            <p className="text-center py-6 text-gray-400 text-sm">Chưa có nhóm topping nào. Vào <strong>Topping</strong> để tạo.</p>
+            <p className="text-center py-6 text-gray-400 text-sm">{t.inventory.noToppingGroups}</p>
           ) : (
             toppingGroups.map(g => {
               const isLinked = localSelected.has(g.id);

@@ -67,7 +67,7 @@ export function KaraokePricingManager({ pricings, areas, createKP, updateKP, del
       {pricings.length === 0 ? (
         <div className="text-center py-16 text-gray-400 border border-dashed rounded-xl">
           <Clock className="h-8 w-8 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">t.settings.noPricing</p>
+          <p className="text-sm">{t.settings.noPricing}</p>
         </div>
       ) : (
         <div className="grid gap-3">

@@ -7,8 +7,8 @@ export default async function VatPage() {
   const t = await getServerDictionary();
   return (
     <div>
-      <h2 className="text-xl font-bold mb-2">t.settings.vat</h2>
-      <p className="text-sm text-muted-foreground mb-6">t.settings.vatPageDesc</p>
+      <h2 className="text-xl font-bold mb-2">{t.settings.vat}</h2>
+      <p className="text-sm text-muted-foreground mb-6">{t.settings.vatPageDesc}</p>
       <DataTable
         data={vats}
         columns={[

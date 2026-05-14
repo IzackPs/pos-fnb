@@ -14,7 +14,7 @@ export default async function ExciseTaxPage() {
         columns={[
           { key: "code", label: t.inventory.code, type: "text" as const },
           { key: "name", label: t.settings.name, type: "text" as const },
-          { key: "rate", label: t.common.taxRate || "Thuế suất (%)", type: "percent" as const },
+          { key: "rate", label: t.common.taxRate || "", type: "percent" as const },
         ]}
         onUpdate={upsertExciseTax}
       />

@@ -54,9 +54,9 @@ export function PrintersManager({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Thêm máy in</Button>
+        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" /> {t.inventory.addPrinterBtn}</Button>
       </div>
-      {printers.length === 0 && <p className="text-center text-muted-foreground py-8">Chưa cấu hình máy in nào.</p>}
+      {printers.length === 0 && <p className="text-center text-muted-foreground py-8">{t.inventory.noPrinter}</p>}
       {printers.map(p => (
         <Card key={p.id}>
           <CardHeader className="pb-2">
@@ -67,14 +67,14 @@ export function PrintersManager({
                 <Badge>{typeLabel[p.type] || p.type}</Badge>
                 {p.printMode === "CLIENT" ? (
                   <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                    <Smartphone className="h-3 w-3 mr-0.5" /> Thiết bị
+                    <Smartphone className="h-3 w-3 mr-0.5" /> {t.inventory.deviceLabel}
                   </Badge>
                 ) : (
                   <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200">
                     <Server className="h-3 w-3 mr-0.5" /> Server
                   </Badge>
                 )}
-                {!p.isActive && <Badge variant="secondary">Đã tắt</Badge>}
+                {!p.isActive && <Badge variant="secondary">{t.inventory.disabledBadge}</Badge>}
               </div>
               <div className="flex gap-1">
                 <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-3 w-3" /></Button>
@@ -85,12 +85,12 @@ export function PrintersManager({
           <CardContent>
             <div className="text-sm text-muted-foreground">
               {p.printMode === "CLIENT" ? (
-                <div className="flex items-center gap-1"><Smartphone className="h-3 w-3 text-blue-500" /> In qua WiFi/Bluetooth · Khổ {p.paperWidth}mm</div>
+                <div className="flex items-center gap-1"><Smartphone className="h-3 w-3 text-blue-500" /> {t.inventory.wifiPrint} {p.paperWidth}mm</div>
               ) : (
-                <div className="flex items-center gap-1"><Wifi className="h-3 w-3" /> {p.ipAddress}:{p.port} · Khổ {p.paperWidth}mm</div>
+                <div className="flex items-center gap-1"><Wifi className="h-3 w-3" /> {p.ipAddress}:{p.port} {t.inventory.viaPort} {p.paperWidth}mm</div>
               )}
-              {p.areas?.length > 0 && <div className="mt-1">Khu vực: {p.areas.map((a: any) => a.area?.name).join(", ")}</div>}
-              {p.printTemplates?.length > 0 && <div className="mt-1">{p.printTemplates.length} mẫu in</div>}
+              {p.areas?.length > 0 && <div className="mt-1">{t.inventory.areaLabel} {p.areas.map((a: any) => a.area?.name).join(", ")}</div>}
+              {p.printTemplates?.length > 0 && <div className="mt-1">{p.printTemplates.length} {t.inventory.templateCount}</div>}
             </div>
           </CardContent>
         </Card>
@@ -100,19 +100,19 @@ export function PrintersManager({
         <DialogContent className="!sm:max-w-lg !max-w-[95vw]">
           <DialogHeader><DialogTitle>{editing ? t.settings.editPrinter : t.settings.addPrinter}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-1"><Label>Tên máy in</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>{t.inventory.printerName}</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1"><Label>Loại</Label>
+              <div className="space-y-1"><Label>{t.inventory.printerType}</Label>
                 <Select value={form.type} onValueChange={v => v && setForm(f => ({ ...f, type: v }))}>
                   <SelectTrigger><SelectValue>{typeLabel[form.type] || form.type}</SelectValue></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="KITCHEN">Bếp</SelectItem>
+                    <SelectItem value="KITCHEN">{t.settings.printerType.KITCHEN}</SelectItem>
                     <SelectItem value="BAR">Bar</SelectItem>
                     <SelectItem value="BILL">Bill</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1"><Label>Khổ giấy (mm)</Label>
+              <div className="space-y-1"><Label>{t.inventory.paperWidthLabel}</Label>
                 <Select value={form.paperWidth} onValueChange={v => v && setForm(f => ({ ...f, paperWidth: v }))}>
                   <SelectTrigger><SelectValue>{form.paperWidth}mm</SelectValue></SelectTrigger>
                   <SelectContent>
@@ -125,14 +125,14 @@ export function PrintersManager({
             </div>
             {form.printMode === "SERVER" && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1"><Label>Địa chỉ IP</Label><Input value={form.ipAddress} onChange={e => setForm(f => ({ ...f, ipAddress: e.target.value }))} placeholder="192.168.1.100" /></div>
-                <div className="space-y-1"><Label>Cổng (Port)</Label><Input type="number" value={form.port} onChange={e => setForm(f => ({ ...f, port: e.target.value }))} /></div>
+                <div className="space-y-1"><Label>{t.inventory.ipAddressLabel}</Label><Input value={form.ipAddress} onChange={e => setForm(f => ({ ...f, ipAddress: e.target.value }))} placeholder="192.168.1.100" /></div>
+                <div className="space-y-1"><Label>{t.inventory.portLabel}</Label><Input type="number" value={form.port} onChange={e => setForm(f => ({ ...f, port: e.target.value }))} /></div>
               </div>
             )}
 
             {/* Print Mode */}
             <div className="space-y-2 p-3 rounded-lg border border-gray-100 bg-gray-50">
-              <Label className="text-xs uppercase tracking-wider text-gray-500">Chế độ in</Label>
+              <Label className="text-xs uppercase tracking-wider text-gray-500">{t.inventory.printModeLabel}</Label>
               <div className="grid grid-cols-2 gap-3">
                 <label
                   onClick={() => setForm(f => ({ ...f, printMode: "SERVER" }))}
@@ -143,7 +143,7 @@ export function PrintersManager({
                   <Server className={`h-5 w-5 ${form.printMode === "SERVER" ? "text-amber-600" : "text-gray-400"}`} />
                   <div>
                     <div className="text-sm font-medium">Server</div>
-                    <div className="text-[10px] text-gray-400">Máy chủ gửi TCP trực tiếp</div>
+                    <div className="text-[10px] text-gray-400">{t.inventory.serverModeDesc}</div>
                   </div>
                 </label>
                 <label
@@ -154,20 +154,20 @@ export function PrintersManager({
                 >
                   <Smartphone className={`h-5 w-5 ${form.printMode === "CLIENT" ? "text-blue-600" : "text-gray-400"}`} />
                   <div>
-                    <div className="text-sm font-medium">Thiết bị</div>
-                    <div className="text-[10px] text-gray-400">In từ điện thoại/máy tính bảng</div>
+                    <div className="text-sm font-medium">{t.inventory.deviceLabel}</div>
+                    <div className="text-[10px] text-gray-400">{t.inventory.clientModeDesc}</div>
                   </div>
                 </label>
               </div>
               {form.printMode === "CLIENT" && (
                 <p className="text-[11px] text-blue-700 bg-blue-50 rounded-lg p-2 mt-2">
-                  💡 Server chỉ build nội dung in. Thiết bị sẽ tự kết nối máy in qua WiFi/Bluetooth/USB để in.
+                  {t.inventory.clientHint}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label>Khu vực in</Label>
+              <Label>{t.inventory.printAreasLabel}</Label>
               <div className="flex flex-wrap gap-2">
                 {areas.map(a => (
                   <label key={a.id} className="flex items-center gap-1.5 cursor-pointer">

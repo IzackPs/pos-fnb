@@ -147,7 +147,15 @@ export const en = {
     "noStockOuts": "No stock-out records yet",
     "manualAddRow": "Or add rows manually",
     "totalItems": "Total Quantity:",
-    "selectSupplierToAutoFill": "Select supplier to auto-fill ingredient list"
+    "selectSupplierToAutoFill": "Select supplier to auto-fill ingredient list",
+    "openedBy": "Người mở",
+    "status": "TT",
+    "icecube": "Đá lạnh",
+    "gas": "Gas",
+    "veggie": "Rau/củ",
+    "repair": "Sửa chữa",
+    "tip": "Tip",
+    "registerStatus": "TT"
   },
   "cash": {
     "title": "Cash",

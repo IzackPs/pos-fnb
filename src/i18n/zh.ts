@@ -147,7 +147,15 @@ export const zh = {
     "noStockOuts": "Chưa có phiếu xuất kho nào",
     "manualAddRow": "Hoặc thêm dòng thủ công",
     "totalItems": "Tổng số lượng:",
-    "selectSupplierToAutoFill": "Chọn nhà cung cấp để tự động điền danh sách nguyên liệu"
+    "selectSupplierToAutoFill": "Chọn nhà cung cấp để tự động điền danh sách nguyên liệu",
+    "openedBy": "Người mở",
+    "status": "TT",
+    "icecube": "Đá lạnh",
+    "gas": "Gas",
+    "veggie": "Rau/củ",
+    "repair": "Sửa chữa",
+    "tip": "Tip",
+    "registerStatus": "TT"
   },
   "cash": {
     "title": "收银",

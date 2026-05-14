@@ -188,7 +188,11 @@ export const zh = {
     "recipeHelpText": "💡 输入每份所需原料量。成本从采购价自动计算。",
     "noToppingGroups": "暂无配料组。前往配料页创建。",
     "linkedToppingBadge": "已分配",
-    "optionsFor": "选项："
+    "optionsFor": "选项：",
+    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
+    "appliesTo": "Áp dụng cho",
+    "allCategoriesItems": "Tất cả loại món",
+    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
   },
   "cash": {
     "title": "收银",

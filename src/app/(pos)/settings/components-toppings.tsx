@@ -122,7 +122,7 @@ export function ToppingsManager({
           <DialogHeader><DialogTitle>{editTopping ? t.settings.edit : t.settings.add}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1"><Label>{t.settings.name}</Label><Input value={tForm.name} onChange={e => setTForm(f => ({ ...f, name: e.target.value }))} /></div>
-            <div className="space-y-1"><Label>Giá thêm (₫, 0 = miễn phí)</Label><Input type="number" value={tForm.price} onChange={e => setTForm(f => ({ ...f, price: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>{t.inventory.extraPrice}</Label><Input type="number" value={tForm.price} onChange={e => setTForm(f => ({ ...f, price: e.target.value }))} /></div>
           </div>
           <DialogFooter>
             <Button disabled={pending} onClick={() => {
@@ -167,7 +167,7 @@ function LinkedProductsSection({
     <div className="mt-3 border-t pt-3">
       <div className="flex items-center justify-between mb-2">
         <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          Áp dụng cho ({linked.length} món)
+          {t.inventory.appliesTo} ({linked.length})
         </Label>
         <Button
           variant="ghost"
@@ -210,10 +210,10 @@ function LinkedProductsSection({
           <div className="flex gap-2">
             <Select value={catFilter} onValueChange={v => setCatFilter(v === "all" ? "" : v ?? "")}>
               <SelectTrigger className="h-9 text-xs rounded-lg">
-                <SelectValue placeholder={t.inventory.allCategories}>{catFilter ? categories.find(c => c.id === catFilter)?.name : t.inventory.allCategories}</SelectValue>
+                <SelectValue placeholder={t.inventory.allCategoriesItems}>{catFilter ? categories.find(c => c.id === catFilter)?.name : t.inventory.allCategories}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả loại món</SelectItem>
+                <SelectItem value="all">{t.inventory.allCategories}</SelectItem>
                 {categories.map(c => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
@@ -221,7 +221,7 @@ function LinkedProductsSection({
             </Select>
           </div>
           {filteredAvailable.length === 0 ? (
-            <p className="text-xs text-gray-400 py-2">Tất cả món trong loại này đã được gán</p>
+            <p className="text-xs text-gray-400 py-2">{t.inventory.allItemsAssigned}</p>
           ) : (
             <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
               {filteredAvailable.map(p => (

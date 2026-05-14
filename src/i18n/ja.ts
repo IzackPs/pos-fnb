@@ -188,7 +188,11 @@ export const ja = {
     "recipeHelpText": "💡 1人前の原材料数量を入力。仕入価格から原価自動計算。",
     "noToppingGroups": "トッピンググループなし。トッピングページで作成。",
     "linkedToppingBadge": "割当済",
-    "optionsFor": "オプション："
+    "optionsFor": "オプション：",
+    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
+    "appliesTo": "Áp dụng cho",
+    "allCategoriesItems": "Tất cả loại món",
+    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
   },
   "cash": {
     "title": "出納",

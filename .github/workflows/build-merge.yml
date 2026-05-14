@@ -1,0 +1,62 @@
+name: Build & Auto-Merge dev_lor → main
+
+on:
+  push:
+    branches: [dev_lor]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./dev.db"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Push database schema
+        run: npx prisma db push --accept-data-loss
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npx next build
+
+  auto-merge:
+    needs: build
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge dev_lor → main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout main
+          git merge dev_lor --no-ff -m "🔀 Auto-merge dev_lor → main (build ✅)"
+          git push origin main
+
+          echo "✅ dev_lor merged into main successfully!"

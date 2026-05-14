@@ -189,10 +189,10 @@ export const ko = {
     "noToppingGroups": "토핑 그룹 없음. 토핑 페이지에서 생성.",
     "linkedToppingBadge": "할당됨",
     "optionsFor": "옵션:",
-    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
-    "appliesTo": "Áp dụng cho",
-    "allCategoriesItems": "Tất cả loại món",
-    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
+    "extraPrice": "추가 가격",
+    "appliesTo": "적용 대상",
+    "allCategoriesItems": "모든 카테고리",
+    "allItemsAssigned": "모든 메뉴 할당됨"
   },
   "cash": {
     "title": "출납",

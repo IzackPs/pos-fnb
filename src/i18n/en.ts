@@ -189,10 +189,10 @@ export const en = {
     "noToppingGroups": "No topping groups yet. Go to Toppings to create.",
     "linkedToppingBadge": "Assigned",
     "optionsFor": "Options for:",
-    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
-    "appliesTo": "Áp dụng cho",
-    "allCategoriesItems": "Tất cả loại món",
-    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
+    "extraPrice": "Extra price (đ, 0 = free)",
+    "appliesTo": "Applies to",
+    "allCategoriesItems": "All categories",
+    "allItemsAssigned": "All items assigned"
   },
   "cash": {
     "title": "Cash",

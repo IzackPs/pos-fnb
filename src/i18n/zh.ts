@@ -189,10 +189,10 @@ export const zh = {
     "noToppingGroups": "暂无配料组。前往配料页创建。",
     "linkedToppingBadge": "已分配",
     "optionsFor": "选项：",
-    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
-    "appliesTo": "Áp dụng cho",
-    "allCategoriesItems": "Tất cả loại món",
-    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
+    "extraPrice": "附加价格",
+    "appliesTo": "适用于",
+    "allCategoriesItems": "所有类别",
+    "allItemsAssigned": "所有菜品已分配"
   },
   "cash": {
     "title": "收银",

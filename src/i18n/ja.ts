@@ -189,10 +189,10 @@ export const ja = {
     "noToppingGroups": "トッピンググループなし。トッピングページで作成。",
     "linkedToppingBadge": "割当済",
     "optionsFor": "オプション：",
-    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
-    "appliesTo": "Áp dụng cho",
-    "allCategoriesItems": "Tất cả loại món",
-    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
+    "extraPrice": "追加価格",
+    "appliesTo": "適用先",
+    "allCategoriesItems": "全カテゴリ",
+    "allItemsAssigned": "全商品割当済"
   },
   "cash": {
     "title": "出納",

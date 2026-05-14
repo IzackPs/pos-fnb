@@ -1,0 +1,618 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ============ AUTH ============
+
+model User {
+  id            String           @id @default(cuid())
+  username      String           @unique
+  password      String
+  name          String
+  avatar        String?
+  roleId        String
+  role          Role             @relation(fields: [roleId], references: [id])
+  shifts        ShiftAssignment[]
+  stockIns      StockIn[]        @relation("UserStockIn")
+  stockOuts     StockOut[]       @relation("UserStockOut")
+  cashFlows     CashFlow[]       @relation("UserCashFlow")
+  cashRegisters CashRegister[]   @relation("UserCashRegister")
+  orders        Order[]          @relation("UserOrder")
+  printJobs     PrintJob[]       @relation("UserPrintJob")
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String
+  users       User[]
+  createdAt   DateTime @default(now())
+}
+
+// ============ GENERAL CONFIG ============
+
+model GeneralConfig {
+  id             String   @id @default("default")
+  restaurantName String   @default("Nhà Hàng")
+  address        String?
+  phone          String?
+  email          String?
+  taxCode        String?
+  taxMode        String   @default("EXCLUSIVE") // INCLUSIVE | EXCLUSIVE
+  logoUrl        String?
+  currency       String   @default("VND")
+  timezone       String   @default("Asia/Ho_Chi_Minh")
+  dateFormat     String   @default("dd/MM/yyyy")
+  updatedAt      DateTime @updatedAt
+}
+
+// ============ TAX ============
+
+model Vat {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  name      String
+  rate      Float
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model ExciseTax {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  name      String
+  rate      Float
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+// ============ CATEGORY & PRODUCT ============
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  imageUrl  String?
+  sortOrder Int       @default(0)
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Unit {
+  id          String             @id @default(cuid())
+  name        String             @unique
+  products    Product[]
+  ingrRecipes IngredientRecipe[]
+  createdAt   DateTime           @default(now())
+}
+
+model Product {
+  id             String                 @id @default(cuid())
+  name           String
+  slug           String    @unique
+  description    String?
+  imageUrl       String?
+  price          Float
+  costPrice      Float
+  categoryId     String
+  category       Category               @relation(fields: [categoryId], references: [id])
+  vatId          String
+  vat            Vat                    @relation(fields: [vatId], references: [id])
+  exciseTaxId    String?
+  exciseTax      ExciseTax?             @relation(fields: [exciseTaxId], references: [id])
+  unitId         String
+  unit           Unit                   @relation(fields: [unitId], references: [id])
+  isAvailable    Boolean                @default(true)
+  sortOrder      Int                    @default(0)
+  recipes        IngredientRecipe[]
+  toppingGroups  ProductToppingGroup[]
+  orderItems     OrderItem[]
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+}
+
+// ============ TOPPING / MODIFIER ============
+
+model ToppingGroup {
+  id        String                 @id @default(cuid())
+  name      String
+  type      String                 @default("SINGLE")
+  products  ProductToppingGroup[]
+  toppings  Topping[]
+  createdAt DateTime               @default(now())
+}
+
+model ProductToppingGroup {
+  productId      String
+  product        Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  toppingGroupId String
+  toppingGroup   ToppingGroup @relation(fields: [toppingGroupId], references: [id], onDelete: Cascade)
+  @@id([productId, toppingGroupId])
+}
+
+model Topping {
+  id                String               @id @default(cuid())
+  name              String
+  price             Float                @default(0)
+  toppingGroupId    String
+  toppingGroup      ToppingGroup         @relation(fields: [toppingGroupId], references: [id])
+  orderItemToppings OrderItemTopping[]
+  sortOrder         Int                  @default(0)
+  createdAt         DateTime             @default(now())
+}
+
+// ============ INGREDIENT & RECIPE ============
+
+model Ingredient {
+  id               String                @id @default(cuid())
+  name             String
+  description      String?
+  currentStock     Float                 @default(0)
+  minStock         Float                 @default(0)
+  purchaseUnit     String
+  baseUnit         String
+  conversionFactor Float                 @default(1)
+  purchasePrice    Float                 @default(0)
+  costPerBaseUnit  Float
+  supplier         String?
+  recipes          IngredientRecipe[]
+  stockIns         StockInIngredient[]
+  stockOuts        StockOut[]
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+}
+
+model IngredientRecipe {
+  id           String     @id @default(cuid())
+  productId    String
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  unitId       String?
+  unit         Unit?      @relation(fields: [unitId], references: [id])
+  createdAt    DateTime   @default(now())
+}
+
+// ============ AREA & TABLE ============
+
+model Area {
+  id              String           @id @default(cuid())
+  name            String
+  type            String
+  sortOrder       Int              @default(0)
+  tables          Table[]
+  karPricings     KaraokePricing[]
+  printerAreas    PrinterArea[]
+  serviceCharges  ServiceCharge[]
+  createdAt       DateTime         @default(now())
+}
+
+model Table {
+  id               String          @id @default(cuid())
+  name             String
+  areaId           String
+  area             Area            @relation(fields: [areaId], references: [id])
+  capacity         Int             @default(4)
+  positionX        Int             @default(0)
+  positionY        Int             @default(0)
+  isKaraoke        Boolean         @default(false)
+  karaokePricingId String?
+  karaokePricing   KaraokePricing? @relation(fields: [karaokePricingId], references: [id])
+  orders           Order[]
+  createdAt        DateTime        @default(now())
+}
+
+// ============ KARAOKE TIMING ============
+
+model KaraokePricing {
+  id           String   @id @default(cuid())
+  name         String
+  areaId       String
+  area         Area     @relation(fields: [areaId], references: [id])
+  startTime    String
+  endTime      String
+  pricePerHour Float
+  minHours     Int      @default(1)
+  dayType      String   @default("ALL")
+  timeUnit     String   @default("HOUR")
+  tables       Table[]
+  createdAt    DateTime @default(now())
+}
+
+// ============ PRINTER ============
+
+model Printer {
+  id             String          @id @default(cuid())
+  name           String
+  type           String
+  ipAddress      String
+  port           Int             @default(9100)
+  paperWidth     Int             @default(80)
+  printMode      String          @default("SERVER") // SERVER | CLIENT
+  areas          PrinterArea[]
+  printTemplates PrintTemplate[]
+  printJobs      PrintJob[]
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+}
+
+model PrinterArea {
+  printerId String
+  printer   Printer @relation(fields: [printerId], references: [id])
+  areaId    String
+  area      Area    @relation(fields: [areaId], references: [id])
+  @@id([printerId, areaId])
+}
+
+// ============ PRINT TEMPLATE ============
+
+model PrintTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  printerId String
+  printer   Printer  @relation(fields: [printerId], references: [id])
+  width     Int      @default(80)
+  config    String
+  isDefault Boolean  @default(false)
+  printJobs  PrintJob[]
+  createdAt DateTime @default(now())
+}
+
+// ============ PRINT JOB (Lịch sử in) ============
+
+model PrintJob {
+  id          String        @id @default(cuid())
+  sequence    Int           // Số thứ tự trong ngày (1, 2, 3...)
+  type        String        // ORDER | TEMP_BILL | BILL
+  status      String        @default("SUCCESS") // SUCCESS | FAILED
+  orderId     String?
+  order       Order?        @relation(fields: [orderId], references: [id])
+  printerId   String
+  printer     Printer       @relation(fields: [printerId], references: [id])
+  templateId  String?
+  template    PrintTemplate? @relation(fields: [templateId], references: [id])
+  content     String        // Nội dung đã render gửi tới máy in
+  error       String?       // Lỗi nếu status=FAILED
+  userId      String?
+  user        User?         @relation("UserPrintJob", fields: [userId], references: [id])
+  createdAt   DateTime      @default(now())
+}
+
+// ============ SHIFT ============
+
+model Shift {
+  id            String            @id @default(cuid())
+  name          String
+  startTime     String
+  endTime       String
+  assignments   ShiftAssignment[]
+  cashRegisters CashRegister[]
+  createdAt     DateTime          @default(now())
+}
+
+model ShiftAssignment {
+  id        String   @id @default(cuid())
+  shiftId   String
+  shift     Shift    @relation(fields: [shiftId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  date      DateTime
+  createdAt DateTime @default(now())
+}
+
+// ============ ORDER ============
+
+model Order {
+  id                String            @id @default(cuid())
+  orderNumber       Int
+  orderNumberSuffix String?                            // "1", "2" cho order tách
+  tableId           String
+  table             Table             @relation(fields: [tableId], references: [id])
+  status            String            @default("OPEN")   // OPEN | SENT | PAID | CANCELLED | MERGED | SPLIT
+  type              String            @default("NORMAL")  // NORMAL | COMP (tặng)
+  guestCount        Int               @default(1)
+  note              String?
+  parentOrderId     String?                              // Ref đến order gốc khi merge/split/tách
+  mergedFrom        String?                              // JSON: [orderId1, orderId2] khi gộp
+  splitFrom         String?                              // orderId gốc khi bị tách ra
+  openedAt          DateTime          @default(now())
+  closedAt        DateTime?
+  karaokeStart    DateTime?
+  karaokeEnd      DateTime?
+  karaokePricingId String?
+  karaokeTotal    Float             @default(0)
+  subtotal        Float             @default(0)
+  vatAmount       Float             @default(0)
+  exciseTaxAmount Float             @default(0)
+  discountAmount  Float             @default(0)
+  serviceCharge   Float             @default(0)
+  totalAmount     Float             @default(0)
+  userId          String?
+  user            User?             @relation("UserOrder", fields: [userId], references: [id])
+  items           OrderItem[]
+  payments        Payment[]
+  karaokeSessions KaraokeSession[]
+  printJobs       PrintJob[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model OrderItem {
+  id          String              @id @default(cuid())
+  orderId     String
+  order       Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product             @relation(fields: [productId], references: [id])
+  quantity    Int                 @default(1)
+  unitPrice   Float
+  status      String              @default("PENDING")
+  note        String?
+  cancelledBy String?
+  cancelledAt DateTime?
+  toppings    OrderItemTopping[]
+  sortOrder   Int                 @default(0)
+  createdAt   DateTime            @default(now())
+}
+
+model OrderItemTopping {
+  id          String    @id @default(cuid())
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  toppingId   String
+  topping     Topping   @relation(fields: [toppingId], references: [id])
+  price       Float     @default(0)
+  createdAt   DateTime  @default(now())
+}
+
+// ============ KARAOKE SESSION ============
+
+model KaraokeSession {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id])
+  pricingName  String
+  startTime    DateTime
+  endTime      DateTime?
+  totalMinutes Int
+  totalPrice   Float
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+// ============ PAYMENT ============
+
+model Payment {
+  id        String    @id @default(cuid())
+  orderId   String
+  order     Order     @relation(fields: [orderId], references: [id])
+  method    String
+  amount    Float
+  reference String?
+  status    String    @default("PENDING")
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model PaymentMethod {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+// ============ DISCOUNT / PROMOTION ============
+
+model Discount {
+  id             String             @id @default(cuid())
+  name           String
+  type           String
+  value          Float
+  scope          String
+  isActive       Boolean            @default(true)
+  startDate      DateTime?
+  endDate        DateTime?
+  happyHourStart String?
+  happyHourEnd   String?
+  dayOfWeek      String?
+  minOrderValue  Float?
+  categoryIds    String?            // JSON array: ["catId1","catId2"]
+  createdAt      DateTime           @default(now())
+}
+
+// ============ SERVICE CHARGE ============
+
+model ServiceCharge {
+  id             String    @id @default(cuid())
+  name           String
+  type           String
+  value          Float
+  scope          String
+  applyCondition String?   // ALL_DAYS | DATE_RANGE | HOLIDAY | MIN_ORDER | GUEST_COUNT
+  areaId         String?
+  area           Area?     @relation(fields: [areaId], references: [id])
+  categoryIds    String?   // JSON array: ["catId1","catId2"]
+  isActive       Boolean   @default(true)
+  startDate      DateTime?
+  endDate        DateTime?
+  minOrderValue  Float?
+  minGuestCount  Int?
+  createdAt      DateTime  @default(now())
+}
+
+// ============ STOCK / INVENTORY ============
+
+model StockIn {
+  id          String              @id @default(cuid())
+  code        String              @unique
+  supplier    String?
+  supplierId  String?
+  totalAmount Float
+  note        String?
+  userId      String
+  user        User                @relation("UserStockIn", fields: [userId], references: [id])
+  items       StockInIngredient[]
+  createdAt   DateTime            @default(now())
+}
+
+model StockInIngredient {
+  id           String     @id @default(cuid())
+  stockInId    String
+  stockIn      StockIn    @relation(fields: [stockInId], references: [id])
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  unitPrice    Float
+  totalPrice   Float
+  expiryDate   DateTime?
+  createdAt    DateTime   @default(now())
+}
+
+model StockOut {
+  id           String     @id @default(cuid())
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  reason       String
+  referenceId  String?
+  userId       String?
+  user         User?      @relation("UserStockOut", fields: [userId], references: [id])
+  note         String?
+  createdAt    DateTime   @default(now())
+}
+
+// ============ CASH FLOW ============
+
+model CashFlowCategory {
+  id        String     @id @default(cuid())
+  name      String
+  type      String
+  sortOrder Int        @default(0)
+  flows     CashFlow[]
+  createdAt DateTime   @default(now())
+}
+
+model CashFlow {
+  id          String                @id @default(cuid())
+  type        String
+  categoryId  String
+  category    CashFlowCategory      @relation(fields: [categoryId], references: [id])
+  amount      Float
+  description String?
+  referenceId String?
+  stockInId   String?
+  userId      String?
+  user        User?                @relation("UserCashFlow", fields: [userId], references: [id])
+  createdAt   DateTime              @default(now())
+}
+
+// ============ CASH REGISTER (Quỹ tiền mặt) ============
+
+model CashRegister {
+  id              String             @id @default(cuid())
+  shiftId         String?
+  shift           Shift?             @relation(fields: [shiftId], references: [id])
+  userId          String
+  user            User               @relation("UserCashRegister", fields: [userId], references: [id])
+  openingBalance  Float              @default(0)
+  openingAt       DateTime           @default(now())
+  closingBalance  Float?
+  expectedBalance Float?
+  discrepancy     Float?
+  closedBy        String?
+  closedAt        DateTime?
+  status          String             @default("OPEN")
+  transactions    PettyTransaction[]
+  createdAt       DateTime           @default(now())
+}
+
+model PettyTransaction {
+  id              String        @id @default(cuid())
+  cashRegisterId  String
+  cashRegister    CashRegister  @relation(fields: [cashRegisterId], references: [id])
+  type            String
+  category        String
+  amount          Float
+  description     String?
+  userId          String
+  createdAt       DateTime      @default(now())
+}
+
+// ============ SUPPLIERS ============
+
+model Supplier {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  contact     String?
+  phone       String?
+  email       String?
+  address     String?
+  note        String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ============ SYSTEM MODULES CONFIG ============
+
+model SystemModule {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  enabled   Boolean   @default(false)
+  config    String?
+  updatedAt DateTime  @updatedAt
+}
+
+// ============ HOLIDAYS ============
+
+model Holiday {
+  id        String   @id @default(cuid())
+  name      String
+  date      DateTime @unique
+  recurring Boolean  @default(true)  // lặp lại hàng năm
+  createdAt DateTime @default(now())
+}
+
+// ============ AUDIT LOGS ============
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  username  String?
+  action    String   // CREATE | UPDATE | DELETE
+  entity    String   // Product | Discount | ServiceCharge | GeneralConfig | ...
+  entityId  String?
+  changes   String?  // JSON: {"field": {"old":"x","new":"y"}}
+  ip        String?
+  createdAt DateTime @default(now())
+}
+
+model LoginLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  username  String
+  ip        String?
+  userAgent String?
+  success   Boolean  @default(true)
+  reason    String?  // lý do fail
+  createdAt DateTime @default(now())
+}
+
+model OrderLog {
+  id        String   @id @default(cuid())
+  orderId   String
+  orderNumber Int?
+  userId    String?
+  username  String?
+  action    String   // OPEN | ADD_ITEM | REMOVE_ITEM | SEND | PAID | CANCEL | MERGE | SPLIT | DISCOUNT | EDIT
+  detail    String?  // JSON mô tả chi tiết
+  createdAt DateTime @default(now())
+}

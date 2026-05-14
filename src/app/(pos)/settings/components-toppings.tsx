@@ -1,0 +1,244 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Plus, Pencil, Trash2, Layers } from "lucide-react";
+import { toast } from "sonner";
+import { useI18n } from "@/i18n/context";
+
+type Group = { id: string; name: string; type: string; toppings: Topping[]; _count: { toppings: number } };
+type Topping = { id: string; name: string; price: number; toppingGroupId: string };
+type ActionFn = (...args: any[]) => Promise<any>;
+type Cat = { id: string; name: string };
+type ProductInfo = { id: string; name: string; categoryId: string; category?: { name: string } | null; toppingGroups?: { toppingGroup: { id: string } }[] };
+
+export function ToppingsManager({
+  groups, createGroup, updateGroup, deleteGroup, createTopping, updateTopping, deleteTopping,
+  categories, products, linkToppingGroup, unlinkToppingGroup,
+}: {
+  groups: Group[]; createGroup: ActionFn; updateGroup: ActionFn; deleteGroup: ActionFn;
+  createTopping: ActionFn; updateTopping: ActionFn; deleteTopping: ActionFn;
+  categories: Cat[]; products: ProductInfo[];
+  linkToppingGroup: ActionFn; unlinkToppingGroup: ActionFn;
+}) {
+  const { t } = useI18n();
+  const [pending, start] = useTransition();
+  const [openGroup, setOpenGroup] = useState(false);
+  const [openTopping, setOpenTopping] = useState(false);
+  const [editGroup, setEditGroup] = useState<Group | null>(null);
+  const [editTopping, setEditTopping] = useState<Topping | null>(null);
+  const [gForm, setGForm] = useState({ name: "", type: "SINGLE" });
+  const [tForm, setTForm] = useState({ name: "", price: "0", toppingGroupId: "" });
+
+  function doAct(fn: ActionFn, ...args: any[]) {
+    start(async () => { try { await fn(...args); toast.success(t.common.success); setOpenGroup(false); setOpenTopping(false); } catch { toast.error(t.common.error); } });
+  }
+
+  const typeLabel: Record<string, string> = { SINGLE: "Chọn 1", MULTIPLE: "Nhiều", REQUIRED: "Bắt buộc" };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => { setEditGroup(null); setGForm({ name: "", type: "SINGLE" }); setOpenGroup(true); }}>
+          <Plus className="h-4 w-4 mr-1" /> {t.settings.add}
+        </Button>
+      </div>
+      {groups.length === 0 && <p className="text-center text-muted-foreground py-8">{t.common.noData}</p>}
+      {groups.map(g => (
+        <Card key={g.id}>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-base">{g.name}</CardTitle>
+                <Badge variant="secondary">{typeLabel[g.type] || g.type}</Badge>
+                <span className="text-xs text-muted-foreground">{g._count.toppings} option</span>
+              </div>
+              <div className="flex gap-1">
+                <Button variant="ghost" size="icon" onClick={() => { setEditGroup(g); setGForm({ name: g.name, type: g.type }); setOpenGroup(true); }}><Pencil className="h-3 w-3" /></Button>
+                <Button variant="ghost" size="icon" onClick={() => doAct(deleteGroup, g.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {g.toppings.map(t => (
+                <div key={t.id} className="flex items-center gap-1 border rounded-md px-3 py-1.5 text-sm">
+                  <span>{t.name}</span>
+                  {t.price > 0 && <span className="text-muted-foreground text-xs">+{t.price.toLocaleString()}đ</span>}
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditTopping(t); setTForm({ name: t.name, price: t.price.toString(), toppingGroupId: t.toppingGroupId }); setOpenTopping(true); }}><Pencil className="h-2.5 w-2.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => doAct(deleteTopping, t.id)}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>
+                </div>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => { setEditTopping(null); setTForm({ name: "", price: "0", toppingGroupId: g.id }); setOpenTopping(true); }}>
+              <Plus className="h-3 w-3 mr-1" /> {t.settings.add}
+            </Button>
+
+            {/* Linked products list */}
+            <LinkedProductsSection
+              groupId={g.id}
+              products={products}
+              categories={categories}
+              onLink={linkToppingGroup}
+              onUnlink={unlinkToppingGroup}
+              pending={pending}
+              start={start}
+            />
+          </CardContent>
+        </Card>
+      ))}
+
+      <Dialog open={openGroup} onOpenChange={setOpenGroup}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editGroup ? t.settings.edit : t.settings.add}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>{t.settings.name}</Label><Input value={gForm.name} onChange={e => setGForm(f => ({ ...f, name: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>{t.settings.type}</Label>
+              <Select value={gForm.type} onValueChange={v => setGForm(f => ({ ...f, type: v ?? "" }))}>
+                <SelectTrigger><SelectValue placeholder={t.settings.type}>{gForm.type === "SINGLE" ? "Chọn 1" : gForm.type === "MULTIPLE" ? "Nhiều" : gForm.type === "REQUIRED" ? "Bắt buộc" : ""}</SelectValue></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SINGLE">Chọn 1 (Single)</SelectItem>
+                  <SelectItem value="MULTIPLE">Nhiều (Multiple)</SelectItem>
+                  <SelectItem value="REQUIRED">Bắt buộc (Required)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button disabled={pending} onClick={() => doAct(editGroup ? updateGroup : createGroup, editGroup?.id, editGroup ? gForm : gForm)}>{pending ? t.common.saving : t.common.save}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openTopping} onOpenChange={setOpenTopping}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{editTopping ? t.settings.edit : t.settings.add}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>{t.settings.name}</Label><Input value={tForm.name} onChange={e => setTForm(f => ({ ...f, name: e.target.value }))} /></div>
+            <div className="space-y-1"><Label>Giá thêm (₫, 0 = miễn phí)</Label><Input type="number" value={tForm.price} onChange={e => setTForm(f => ({ ...f, price: e.target.value }))} /></div>
+          </div>
+          <DialogFooter>
+            <Button disabled={pending} onClick={() => {
+              const data = { name: tForm.name, price: parseFloat(tForm.price) || 0 };
+              if (editTopping) doAct(updateTopping, editTopping.id, data);
+              else doAct(createTopping, { ...data, toppingGroupId: tForm.toppingGroupId, sortOrder: 0 });
+            }}>{pending ? t.common.saving : t.common.save}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function LinkedProductsSection({
+  groupId, products, categories, onLink, onUnlink, pending, start
+}: {
+  groupId: string;
+  products: ProductInfo[];
+  categories: Cat[];
+  onLink: ActionFn;
+  onUnlink: ActionFn;
+  pending: boolean;
+  start: (fn: () => Promise<void>) => void;
+}) {
+  const { t } = useI18n();
+  const [showPicker, setShowPicker] = useState(false);
+  const [catFilter, setCatFilter] = useState("");
+
+  const linked = products.filter(p => p.toppingGroups?.some(tg => tg.toppingGroup.id === groupId));
+  const available = products.filter(p => !p.toppingGroups?.some(tg => tg.toppingGroup.id === groupId));
+  const filteredAvailable = catFilter ? available.filter(p => p.categoryId === catFilter) : available;
+
+  const linkedByCat: Record<string, ProductInfo[]> = {};
+  linked.forEach(p => {
+    const catName = p.category?.name || "Khác";
+    if (!linkedByCat[catName]) linkedByCat[catName] = [];
+    linkedByCat[catName].push(p);
+  });
+
+  return (
+    <div className="mt-3 border-t pt-3">
+      <div className="flex items-center justify-between mb-2">
+        <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Áp dụng cho ({linked.length} món)
+        </Label>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+          onClick={() => setShowPicker(!showPicker)}
+        >
+          <Plus className="h-3 w-3 mr-1" />
+          {showPicker ? "Đóng" : "Gán thêm món"}
+        </Button>
+      </div>
+
+      {linked.length === 0 ? (
+        <p className="text-xs text-gray-400 italic">{t.common.noData}</p>
+      ) : (
+        <div className="space-y-1.5">
+          {Object.entries(linkedByCat).map(([catName, prods]) => (
+            <div key={catName} className="flex items-start gap-2">
+              <Badge variant="outline" className="text-[10px] shrink-0 mt-0.5">{catName}</Badge>
+              <div className="flex flex-wrap gap-1">
+                {prods.map(p => (
+                  <span key={p.id} className="inline-flex items-center gap-1 text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded-md pl-2 pr-1 py-0.5">
+                    {p.name}
+                    <button
+                      className="ml-0.5 hover:bg-red-100 rounded p-0.5 text-amber-400 hover:text-red-500"
+                      onClick={() => start(async () => { await onUnlink(p.id, groupId); })}
+                    >
+                      <Trash2 className="h-2.5 w-2.5" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showPicker && (
+        <div className="mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+          <div className="flex gap-2">
+            <Select value={catFilter} onValueChange={v => setCatFilter(v === "all" ? "" : v ?? "")}>
+              <SelectTrigger className="h-9 text-xs rounded-lg">
+                <SelectValue placeholder="Tất cả loại món">{catFilter ? categories.find(c => c.id === catFilter)?.name : "Tất cả loại món"}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả loại món</SelectItem>
+                {categories.map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {filteredAvailable.length === 0 ? (
+            <p className="text-xs text-gray-400 py-2">Tất cả món trong loại này đã được gán</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+              {filteredAvailable.map(p => (
+                <button
+                  key={p.id}
+                  className="inline-flex items-center gap-1 text-[11px] bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50 rounded-md px-2.5 py-1 text-gray-600 hover:text-amber-700 transition-colors"
+                  onClick={() => start(async () => { await onLink(p.id, groupId); })}
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  {p.name}
+                  {p.category && <span className="text-gray-400 text-[10px]">({p.category.name})</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

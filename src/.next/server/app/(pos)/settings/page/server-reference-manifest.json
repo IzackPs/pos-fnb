@@ -1,0 +1,1001 @@
+{
+  "node": {
+    "0006d45664b803fd2f2a5b69c5692c67510e5dd26d": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getCategories",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getCategories",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "0013fbd7dbfed4910cd5e4ecdc8377873b586c1c2b": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getAreas",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getAreas",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "0014e0d723468458c37f4f74383175143ac144735a": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getServiceCharges",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getServiceCharges",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "001d5da8464e3d16920c13cd64da4d294afb86d5c6": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getUnits",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getUnits",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "002a7717cb0bc058f96eb389ebbdf57931b4e442b9": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getExciseTaxes",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getExciseTaxes",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "002df5397e6057d2372c1b851b0e12d5ce9b482666": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getPrinters",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getPrinters",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "003bb481663d17024ae73973c93d67587b443479d3": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getPrinters_list",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getPrinters_list",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "003f01e62cf4e03c045e4621cbbab9618cfa1293ad": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getProducts",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getProducts",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "0040668e25b7a1bad93c8de0f9d4699becd95cc197": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getPaymentMethods",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getPaymentMethods",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00546c38f7d6da109514b33aff8fe9a7340404cd40": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getRoles",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getRoles",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "005d74ab7c6894b9212d004d2e026545ffad058f44": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getIngredients",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getIngredients",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "006c6fbddb21f9fe05d9601bbb8a92716c76e2ab88": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getAreas_list",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getAreas_list",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "008dbedf5747dacc1d71d6fb69649ef90bebdd740d": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getHolidays",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getHolidays",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00b18e292fe9ff62f2c2111d4da2da6d8d63288e14": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getUsers",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getUsers",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00b6d12d5c877aa115cb78b7701b21d9140c4e35e1": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getVats",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getVats",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00be306204a2aa5f847e9974808022d1929fa4440c": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getDiscounts",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getDiscounts",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00c40f80077de531f657dd54cfaa70f1368666c387": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getShifts",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getShifts",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00e9d9dd93df6bc3c1a72a1d5716ca1a2688dc410c": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getKaraokePricings",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getKaraokePricings",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00f1d0db5bda24e18e287c803b25452cfebeba43a1": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getPrintTemplates",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getPrintTemplates",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00f2d641cee3a5b1d6a119fbef57768d600edae269": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getToppingGroups",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getToppingGroups",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00f2f0501368f6c528a7aae5590567121393809f8f": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getGeneralConfig",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getGeneralConfig",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "00f8ceb03a2db1555ebd8e63a6139b5125b67a633d": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getSystemModules",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getSystemModules",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "400d52838e40f7703d319fda03eee6c3240f58b857": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createKaraokePricing",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createKaraokePricing",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40128681f5b8f366c956f798384d5f55fc99199766": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createDiscount",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createDiscount",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "402955952e8b290e0cd10c3dd3f8b96943156c5035": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteArea",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteArea",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "4037473fb1ba1fc8acd946a44182ee3836e187568b": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deletePaymentMethod",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deletePaymentMethod",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40397321d71b87dc52c737766aca1525fd6741c149": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteHoliday",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteHoliday",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "404223db8db6b52a82640b7b06368709e4045e9b49": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteUnit",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteUnit",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "404798c935d75ea716d622690a358259fc70fe7b95": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createToppingGroup",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createToppingGroup",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "404c2fb9025998364220494ad74c94ca2bc0f12adb": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createRole",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createRole",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "404f5a07df2dea2d4295961e2e4b49e2a8594cc8bd": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "getProductToppingGroups",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "getProductToppingGroups",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "4059f07b815b6395eff82805a32de2b9186fce1cba": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createUser",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createUser",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40623787c6a89038e3fd3346ce015d14b2afbf6239": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteCategory",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteCategory",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40667b4849264c91b074286da523f643f472e329ce": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createArea",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createArea",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40684f61f64cc752ec1a26fa5b59697ca5d8537bed": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deletePrinter",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deletePrinter",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "406f2c4077b4f85b2f6bf4120a42954393998f2d80": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createPrintTemplate",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createPrintTemplate",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "406fc3956679823726ba0ac5b51d86e58cc1f359bd": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteKaraokePricing",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteKaraokePricing",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "407477b16bd0e8c5fa766206a996cab49ac5808aa0": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createTopping",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createTopping",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "407e099244a4515ce65da66bebd200c0d98099860f": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createHoliday",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createHoliday",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "409572de8b4dd321e67976218b0b73457fb20ca6ae": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteDiscount",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteDiscount",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "4096a5e4f46cc71cb6868256c0570c51db6097f027": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteTopping",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteTopping",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "4099b7251d6123af40a4e2b6dd12004916c3f70cb6": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteToppingGroup",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteToppingGroup",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "409a9a12e1a6d8f6f9178f88987e10f8ca66f3dab0": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteRole",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteRole",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40a77f1da09914f61e1ef78bf87296b79cfe2f542f": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createTable",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createTable",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40b44047ea543968fe0d5093144337f6664807116c": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createServiceCharge",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createServiceCharge",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40b61c7ec6fb6528e88454dc7769811a5b896abf19": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteShift",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteShift",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40b8ff5bb353ef144114c3d3f3212bea7a328f1f83": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createPrinter",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createPrinter",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40c2bae46dc7b771c945a59ab9f0c24c111847ef56": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteServiceCharge",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteServiceCharge",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40c3f998a9f10fafe638b20233486fe795c6ff66b0": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createIngredient",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createIngredient",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40c4f2dfa459dd1d398260e912fc9677f7d1c5814f": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createUnit",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createUnit",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40c57f034b1f9b0304673a4a4c9b8baff674e7e70b": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createCategory",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createCategory",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40c729c1f7213a4b1855fd935956b2e39f83249c03": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteProduct",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteProduct",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40cfda1b63892fdab28422e498ca4f995fbb4d0e1b": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteUser",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteUser",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40dab597dacac10fee5073b09cca229d14a27c367a": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateGeneralConfig",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateGeneralConfig",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40dd0980b86151343ddb97a7bc5321b8e9e49846cb": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteIngredient",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteIngredient",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40df63b59be7d692b665a52b020d54a19ba9eabc96": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createPaymentMethod",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createPaymentMethod",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40e38968bd0abc757a68229dada212bcd0f467a06e": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createShift",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createShift",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40e66997952a930952ca2c51edbcc1b8d883a4939d": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deleteTable",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deleteTable",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40e6800d144181322bbbb81b240beb6935e272454b": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "deletePrintTemplate",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "deletePrintTemplate",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "40eb387a39a2d84ce08570f8f8fbae317795df0b2b": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "createProduct",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "createProduct",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "600ebbb9dee20d7da73d434f9ac871c92e7c51b63a": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateShift",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateShift",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60208dcc3a93cb6a746edbdb4be211ce04568f2785": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateUser",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateUser",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "6021e03cbeb86783c586f4d38a817272a7d2e8b510": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateTopping",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateTopping",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "603dd3464b410805a299267543cb0634d07ec45f46": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updatePrinter",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updatePrinter",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "604b983cead882ed3d1e3943d5f30246823580a7c0": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateHoliday",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateHoliday",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60539f344c103d6116c0fe83f07ced60b18d45d045": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "unlinkProductToppingGroup",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "unlinkProductToppingGroup",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "6060e1d5bc129691122cc4378ed5b316dd0565798f": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updatePaymentMethod",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updatePaymentMethod",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "6071a92ee96ff2075731e096cf7c846175f929a356": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "upsertVat",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "upsertVat",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "607593925073448cb5d553bf9922afbdf64469406e": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateRole",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateRole",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "608ef3668c9bb3788af6b82202c079686b7bc18995": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateProduct",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateProduct",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "609dd41871321e93ccf74af7c251f59842019bcf36": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateUnit",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateUnit",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60a838dd1ae35edbe1159f428b50f992e48509ee06": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "toggleModule",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "toggleModule",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60accd4015ffce1393953d9cee002a1b4e3890aaaf": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "linkProductToppingGroup",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "linkProductToppingGroup",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60af9943736ab4479fdd4141d8c02ce81c289222d1": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updatePrintTemplate",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updatePrintTemplate",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60afe51c6718fe9a71dfefac9a897d96c5d95fb93e": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateCategory",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateCategory",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60b046674f0a7635ea1dcabaa09b7b1a486b6f86f6": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateToppingGroup",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateToppingGroup",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60b6947f21502ea481be2c5e92f55b17287a2431ff": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateDiscount",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateDiscount",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60bc9f892db7e657a1abf806411df90353b7cd72d4": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "upsertExciseTax",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "upsertExciseTax",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60bcf26d0727453c1d25235b544086293cd878e949": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateArea",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateArea",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60c2484b9f5cfc637bdb8e713d9b400c6a0540d55d": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateKaraokePricing",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateKaraokePricing",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60ce2713394c207fda96e5fe62041f8f7bff4c9b8a": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateTable",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateTable",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60d0a73ac2448cdc4fc1bae80e4c14f8d8c82fe3cf": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateIngredient",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateIngredient",
+      "filename": "src/server/settings/actions.ts"
+    },
+    "60d5a28caae6f13f0d2ea93057ddb2f3313c3c97cb": {
+      "workers": {
+        "app/(pos)/settings/page": {
+          "moduleId": 32000,
+          "async": true,
+          "exportedName": "updateServiceCharge",
+          "filename": "src/server/settings/actions.ts"
+        }
+      },
+      "exportedName": "updateServiceCharge",
+      "filename": "src/server/settings/actions.ts"
+    }
+  },
+  "edge": {}
+}

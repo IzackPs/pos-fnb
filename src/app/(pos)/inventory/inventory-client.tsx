@@ -1,0 +1,375 @@
+"use client";
+
+import { useState, useTransition, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getInventoryStatus, getStockIns, getStockOuts, createStockIn, getLowStockIngredients } from "@/server/inventory/actions";
+import { getLastStockInBySupplier } from "@/server/inventory/supplier-actions";
+import { getIngredients } from "@/server/settings/actions";
+import { toast } from "sonner";
+import { useI18n } from "@/i18n/context";
+import { Package, AlertTriangle, Plus, Trash2, X, FileText, RefreshCw, Store } from "lucide-react";
+
+type Ingredient = Awaited<ReturnType<typeof getInventoryStatus>>[0];
+type StockIn = Awaited<ReturnType<typeof getStockIns>>[0];
+type IngredientBasic = Awaited<ReturnType<typeof getIngredients>>[0];
+type Supplier = { id: string; name: string; contact: string | null; phone: string | null; email: string | null; address: string | null; note: string | null };
+
+type StockInItem = { ingredientId: string; ingredientName: string; quantity: string; unitPrice: string; purchaseUnit: string; baseUnit: string };
+
+function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
+
+export function InventoryClient({
+  ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers
+}: {
+  ingredients: Ingredient[]; stockIns: StockIn[]; stockOuts: any[]; lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>; allIngredients: IngredientBasic[]; suppliers: Supplier[];
+}) {
+  const { t } = useI18n();
+  const [pending, start] = useTransition();
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState<StockInItem[]>([]);
+  const [supplierId, setSupplierId] = useState("");
+  const [supplierName, setSupplierName] = useState("");
+  const [note, setNote] = useState("");
+  const [loadingItems, setLoadingItems] = useState(false);
+
+  // When supplier changes, auto-fill from last stock-in
+  useEffect(() => {
+    if (!supplierId) { setItems([]); return; }
+    const sup = suppliers.find(s => s.id === supplierId);
+    setSupplierName(sup?.name || "");
+
+    setLoadingItems(true);
+    getLastStockInBySupplier(supplierId).then(data => {
+      if (data.length > 0) {
+        setItems(data.map(d => ({
+          ingredientId: d.ingredientId,
+          ingredientName: d.ingredientName,
+          quantity: "",
+          unitPrice: String(d.unitPrice),
+          purchaseUnit: d.purchaseUnit,
+          baseUnit: d.baseUnit,
+        })));
+      } else {
+        setItems([]);
+      }
+    }).catch(() => setItems([])).finally(() => setLoadingItems(false));
+  }, [supplierId, suppliers]);
+
+  function addEmptyRow() {
+    setItems(p => [...p, { ingredientId: "", ingredientName: "", quantity: "", unitPrice: "", purchaseUnit: "", baseUnit: "" }]);
+  }
+
+  async function submit() {
+    start(async () => {
+      try {
+        await createStockIn({
+          supplier: supplierName || undefined,
+          supplierId: supplierId || undefined,
+          note: note || undefined,
+          userId: "admin",
+          items: items
+            .filter(i => i.ingredientId && parseFloat(i.quantity) > 0)
+            .map(i => ({ ingredientId: i.ingredientId, quantity: parseFloat(i.quantity), unitPrice: parseFloat(i.unitPrice) || 0 })),
+        });
+        toast.success(t.inventory.stockIn + "!");
+        setOpen(false);
+        setItems([]);
+        setSupplierId("");
+        setSupplierName("");
+        setNote("");
+      } catch { toast.error(t.common.error); }
+    });
+  }
+
+  return (
+    <div className="h-full overflow-y-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div><h2 className="text-2xl font-bold text-gray-900">{t.inventory.title}</h2><p className="text-sm text-gray-500 mt-1">Nhập kho, xuất kho, tồn kho nguyên liệu</p></div>
+        <button onClick={() => setOpen(true)} className="btn-pos-primary"><Plus className="h-4 w-4" /> {t.inventory.addStockIn}</button>
+      </div>
+
+      {lowStock.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+          <div><p className="font-semibold text-sm text-amber-800">{t.inventory.lowStock}</p>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">{lowStock.map(i => (
+              <span key={i.id} className="inline-flex text-xs bg-white border border-amber-200 text-amber-700 rounded-lg px-2.5 py-1 font-medium">{i.name} ({fmt(i.currentStock)} {i.baseUnit})</span>
+            ))}</div>
+          </div>
+        </div>
+      )}
+
+      <Tabs defaultValue="status">
+        <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-full">
+          <TabsTrigger value="status" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.inventory.stockStatus}</TabsTrigger>
+          <TabsTrigger value="in" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.inventory.stockIn}</TabsTrigger>
+          <TabsTrigger value="out" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.inventory.stockOut}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="status" className="mt-4">
+          <div className="section-amber overflow-hidden"><div className="overflow-x-auto">
+            <table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4 font-semibold">{t.settings.name}</th><th className="text-left p-4">{t.inventory.purchaseUnit}</th><th className="text-left p-4">{t.inventory.baseUnit}</th><th className="text-right p-4">{t.inventory.conversionFactor}</th><th className="text-right p-4">{t.inventory.currentStock}</th><th className="text-right p-4">{t.inventory.minStock}</th><th className="text-right p-4">{t.inventory.costPrice}</th></tr></thead>
+              <tbody>{ingredients.map(i => (
+                <tr key={i.id} className={`border-b border-gray-100 ${i.currentStock <= i.minStock && i.minStock > 0 ? "bg-amber-50" : ""}`}>
+                  <td className="p-4 font-semibold">{i.name}</td><td className="p-4 text-gray-500">{i.purchaseUnit}</td><td className="p-4 text-gray-500">{i.baseUnit}</td><td className="p-4 text-right text-gray-500">{fmt(i.conversionFactor)}</td>
+                  <td className={`p-4 text-right font-mono font-bold ${i.currentStock <= i.minStock && i.minStock > 0 ? "text-amber-600" : ""}`}>{fmt(i.currentStock)}</td>
+                  <td className="p-4 text-right text-gray-500">{fmt(i.minStock)}</td><td className="p-4 text-right font-mono">{fmt(i.costPerBaseUnit)}đ</td></tr>
+              ))}</tbody></table>
+            {ingredients.length === 0 && <p className="text-center text-gray-400 py-12">{t.settings.noData}</p>}
+          </div></div>
+        </TabsContent>
+        <TabsContent value="in" className="mt-4">
+          <div className="section-amber overflow-hidden"><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4">{t.inventory.code}</th><th className="text-left p-4">{t.inventory.date}</th><th className="text-left p-4">{t.inventory.supplier}</th><th className="text-center p-4">{t.inventory.items}</th><th className="text-right p-4">{t.inventory.totalAmount}</th><th className="text-left p-4">{t.inventory.staff}</th></tr></thead>
+            <tbody>{stockIns.map(si => (<tr key={si.id} className="border-b border-gray-100 hover:bg-amber-50/30"><td className="p-4 font-mono text-xs text-amber-700 font-semibold">{si.code}</td><td className="p-4 font-semibold">{new Date(si.createdAt).toLocaleDateString("vi-VN")}</td><td className="p-4">{si.supplier || "—"}</td><td className="p-4 text-center">{si.items.length} {t.inventory.items}</td><td className="p-4 text-right font-mono font-bold">{fmt(si.totalAmount)}đ</td><td className="p-4">{si.user.name}</td></tr>))}</tbody></table>
+            {stockIns.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} phiếu nhập</p>}</div>
+        </TabsContent>
+        <TabsContent value="out" className="mt-4">
+          <div className="section-amber overflow-hidden"><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4">{t.inventory.date}</th><th className="text-left p-4">{t.inventory.ingredient}</th><th className="text-right p-4">SL</th><th className="text-left p-4">{t.inventory.reason}</th><th className="text-left p-4">{t.inventory.staff}</th></tr></thead>
+            <tbody>{stockOuts.map(so => (<tr key={so.id} className="border-b border-gray-100"><td className="p-4 font-semibold">{new Date(so.createdAt).toLocaleDateString("vi-VN")}</td><td className="p-4">{so.ingredient?.name}</td><td className="p-4 text-right font-mono">{so.quantity}</td><td className="p-4"><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td><td className="p-4">{so.user?.name}</td></tr>))}</tbody></table>
+            {stockOuts.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} phiếu xuất</p>}</div>
+        </TabsContent>
+      </Tabs>
+
+      {open && <StockInPanel
+        items={items}
+        setItems={setItems}
+        supplierId={supplierId}
+        setSupplierId={setSupplierId}
+        note={note}
+        setNote={setNote}
+        pending={pending}
+        loadingItems={loadingItems}
+        suppliers={suppliers}
+        allIngredients={allIngredients}
+        onClose={() => setOpen(false)}
+        onSubmit={submit}
+        addEmptyRow={addEmptyRow}
+      />}
+    </div>
+  );
+}
+
+// ===== FULL-WIDTH SLIDE-OVER STOCK-IN PANEL =====
+function StockInPanel({
+  items, setItems, supplierId, setSupplierId, note, setNote, pending, loadingItems, suppliers, allIngredients, onClose, onSubmit, addEmptyRow
+}: {
+  items: StockInItem[];
+  setItems: React.Dispatch<React.SetStateAction<StockInItem[]>>;
+  supplierId: string;
+  setSupplierId: (v: string) => void;
+  note: string;
+  setNote: (v: string) => void;
+  pending: boolean;
+  loadingItems: boolean;
+  suppliers: Supplier[];
+  allIngredients: IngredientBasic[];
+  onClose: () => void;
+  onSubmit: () => void;
+  addEmptyRow: () => void;
+}) {
+  const { t } = useI18n();
+  const total = items.reduce((s, i) => s + (parseFloat(i.quantity) || 0) * (parseFloat(i.unitPrice) || 0), 0);
+
+  function removeRow(idx: number) {
+    setItems(p => p.filter((_, i) => i !== idx));
+  }
+
+  function updateItem(idx: number, field: keyof StockInItem, value: string) {
+    setItems(p => p.map((it, i) => i === idx ? { ...it, [field]: value } : it));
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/50" />
+      <div
+        className="relative ml-auto w-full max-w-6xl bg-white h-full overflow-hidden flex flex-col shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="shrink-0 flex items-center justify-between px-8 py-5 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <FileText className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">{t.inventory.stockIn}</h2>
+              <p className="text-sm text-gray-500">Chọn nhà cung cấp để tự động điền danh sách nguyên liệu</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Meta info */}
+        <div className="shrink-0 px-8 py-4 border-b border-gray-100 bg-white grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.supplier}</Label>
+            <Select value={supplierId} onValueChange={v => setSupplierId(v ?? "")}>
+              <SelectTrigger className="h-11 rounded-lg">
+                <SelectValue placeholder="— Chọn nhà cung cấp —">{suppliers.find(s => s.id === supplierId)?.name}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {suppliers.map(s => (
+                  <SelectItem key={s.id} value={s.id}>
+                    <span className="flex items-center gap-2">
+                      <Store className="h-3.5 w-3.5 text-gray-400" />
+                      {s.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {supplierId && (
+              <p className="text-xs text-amber-600 flex items-center gap-1 mt-1">
+                <RefreshCw className="h-3 w-3" />
+                Đã điền danh sách nguyên liệu từ lần nhập gần nhất
+              </p>
+            )}
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.note}</Label>
+            <Input className="h-11 rounded-lg" value={note} onChange={e => setNote(e.target.value)} placeholder={t.inventory.note + " phiếu nhập"} />
+          </div>
+        </div>
+
+        {/* Items table */}
+        <div className="flex-1 overflow-y-auto px-8 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <Label className="text-sm font-semibold text-gray-700">
+              Danh sách nguyên liệu nhập ({items.length} dòng)
+              {loadingItems && <span className="ml-2 text-amber-500 font-normal animate-pulse">{t.common.loading}</span>}
+            </Label>
+            <div className="flex gap-2">
+              <button onClick={addEmptyRow} className="h-9 px-3 text-xs rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
+                + Thêm dòng
+              </button>
+            </div>
+          </div>
+
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left p-3 pl-4 w-12 text-gray-400 text-xs">#</th>
+                  <th className="text-left p-3 font-semibold text-gray-600">{t.inventory.ingredient}</th>
+                  <th className="text-left p-3 w-24 text-gray-400 text-xs">{t.inventory.unit}</th>
+                  <th className="text-left p-3 w-36 font-semibold text-gray-600">{t.inventory.quantity}</th>
+                  <th className="text-left p-3 w-40 font-semibold text-gray-600">{t.inventory.unitPrice} (đ)</th>
+                  <th className="text-right p-3 w-36 font-semibold text-gray-600">{t.inventory.totalPrice}</th>
+                  <th className="text-center p-3 pr-4 w-16"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {items.map((item, idx) => {
+                  const qty = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.unitPrice) || 0;
+                  const lineTotal = qty * price;
+                  const ing = allIngredients.find(i => i.id === item.ingredientId);
+                  return (
+                    <tr key={idx} className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
+                      <td className="p-2 pl-4 text-gray-400 text-xs font-mono">{idx + 1}</td>
+                      <td className="p-2">
+                        <Select
+                          value={item.ingredientId}
+                          onValueChange={v => {
+                            const val = v ?? "";
+                            setItems(prev => prev.map((it, i) => {
+                              if (i !== idx) return it;
+                              const found = allIngredients.find(ing => ing.id === val);
+                              return { ...it, ingredientId: val, ingredientName: found?.name || "", purchaseUnit: found?.purchaseUnit || "", baseUnit: found?.baseUnit || "" };
+                            }));
+                          }}
+                        >
+                          <SelectTrigger className="h-10 rounded-lg border-gray-200">
+                            <SelectValue placeholder={`— ${t.inventory.ingredient} —`}>
+                              {item.ingredientName || `— ${t.inventory.ingredient} —`}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allIngredients.map(i => (
+                              <SelectItem key={i.id} value={i.id}>
+                                {i.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="p-2">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 text-xs font-medium">
+                          {item.purchaseUnit || item.baseUnit || "—"}
+                        </span>
+                      </td>
+                      <td className="p-2">
+                        <Input
+                          className="h-10 rounded-lg w-24 text-center tabular-nums"
+                          type="number" min="0" step="0.01" placeholder="SL"
+                          value={item.quantity}
+                          onChange={e => updateItem(idx, "quantity", e.target.value)}
+                        />
+                      </td>
+                      <td className="p-2">
+                        <Input
+                          className="h-10 rounded-lg w-32 text-right tabular-nums"
+                          type="number" min="0" step="100" placeholder="0"
+                          value={item.unitPrice}
+                          onChange={e => updateItem(idx, "unitPrice", e.target.value)}
+                        />
+                      </td>
+                      <td className="p-2 text-right font-mono font-bold text-gray-700">
+                        {lineTotal > 0 ? fmt(lineTotal) : "—"}
+                      </td>
+                      <td className="p-2 pr-4 text-center">
+                        <button onClick={() => removeRow(idx)} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {items.length === 0 && (
+              <div className="py-16 text-center text-gray-400">
+                <Package className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                <p>Chọn nhà cung cấp để tự động điền nguyên liệu</p>
+                <button onClick={addEmptyRow} className="text-amber-500 text-sm mt-1 hover:underline">Hoặc thêm dòng thủ công</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <div>
+              <span className="text-xs text-gray-500">Tổng số dòng:</span>
+              <span className="ml-1 font-bold text-gray-700">{items.length}</span>
+            </div>
+            <div>
+              <span className="text-xs text-gray-500">Tổng số lượng:</span>
+              <span className="ml-1 font-bold text-gray-700">{fmt(items.reduce((s, i) => s + (parseFloat(i.quantity) || 0), 0))}</span>
+            </div>
+            <div className="text-lg">
+              <span className="text-sm text-gray-500">{t.inventory.totalAmount}:</span>
+              <span className="ml-2 font-bold text-amber-600">{fmt(total)}đ</span>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={onClose} className="h-11 px-6 rounded-lg border border-gray-200 font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors">{t.inventory.cancel}</button>
+            <button
+              onClick={onSubmit}
+              disabled={pending || items.length === 0 || !items.some(i => i.ingredientId && parseFloat(i.quantity) > 0)}
+              className="h-11 px-8 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors"
+            >
+              {pending ? t.common.saving : t.inventory.save}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

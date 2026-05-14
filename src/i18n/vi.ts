@@ -124,8 +124,6 @@ export const vi = {
     "allCategories": "Tất cả loại món",
     "assignMoreItems": "Gán thêm món",
     "closePicker": "Đóng",
-    "noProductsInCategory": "Không có món nào trong loại này",
-    "noProducts": "Chưa có món nào",
     "updated": "Đã cập nhật!",
     "added": "Đã thêm!",
     "taxIncluded": "Đã bao gồm thuế",

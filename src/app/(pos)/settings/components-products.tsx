@@ -167,9 +167,7 @@ export function ProductsManager({
             !catFilter ? "bg-amber-500 text-white shadow-sm" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
           }`}
           onClick={() => setCatFilter("")}
-        >
-          Tất cả
-        </button>
+        >{t.inventory.all}        </button>
         {categories.map(c => (
           <button
             key={c.id}
@@ -236,7 +234,7 @@ export function ProductsManager({
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-4">
           <Button variant="outline" size="sm" className="h-8 text-xs" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-            <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Trước
+            <ChevronLeft className="h-3.5 w-3.5 mr-1" /> {t.inventory.previous}
           </Button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
             <button key={p} className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${p === page ? "bg-amber-500 text-white" : "text-gray-500 hover:bg-gray-100"}`} onClick={() => setPage(p)}>{p}</button>
@@ -323,7 +321,7 @@ export function ProductsManager({
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{item.ingredient.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {item.quantity} {item.unit?.name || item.ingredient.baseUnit} / {t.inventory.perServing} {recipeProductName.toLowerCase().includes("phần") ? t.inventory.portion : t.inventory.dish}
+                        {item.quantity} {item.unit?.name || item.ingredient.baseUnit} / {t.inventory.perServing} {recipeProductName.toLowerCase().includes(t.inventory.portion.slice(0,2)) ? t.inventory.portion : t.inventory.dish}
                       </div>
                     </div>
                     <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => handleRemoveRecipe(item.id)}>
@@ -458,7 +456,7 @@ function ToppingLinkDialog({
                       <Badge variant={isLinked ? "default" : "secondary"} className="text-[10px]">
                         {typeLabel[g.type] || g.type}
                       </Badge>
-                      {isLinked && <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Đã gán</Badge>}
+                      {isLinked && <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">{t.inventory.linkedToppingBadge}</Badge>}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {g.toppings.map(t => (

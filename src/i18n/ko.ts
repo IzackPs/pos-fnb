@@ -612,7 +612,7 @@ export const ko = {
     "serverDesc": "서버에서 직접 TCP 전송",
     "clientMode": "디바이스",
     "clientDesc": "휴대폰/태블릿에서 인쇄",
-    "clientHint": "💡 서버는 인쇄 내용만 구성합니다. 디바이스가 WiFi/Bluetooth/USB로 프린터에 직접 연결합니다.",
+    "clientHint": "💡 서버는 인쇄 내용만 생성합니다. 기기가 WiFi/Bluetooth/USB로 프린터에 연결합니다.",
     "wifiBt": "WiFi/Bluetooth 인쇄"
   },
   "modules": {

@@ -612,7 +612,7 @@ export const en = {
     "serverDesc": "Server sends TCP directly",
     "clientMode": "Device",
     "clientDesc": "Print from phone / tablet",
-    "clientHint": "💡 Server only builds print content. The device connects to the printer via WiFi/Bluetooth/USB.",
+    "clientHint": "💡 Server only builds print content. Device connects to printer via WiFi/Bluetooth/USB.",
     "wifiBt": "Print via WiFi/Bluetooth"
   },
   "modules": {

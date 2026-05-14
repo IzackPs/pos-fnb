@@ -612,7 +612,7 @@ export const zh = {
     "serverDesc": "服务器直接通过 TCP 发送",
     "clientMode": "设备",
     "clientDesc": "从手机/平板打印",
-    "clientHint": "💡 服务器仅构建打印内容。设备将通过 WiFi/蓝牙/USB 自行连接打印机。",
+    "clientHint": "💡 服务器仅构建打印内容。设备通过WiFi/蓝牙/USB连接打印机。",
     "wifiBt": "通过 WiFi/蓝牙打印"
   },
   "modules": {

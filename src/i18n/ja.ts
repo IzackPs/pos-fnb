@@ -612,7 +612,7 @@ export const ja = {
     "serverDesc": "サーバーからTCPで直接送信",
     "clientMode": "デバイス",
     "clientDesc": "スマートフォン/タブレットから印刷",
-    "clientHint": "💡 サーバーは印刷内容の生成のみ行います。デバイスがWiFi/Bluetooth/USB経由でプリンターに接続します。",
+    "clientHint": "💡 サーバーは印刷内容を生成するだけです。デバイスがWiFi/Bluetooth/USBでプリンターに接続します。",
     "wifiBt": "WiFi/Bluetooth印刷"
   },
   "modules": {

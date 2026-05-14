@@ -13,8 +13,8 @@ export default async function ShiftsPage() {
         data={shifts}
         columns={[
           { key: "name", label: t.settings.name, type: "text" as const },
-          { key: "startTime", label: t.common.startTime || "Giờ bắt đầu", type: "text" as const },
-          { key: "endTime", label: t.common.endTime || "Giờ kết thúc", type: "text" as const },
+          { key: "startTime", label: t.common.startTime || "", type: "text" as const },
+          { key: "endTime", label: t.common.endTime || "", type: "text" as const },
         ]}
         onCreate={createShift}
         onUpdate={updateShift}

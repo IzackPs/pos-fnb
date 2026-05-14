@@ -51,7 +51,7 @@ export function ModulesClient({ modules: initialModules }: { modules: Module[] }
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base capitalize">{locale === "vi" ? ({
-                    kds: "KDS", inventory: "Kho", orders: "Bán hàng", reports: "Báo cáo", karaoke: "Karaoke",
+                    kds: "KDS", inventory: t.nav.inventory, orders: t.nav.sales, reports: t.nav.reports, karaoke: t.settings.karaoke,
                   } as Record<string, string>)[m.name] || m.name : m.name}</CardTitle>
                   <CardDescription>{descriptions[m.name] || t.modules.noDesc}</CardDescription>
                 </div>

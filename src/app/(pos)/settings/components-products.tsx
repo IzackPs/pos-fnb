@@ -109,12 +109,12 @@ export function ProductsManager({
 
   async function handleAddRecipe() {
     if (!recipeForm.ingredientId || parseFloat(recipeForm.quantity) <= 0) {
-      toast.error("Chọn nguyên liệu và số lượng!");
+      toast.error(t.settings.ingredientRequired);
       return;
     }
     start(async () => {
       await addRecipeItem({ productId: recipeProductId, ingredientId: recipeForm.ingredientId, quantity: parseFloat(recipeForm.quantity) });
-      toast.success("Đã thêm định lượng!");
+      toast.success(t.settings.recipeAdded);
       // Refresh recipe list
       const items = await getProductRecipe(recipeProductId);
       setRecipeItems(items.map(i => ({ id: i.id, ingredient: i.ingredient, quantity: i.quantity, unit: i.unit })));
@@ -125,7 +125,7 @@ export function ProductsManager({
   async function handleRemoveRecipe(recipeId: string) {
     start(async () => {
       await removeRecipeItem(recipeId);
-      toast.success("Đã xóa định lượng!");
+      toast.success(t.settings.recipeDeleted);
       const items = await getProductRecipe(recipeProductId);
       setRecipeItems(items.map(i => ({ id: i.id, ingredient: i.ingredient, quantity: i.quantity, unit: i.unit })));
     });
@@ -137,7 +137,7 @@ export function ProductsManager({
         const data = { name: form.name, slug: form.slug, price: parseFloat(form.price), costPrice: parseFloat(form.costPrice ?? "0"), categoryId: form.categoryId, vatId: form.vatId, exciseTaxId: form.exciseTaxId || undefined, unitId: form.unitId, sortOrder: parseInt(form.sortOrder) };
         if (editing) await updateProduct(editing.id, data);
         else await createProduct(data);
-        toast.success(editing ? "Đã cập nhật!" : "Đã thêm!");
+        toast.success(editing ? t.settings.updated : t.settings.added);
         setOpen(false);
       } catch { toast.error(t.common.error); }
     });
@@ -263,13 +263,13 @@ export function ProductsManager({
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1"><Label>{t.settings.categories}</Label>
                 <Select value={form.categoryId} onValueChange={v => setForm(f => ({ ...f, categoryId: v ?? "" }))}>
-                  <SelectTrigger><SelectValue placeholder="Chọn loại món">{categories.find(c => c.id === form.categoryId)?.name}</SelectValue></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t.settings.sidebar.categories}>{categories.find(c => c.id === form.categoryId)?.name}</SelectValue></SelectTrigger>
                   <SelectContent>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1"><Label>{t.settings.units}</Label>
                 <Select value={form.unitId} onValueChange={v => setForm(f => ({ ...f, unitId: v ?? "" }))}>
-                  <SelectTrigger><SelectValue placeholder="Chọn đơn vị">{units.find(u => u.id === form.unitId)?.name}</SelectValue></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t.settings.units}>{units.find(u => u.id === form.unitId)?.name}</SelectValue></SelectTrigger>
                   <SelectContent>{units.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
@@ -283,9 +283,9 @@ export function ProductsManager({
               </div>
               <div className="space-y-1"><Label>Thuế TTĐB (tùy chọn)</Label>
                 <Select value={form.exciseTaxId} onValueChange={v => setForm(f => ({ ...f, exciseTaxId: v ?? "" }))}>
-                  <SelectTrigger><SelectValue placeholder="Không áp dụng">{form.exciseTaxId && form.exciseTaxId !== "none" ? exciseTaxes.find(e => e.id === form.exciseTaxId)?.name : "Không áp dụng"}</SelectValue></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t.inventory.notApplied}>{form.exciseTaxId && form.exciseTaxId !== "none" ? exciseTaxes.find(e => e.id === form.exciseTaxId)?.name : t.inventory.notApplied}</SelectValue></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Không áp dụng</SelectItem>
+                    <SelectItem value="none">{t.inventory.notApplied}</SelectItem>
                     {exciseTaxes.map(e => <SelectItem key={e.id} value={e.id}>{e.name} ({(e.rate * 100).toFixed(0)}%)</SelectItem>)}</SelectContent>
                 </Select>
               </div>
@@ -340,7 +340,7 @@ export function ProductsManager({
               <div className="flex gap-2">
                 <div className="flex-1">
                   <Select value={recipeForm.ingredientId} onValueChange={v => setRecipeForm(f => ({ ...f, ingredientId: v ?? "" }))}>
-                    <SelectTrigger><SelectValue placeholder="Chọn nguyên liệu">{allIngredients.find(i => i.id === recipeForm.ingredientId)?.name}</SelectValue></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t.settings.selectIngredient}>{allIngredients.find(i => i.id === recipeForm.ingredientId)?.name}</SelectValue></SelectTrigger>
                     <SelectContent>
                       {allIngredients.filter(i => !recipeItems.some(r => r.ingredient.id === i.id)).map(i => (
                         <SelectItem key={i.id} value={i.id}>
@@ -369,7 +369,7 @@ export function ProductsManager({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRecipeOpen(false)}>Đóng</Button>
+            <Button variant="outline" onClick={() => setRecipeOpen(false)}>{t.common.close}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -384,13 +384,13 @@ export function ProductsManager({
           onLink={async (groupId) => {
             start(async () => {
               await linkToppingGroup(toppingProductId, groupId);
-              toast.success("Đã gán topping!");
+              toast.success(t.settings.recipeAssigned);
             });
           }}
           onUnlink={async (groupId) => {
             start(async () => {
               await unlinkToppingGroup(toppingProductId, groupId);
-              toast.success("Đã gỡ topping!");
+              toast.success(t.settings.recipeUnassigned);
             });
           }}
           onClose={() => setToppingOpen(false)}
@@ -413,6 +413,7 @@ function ToppingLinkDialog({
 }) {
   const [pending, start] = useTransition();
   const [localSelected, setLocalSelected] = useState(new Set(selectedGroupIds));
+  const { t } = useI18n();
 
   if (!productId) return null;
 
@@ -426,7 +427,7 @@ function ToppingLinkDialog({
     }
   }
 
-  const typeLabel: Record<string, string> = { SINGLE: "Chọn 1", MULTIPLE: "Nhiều", REQUIRED: "Bắt buộc" };
+  const typeLabel: Record<string, string> = { SINGLE: t.inventory.typeSingle, MULTIPLE: t.inventory.typeMultiple, REQUIRED: t.inventory.typeRequired };
 
   return (
     <Dialog open onOpenChange={() => onClose()}>
@@ -478,7 +479,7 @@ function ToppingLinkDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Đóng</Button>
+          <Button variant="outline" onClick={onClose}>{t.common.close}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -41,15 +41,15 @@ export function HolidaysUI({ holidays, createHoliday, updateHoliday, deleteHolid
     start(async () => {
       try {
         const payload = { name, date, recurring };
-        if (editingId) { await updateHoliday(editingId, payload); toast.success("Đã cập nhật!"); }
-        else { await createHoliday(payload); toast.success("Đã thêm!"); }
+        if (editingId) { await updateHoliday(editingId, payload); toast.success(t.settings.updated); }
+        else { await createHoliday(payload); toast.success(t.settings.added); }
         setOpen(false); reset(); setEditingId(null);
-      } catch { toast.error("Lỗi!"); }
+      } catch { toast.error(t.common.error); }
     });
   }
 
   function del(id: string) {
-    start(async () => { try { await deleteHoliday(id); toast.success("Đã xóa!"); } catch { toast.error("Lỗi!"); } });
+    start(async () => { try { await deleteHoliday(id); toast.success(t.settings.deleted); } catch { toast.error("Lỗi!"); } });
   }
 
   const today = new Date();
@@ -69,7 +69,7 @@ export function HolidaysUI({ holidays, createHoliday, updateHoliday, deleteHolid
       <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm">
         <p className="font-semibold text-amber-800 mb-1">📅 Cách dùng:</p>
         <p className="text-xs text-amber-700">
-          Khi phụ thu có điều kiện <b>"Ngày lễ / Tết"</b>, hệ thống sẽ kiểm tra ngày hiện tại có nằm trong danh sách này không.
+          {t.settings.holidayPageDesc}
           Nếu có → tự động áp dụng phụ thu vào hóa đơn.
         </p>
       </div>

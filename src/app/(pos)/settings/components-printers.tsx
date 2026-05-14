@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useI18n } from "@/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +21,7 @@ type ActionFn = (...args: any[]) => Promise<any>;
 export function PrintersManager({
   printers, areas, createPrinter, updatePrinter, deletePrinter
 }: { printers: P[]; areas: A[]; createPrinter: ActionFn; updatePrinter: ActionFn; deletePrinter: ActionFn }) {
+  const { t } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<P | null>(null);
@@ -37,7 +39,7 @@ export function PrintersManager({
 
   function doAct(fn: ActionFn, ...args: any[]) {
     start(async () => {
-      try { await fn(...args); toast.success("Thành công!"); setOpen(false); } catch { toast.error("Lỗi!"); }
+      try { await fn(...args); toast.success(t.common.success); setOpen(false); } catch { toast.error(t.common.error); }
     });
   }
 
@@ -47,7 +49,7 @@ export function PrintersManager({
     else doAct(createPrinter, data);
   }
 
-  const typeLabel: Record<string, string> = { KITCHEN: "Bếp", BAR: "Bar", BILL: "Bill" };
+  const typeLabel = t.settings.printerType as Record<string, string>;
 
   return (
     <div className="space-y-4">
@@ -96,7 +98,7 @@ export function PrintersManager({
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="!sm:max-w-lg !max-w-[95vw]">
-          <DialogHeader><DialogTitle>{editing ? "Sửa máy in" : "Thêm máy in"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? t.settings.editPrinter : t.settings.addPrinter}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1"><Label>Tên máy in</Label><Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
             <div className="grid grid-cols-2 gap-3">
@@ -176,7 +178,7 @@ export function PrintersManager({
               </div>
             </div>
           </div>
-          <DialogFooter><Button disabled={pending} onClick={save}>{pending ? "Đang lưu..." : "Lưu"}</Button></DialogFooter>
+          <DialogFooter><Button disabled={pending} onClick={save}>{pending ? t.common.saving : t.common.save}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

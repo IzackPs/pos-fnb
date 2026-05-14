@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "POS F&B",
-  description: "Hệ thống quản lý bán hàng F&B",
+  description: "POS F&B",
   manifest: "/manifest.json",
 };
 

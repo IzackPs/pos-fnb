@@ -40,7 +40,7 @@ export function ToppingsManager({
     start(async () => { try { await fn(...args); toast.success(t.common.success); setOpenGroup(false); setOpenTopping(false); } catch { toast.error(t.common.error); } });
   }
 
-  const typeLabel: Record<string, string> = { SINGLE: "Chọn 1", MULTIPLE: "Nhiều", REQUIRED: "Bắt buộc" };
+  const typeLabel: Record<string, string> = { SINGLE: t.inventory.typeSingle, MULTIPLE: t.inventory.typeMultiple, REQUIRED: t.inventory.typeRequired };
 
   return (
     <div className="space-y-4">
@@ -102,11 +102,11 @@ export function ToppingsManager({
             <div className="space-y-1"><Label>{t.settings.name}</Label><Input value={gForm.name} onChange={e => setGForm(f => ({ ...f, name: e.target.value }))} /></div>
             <div className="space-y-1"><Label>{t.settings.type}</Label>
               <Select value={gForm.type} onValueChange={v => setGForm(f => ({ ...f, type: v ?? "" }))}>
-                <SelectTrigger><SelectValue placeholder={t.settings.type}>{gForm.type === "SINGLE" ? "Chọn 1" : gForm.type === "MULTIPLE" ? "Nhiều" : gForm.type === "REQUIRED" ? "Bắt buộc" : ""}</SelectValue></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t.settings.type}>{gForm.type === "SINGLE" ? t.inventory.typeSingle : gForm.type === "MULTIPLE" ? t.inventory.typeMultiple : gForm.type === "REQUIRED" ? t.inventory.typeRequired : ""}</SelectValue></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SINGLE">Chọn 1 (Single)</SelectItem>
-                  <SelectItem value="MULTIPLE">Nhiều (Multiple)</SelectItem>
-                  <SelectItem value="REQUIRED">Bắt buộc (Required)</SelectItem>
+                  <SelectItem value="SINGLE">{t.inventory.typeSingle} (Single)</SelectItem>
+                  <SelectItem value="MULTIPLE">{t.inventory.typeMultiple} (Multiple)</SelectItem>
+                  <SelectItem value="REQUIRED">{t.inventory.typeRequired} (Required)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -158,7 +158,7 @@ function LinkedProductsSection({
 
   const linkedByCat: Record<string, ProductInfo[]> = {};
   linked.forEach(p => {
-    const catName = p.category?.name || "Khác";
+    const catName = p.category?.name || t.inventory.other;
     if (!linkedByCat[catName]) linkedByCat[catName] = [];
     linkedByCat[catName].push(p);
   });
@@ -176,7 +176,7 @@ function LinkedProductsSection({
           onClick={() => setShowPicker(!showPicker)}
         >
           <Plus className="h-3 w-3 mr-1" />
-          {showPicker ? "Đóng" : "Gán thêm món"}
+          {showPicker ? t.inventory.closePicker : t.inventory.assignMoreItems}
         </Button>
       </div>
 
@@ -210,7 +210,7 @@ function LinkedProductsSection({
           <div className="flex gap-2">
             <Select value={catFilter} onValueChange={v => setCatFilter(v === "all" ? "" : v ?? "")}>
               <SelectTrigger className="h-9 text-xs rounded-lg">
-                <SelectValue placeholder="Tất cả loại món">{catFilter ? categories.find(c => c.id === catFilter)?.name : "Tất cả loại món"}</SelectValue>
+                <SelectValue placeholder={t.inventory.allCategories}>{catFilter ? categories.find(c => c.id === catFilter)?.name : t.inventory.allCategories}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả loại món</SelectItem>

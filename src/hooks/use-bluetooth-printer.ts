@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/i18n/context";
 import { useState, useEffect, useCallback, useRef } from "react";
 
 // Web Bluetooth types for browser-only
@@ -19,7 +20,8 @@ interface BluetoothPrinterState {
 let cachedDevice: BTDevice | null = null;
 
 export function useBluetoothPrinter() {
-  const [state, setState] = useState<BluetoothPrinterState>({
+    const { t } = useI18n();
+const [state, setState] = useState<BluetoothPrinterState>({
     device: cachedDevice,
     connected: false,
     connecting: false,
@@ -51,7 +53,7 @@ export function useBluetoothPrinter() {
   const connect = useCallback(async () => {
     const nav = navigator as any;
     if (!nav.bluetooth) {
-      setState(s => ({ ...s, error: "Trình duyệt không hỗ trợ Bluetooth. Dùng Chrome hoặc Edge." }));
+      setState(s => ({ ...s, error: t.settings.bluetoothNotSupported }));
       return;
     }
 
@@ -92,7 +94,7 @@ export function useBluetoothPrinter() {
         try { await reconnect(cachedDevice); } catch {}
       }
       if (!charRef.current) {
-        setState(s => ({ ...s, error: "Chưa kết nối máy in. Bấm nút Bluetooth trước." }));
+        setState(s => ({ ...s, error: t.settings.bluetoothNotConnected }));
         return false;
       }
     }
@@ -106,7 +108,7 @@ export function useBluetoothPrinter() {
       }
       return true;
     } catch (e: any) {
-      setState(s => ({ ...s, error: "Lỗi in: " + e.message }));
+      setState(s => ({ ...s, error: t.settings.bluetoothPrintError + e.message }));
       return false;
     }
   }, []);

@@ -14,7 +14,7 @@ export default async function CategoriesPage() {
         columns={[
           { key: "name", label: t.settings.name, type: "text" as const },
           { key: "slug", label: "Slug", type: "text" as const },
-          { key: "sortOrder", label: "Thứ tự", type: "number" as const },
+          { key: "sortOrder", label: t.settings.sortOrder, type: "number" as const },
         ]}
         onCreate={createCategory}
         onUpdate={updateCategory}

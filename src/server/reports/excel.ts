@@ -3,7 +3,7 @@
 import ExcelJS from "exceljs";
 
 function fmt(n: number) {
-  return new Intl.NumberFormat("vi-VN").format(n || 0);
+  return new Intl.NumberFormat("en-US").format(n || 0);
 }
 
 // ─── Style helpers ───
@@ -81,24 +81,24 @@ function colWidths(ws: ExcelJS.Worksheet, widths: number[]) {
 
 export async function exportInvoicesToExcel(invoices: any[], summary: any, dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Hóa đơn");
+  const ws = wb.addWorksheet("Invoices");
 
   const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
   const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
-  addTitle(ws, "BÁO CÁO HÓA ĐƠN");
-  addSubtitle(ws, `Từ ${d1} đến ${d2}`);
+  addTitle(ws, "INVOICE REPORT");
+  addSubtitle(ws, `From ${d1} to ${d2}`);
 
   // Summary
   let row = 4;
-  addSection(ws, "📊 TỔNG QUAN", row, 1); row++;
+  addSection(ws, "📊 OVERVIEW", row, 1); row++;
   const summaryData = [
-    ["Tổng số hóa đơn:", summary.totalOrders],
-    ["Tổng doanh thu:", `${fmt(summary.totalRevenue)}đ`],
-    ["Tổng tiền hàng:", `${fmt(summary.totalSubtotal)}đ`],
-    ["Tổng thuế VAT:", `${fmt(summary.totalVat)}đ`],
-    ["Tổng thuế TTĐB:", `${fmt(summary.totalExciseTax)}đ`],
-    ["Tổng giảm giá:", `${fmt(summary.totalDiscount)}đ`],
-    ["Tổng phí dịch vụ:", `${fmt(summary.totalServiceCharge)}đ`],
+    ["Total Orders:", summary.totalOrders],
+    ["Total Revenue:", `${fmt(summary.totalRevenue)}đ`],
+    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}đ`],
+    ["Total VAT:", `${fmt(summary.totalVat)}đ`],
+    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}đ`],
+    ["Total Discount:", `${fmt(summary.totalDiscount)}đ`],
+    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}đ`],
   ];
   summaryData.forEach(([k, v]) => {
     ws.getCell(row, 1).value = k;
@@ -110,8 +110,8 @@ export async function exportInvoicesToExcel(invoices: any[], summary: any, dateF
   row++;
 
   // Table
-  addSection(ws, "📋 DANH SÁCH HÓA ĐƠN", row, 1); row++;
-  const headers = ["Số HĐ", "Bàn", "Số khách", "Loại", "Nhân viên", "Tiền hàng", "VAT", "TTĐB", "Giảm giá", "Phí DV", "Tổng tiền", "PT Thanh toán", "Món", "Ngày đóng"];
+  addSection(ws, "📋 INVOICE LIST", row, 1); row++;
+  const headers = ["Order #", "Table", "Guests", "Type", "Staff", "Subtotal", "VAT", "Excise", "Discount", "Service", "Total", "Pay Method", "Items", "Closed Date"];
   addHeaderRow(ws, headers, row); row++;
 
   invoices.forEach((inv) => {
@@ -119,7 +119,7 @@ export async function exportInvoicesToExcel(invoices: any[], summary: any, dateF
       `${inv.orderNumber}${inv.orderNumberSuffix ? "-" + inv.orderNumberSuffix : ""}`,
       inv.table,
       inv.guestCount,
-      inv.type === "COMP" ? "Tặng" : "Thường",
+      inv.type === "COMP" ? "Complimentary" : "Normal",
       inv.staff,
       inv.subtotal,
       inv.vatAmount,
@@ -142,26 +142,26 @@ export async function exportInvoicesToExcel(invoices: any[], summary: any, dateF
 
 export async function exportSoldItemsToExcel(items: any[], byProduct: any[], summary: any, dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Hàng đã bán");
+  const ws = wb.addWorksheet("Sold Items");
 
   const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
   const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
-  addTitle(ws, "BÁO CÁO HÀNG ĐÃ BÁN");
-  addSubtitle(ws, `Từ ${d1} đến ${d2}`);
+  addTitle(ws, "SOLD ITEMS REPORT");
+  addSubtitle(ws, `From ${d1} to ${d2}`);
 
   let row = 4;
-  addSection(ws, "📊 TỔNG QUAN", row, 1); row++;
+  addSection(ws, "📊 OVERVIEW", row, 1); row++;
   const summaryData = [
-    ["Tổng số dòng bán:", summary.totalItems],
-    ["Tổng số lượng:", summary.totalQuantity],
-    ["Tổng doanh thu:", `${fmt(summary.totalRevenue)}đ`],
+    ["Total Lines Sold:", summary.totalItems],
+    ["Total Quantity:", summary.totalQuantity],
+    ["Total Revenue:", `${fmt(summary.totalRevenue)}đ`],
   ];
   summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
 
   // By product
-  addSection(ws, "📋 THEO SẢN PHẨM", row, 1); row++;
-  const prodHeaders = ["#", "Sản phẩm", "Danh mục", "SL đã bán", "Doanh thu"];
+  addSection(ws, "📋 BY PRODUCT", row, 1); row++;
+  const prodHeaders = ["#", "Product", "Category", "Qty Sold", "Revenue"];
   addHeaderRow(ws, prodHeaders, row); row++;
   byProduct.forEach((p, i) => {
     addDataRow(ws, [i + 1, p.name, p.category, p.quantity, p.revenue], row);
@@ -170,8 +170,8 @@ export async function exportSoldItemsToExcel(items: any[], byProduct: any[], sum
   row++;
 
   // Detail
-  addSection(ws, "📋 CHI TIẾT TỪNG DÒNG", row, 1); row++;
-  const detailHeaders = ["Món", "Danh mục", "SL", "Đơn giá", "Topping", "Thành tiền", "Hóa đơn", "Bàn", "Ngày bán"];
+  addSection(ws, "📋 ITEM DETAIL", row, 1); row++;
+  const detailHeaders = ["Item", "Category", "Qty", "Unit Price", "Topping", "Amount", "Order", "Table", "Date"];
   addHeaderRow(ws, detailHeaders, row); row++;
   items.forEach((it) => {
     addDataRow(ws, [
@@ -190,33 +190,33 @@ export async function exportSoldItemsToExcel(items: any[], byProduct: any[], sum
 
 export async function exportRevenueToExcel(days: any[], summary: any, expensesByCategory: any, incomeByCategory: any, dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Doanh thu");
+  const ws = wb.addWorksheet("Revenue");
 
   const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
   const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
-  addTitle(ws, "BÁO CÁO DOANH THU");
-  addSubtitle(ws, `Từ ${d1} đến ${d2}`);
+  addTitle(ws, "REVENUE REPORT");
+  addSubtitle(ws, `From ${d1} to ${d2}`);
 
   let row = 4;
-  addSection(ws, "📊 TỔNG QUAN", row, 1); row++;
+  addSection(ws, "📊 OVERVIEW", row, 1); row++;
   const summaryData = [
-    ["Tổng số hóa đơn:", summary.totalOrders],
-    ["Tổng doanh thu bán hàng:", `${fmt(summary.totalRevenue)}đ`],
-    ["Tổng tiền hàng:", `${fmt(summary.totalSubtotal)}đ`],
-    ["Tổng thuế VAT:", `${fmt(summary.totalVat)}đ`],
-    ["Tổng thuế TTĐB:", `${fmt(summary.totalExciseTax)}đ`],
-    ["Tổng giảm giá:", `${fmt(summary.totalDiscount)}đ`],
-    ["Tổng phí dịch vụ:", `${fmt(summary.totalServiceCharge)}đ`],
-    ["Tổng thu nhập khác:", `${fmt(summary.totalOtherIncome)}đ`],
-    ["Tổng chi phí:", `${fmt(summary.totalExpenses)}đ`],
-    ["Lợi nhuận:", `${fmt(summary.profit)}đ`],
+    ["Total Orders:", summary.totalOrders],
+    ["Total Sales Revenue:", `${fmt(summary.totalRevenue)}đ`],
+    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}đ`],
+    ["Total VAT:", `${fmt(summary.totalVat)}đ`],
+    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}đ`],
+    ["Total Discount:", `${fmt(summary.totalDiscount)}đ`],
+    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}đ`],
+    ["Total Other Income:", `${fmt(summary.totalOtherIncome)}đ`],
+    ["Total Expenses:", `${fmt(summary.totalExpenses)}đ`],
+    ["Profit:", `${fmt(summary.profit)}đ`],
   ];
   summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
 
   // Payment methods
   if (Object.keys(summary.byPaymentMethod).length > 0) {
-    addSection(ws, "💳 THEO PHƯƠNG THỨC THANH TOÁN", row, 1); row++;
+    addSection(ws, "💳 BY PAYMENT METHOD", row, 1); row++;
     Object.entries(summary.byPaymentMethod).forEach(([method, amount]) => {
       ws.getCell(row, 1).value = method;
       ws.getCell(row, 1).font = { bold: true, size: 10 };
@@ -228,8 +228,8 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
   }
 
   // Daily breakdown
-  addSection(ws, "📅 DOANH THU THEO NGÀY", row, 1); row++;
-  const dayHeaders = ["Ngày", "Số HĐ", "Tiền hàng", "VAT", "TTĐB", "Giảm giá", "Phí DV", "Doanh thu", "Thường", "Tặng"];
+  addSection(ws, "📅 DAILY REVENUE", row, 1); row++;
+  const dayHeaders = ["Ngày", "Số HĐ", "Tiền hàng", "VAT", "TTĐB", "Giảm giá", "Phí DV", "Doanh thu", "Normal", "Complimentary"];
   addHeaderRow(ws, dayHeaders, row); row++;
   days.forEach((d) => {
     addDataRow(ws, [
@@ -242,7 +242,7 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
 
   // Expenses
   if (Object.keys(expensesByCategory).length > 0) {
-    addSection(ws, "📉 CHI PHÍ THEO DANH MỤC", row, 1); row++;
+    addSection(ws, "📉 EXPENSE BY CATEGORY", row, 1); row++;
     Object.entries(expensesByCategory).forEach(([cat, amount]) => {
       ws.getCell(row, 1).value = cat;
       ws.getCell(row, 1).font = { bold: true, size: 10 };
@@ -260,34 +260,34 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
 
 export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[], stockInSummary: any, stockOutSummary: any, ingredients: any[], dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Nguyên liệu");
+  const ws = wb.addWorksheet("Ingredients");
 
   const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
   const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
-  addTitle(ws, "BÁO CÁO NGUYÊN LIỆU");
-  addSubtitle(ws, `Từ ${d1} đến ${d2}`);
+  addTitle(ws, "INGREDIENT REPORT");
+  addSubtitle(ws, `From ${d1} to ${d2}`);
 
   let row = 4;
-  addSection(ws, "📊 TỔNG QUAN NHẬP KHO", row, 1); row++;
+  addSection(ws, "📊 STOCK IN OVERVIEW", row, 1); row++;
   const inSummary = [
-    ["Tổng phiếu nhập:", stockInSummary.totalStockIns],
-    ["Tổng số món nhập:", stockInSummary.totalItems],
-    ["Tổng tiền nhập:", `${fmt(stockInSummary.totalAmount)}đ`],
+    ["Total Stock Ins:", stockInSummary.totalStockIns],
+    ["Total Items In:", stockInSummary.totalItems],
+    ["Total Stock In Value:", `${fmt(stockInSummary.totalAmount)}đ`],
   ];
   inSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
 
-  addSection(ws, "📊 TỔNG QUAN XUẤT KHO", row, 1); row++;
+  addSection(ws, "📊 STOCK OUT OVERVIEW", row, 1); row++;
   const outSummary = [
-    ["Tổng phiếu xuất:", stockOutSummary.totalStockOuts],
-    ["Tổng số lượng xuất:", stockOutSummary.totalQuantity],
+    ["Total Stock Outs:", stockOutSummary.totalStockOuts],
+    ["Total Qty Out:", stockOutSummary.totalQuantity],
   ];
   outSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
 
   // Stock In table
-  addSection(ws, "📥 CHI TIẾT NHẬP KHO", row, 1); row++;
-  const inHeaders = ["Mã phiếu", "Ngày nhập", "NCC", "Nguyên liệu", "SL", "Đơn giá", "Thành tiền", "Người nhập"];
+  addSection(ws, "📥 STOCK IN DETAIL", row, 1); row++;
+  const inHeaders = ["Ref #", "Date In", "Supplier", "Ingredient", "Qty", "Unit Price", "Total", "Staff"];
   addHeaderRow(ws, inHeaders, row); row++;
   stockIns.forEach((si) => {
     si.items.forEach((item: any, idx: number) => {
@@ -305,15 +305,15 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
       row++;
     });
     if (si.items.length === 0) {
-      addDataRow(ws, [si.code, new Date(si.createdAt).toLocaleDateString("vi-VN"), si.supplier || "—", "(không có món)", 0, 0, 0, si.user?.name || "—"], row);
+      addDataRow(ws, [si.code, new Date(si.createdAt).toLocaleDateString("vi-VN"), si.supplier || "—", "(no items)", 0, 0, 0, si.user?.name || "—"], row);
       row++;
     }
   });
   row++;
 
   // Stock Out table
-  addSection(ws, "📤 CHI TIẾT XUẤT KHO", row, 1); row++;
-  const outHeaders = ["Ngày xuất", "Nguyên liệu", "Số lượng", "Lý do", "Người xuất", "Ghi chú"];
+  addSection(ws, "📤 STOCK OUT DETAIL", row, 1); row++;
+  const outHeaders = ["Date Out", "Ingredient", "Quantity", "Reason", "Staff", "Note"];
   addHeaderRow(ws, outHeaders, row); row++;
   stockOuts.forEach((so) => {
     addDataRow(ws, [
@@ -329,8 +329,8 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   row++;
 
   // Current stock status
-  addSection(ws, "📦 TỒN KHO HIỆN TẠI", row, 1); row++;
-  const invHeaders = ["Tên", "ĐV Nhập", "ĐV Cơ bản", "Hệ số", "Tồn kho", "Tối thiểu", "Giá vốn", "Giá trị tồn", "Dùng cho món"];
+  addSection(ws, "📦 CURRENT STOCK", row, 1); row++;
+  const invHeaders = ["Name", "Purchase Unit", "Base Unit", "Conv Factor", "Stock", "Min", "Cost", "Stock Value", "Used In"];
   addHeaderRow(ws, invHeaders, row); row++;
   ingredients.forEach((ing) => {
     addDataRow(ws, [
@@ -355,29 +355,29 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
 
 export async function exportWarehouseToExcel(ingredients: any[], summary: any, lowStock: any[], outOfStock: any[]) {
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("Tồn kho");
+  const ws = wb.addWorksheet("Warehouse");
 
-  addTitle(ws, "BÁO CÁO KHO");
-  addSubtitle(ws, `Cập nhật: ${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN")}`);
+  addTitle(ws, "WAREHOUSE REPORT");
+  addSubtitle(ws, `Updated: ${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN")}`);
 
   let row = 4;
-  addSection(ws, "📊 TỔNG QUAN KHO", row, 1); row++;
+  addSection(ws, "📊 WAREHOUSE OVERVIEW", row, 1); row++;
   const summaryData = [
-    ["Tổng số nguyên liệu:", summary.totalIngredients],
-    ["Tổng giá trị tồn kho:", `${fmt(summary.totalStockValue)}đ`],
-    ["Tổng số sản phẩm:", summary.totalProducts],
-    ["Tổng số danh mục:", summary.totalCategories],
-    ["Tổng số nhà cung cấp:", summary.totalSuppliers],
-    ["Nguyên liệu dưới định mức:", summary.lowStockCount],
-    ["Nguyên liệu hết hàng:", summary.outOfStockCount],
+    ["Total Ingredients:", summary.totalIngredients],
+    ["Total Stock Value:", `${fmt(summary.totalStockValue)}đ`],
+    ["Total Products:", summary.totalProducts],
+    ["Total Categories:", summary.totalCategories],
+    ["Total Suppliers:", summary.totalSuppliers],
+    ["Below Min Stock:", summary.lowStockCount],
+    ["Out of Stock:", summary.outOfStockCount],
   ];
   summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
 
   // Low stock alerts
   if (lowStock.length > 0) {
-    addSection(ws, "⚠️ NGUYÊN LIỆU DƯỚI ĐỊNH MỨC", row, 1); row++;
-    const lowHeaders = ["Tên", "Tồn", "Tối thiểu", "ĐV Cơ bản", "Nhà cung cấp"];
+    addSection(ws, "⚠️ LOW STOCK INGREDIENTS", row, 1); row++;
+    const lowHeaders = ["Name", "Stock", "Min", "Base Unit", "Supplier"];
     addHeaderRow(ws, lowHeaders, row); row++;
     lowStock.forEach((i) => {
       addDataRow(ws, [i.name, i.currentStock, i.minStock, i.baseUnit, i.supplier || "—"], row);
@@ -387,8 +387,8 @@ export async function exportWarehouseToExcel(ingredients: any[], summary: any, l
   }
 
   if (outOfStock.length > 0) {
-    addSection(ws, "🚫 NGUYÊN LIỆU HẾT HÀNG", row, 1); row++;
-    const outHeaders = ["Tên", "Tồn", "Tối thiểu", "ĐV Cơ bản", "Nhà cung cấp"];
+    addSection(ws, "🚫 OUT OF STOCK", row, 1); row++;
+    const outHeaders = ["Name", "Stock", "Min", "Base Unit", "Supplier"];
     addHeaderRow(ws, outHeaders, row); row++;
     outOfStock.forEach((i) => {
       addDataRow(ws, [i.name, i.currentStock, i.minStock, i.baseUnit, i.supplier || "—"], row);
@@ -398,8 +398,8 @@ export async function exportWarehouseToExcel(ingredients: any[], summary: any, l
   }
 
   // All ingredients
-  addSection(ws, "📦 TOÀN BỘ NGUYÊN LIỆU", row, 1); row++;
-  const invHeaders = ["Tên", "ĐV Nhập", "ĐV Cơ bản", "Hệ số QĐ", "Tồn kho", "Tối thiểu", "Giá vốn / ĐV cơ bản", "Giá trị tồn", "Dùng cho món", "Nhà cung cấp"];
+  addSection(ws, "📦 ALL INGREDIENTS", row, 1); row++;
+  const invHeaders = ["Name", "Purchase Unit", "Base Unit", "Conv Factor", "Stock", "Min", "Cost / Base Unit", "Stock Value", "Used In", "Supplier"];
   addHeaderRow(ws, invHeaders, row); row++;
   ingredients.forEach((ing) => {
     addDataRow(ws, [

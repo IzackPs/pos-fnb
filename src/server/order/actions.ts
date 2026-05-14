@@ -110,7 +110,7 @@ export async function getOrder(orderId: string) {
 
 export async function addItem(orderId: string, productId: string, quantity: number = 1, toppings?: { toppingId: string; price: number }[]) {
   const product = await db.product.findUnique({ where: { id: productId } });
-  if (!product) throw new Error("Sản phẩm không tồn tại");
+  if (!product) throw new Error("Product not found");
 
   const item = await db.orderItem.create({
     data: {
@@ -182,7 +182,7 @@ export async function mergeTables(orderIds: string[], targetTableId: string) {
   const targetOrder = await db.order.findFirst({
     where: { tableId: targetTableId, status: { in: ["OPEN", "SENT"] } },
   });
-  if (!targetOrder) throw new Error("Không tìm thấy order đích");
+  if (!targetOrder) throw new Error("Target order not found");
 
   const mergedIds: string[] = [];
   for (const orderId of orderIds) {
@@ -249,12 +249,12 @@ export async function splitItemsEvenly(orderId: string, itemIds: string[]) {
     where: { id: orderId },
     include: { table: { select: { areaId: true } } },
   });
-  if (!originalOrder) throw new Error("Order không tồn tại");
+  if (!originalOrder) throw new Error("Order not found");
 
   const emptyTable = await db.table.findFirst({
     where: { areaId: originalOrder.table.areaId, orders: { none: { status: { in: ["OPEN", "SENT"] } } } },
   });
-  if (!emptyTable) throw new Error("Không có bàn trống trong khu vực này");
+  if (!emptyTable) throw new Error("No empty tables in this area");
 
   const existingSplits = await db.order.count({
     where: { parentOrderId: orderId, status: "SPLIT" },
@@ -310,7 +310,7 @@ export async function printTempBill(orderId: string) {
 
 export async function checkoutOrder(orderId: string, payments: { method: string; amount: number; reference?: string }[], userId?: string) {
   const order = await getOrder(orderId);
-  if (!order) throw new Error("Order không tồn tại");
+  if (!order) throw new Error("Order not found");
 
   for (const p of payments) {
     await db.payment.create({
@@ -391,23 +391,23 @@ async function syncKaraokeTime(orderId: string) {
   if (diffMs < 0) return;
 
   // Time unit mapping
-  const unitLabel: Record<string, string> = { HOUR: "giờ", MINUTE: "phút", DAY: "ngày", MONTH: "tháng" };
+  const unitLabel: Record<string, string> = { HOUR: "hours", MINUTE: "minutes", DAY: "days", MONTH: "months" };
   const msPerUnit: Record<string, number> = { MINUTE: 60000, HOUR: 3600000, DAY: 86400000, MONTH: 2592000000 };
   const unitMs = msPerUnit[pricing.timeUnit] || msPerUnit.HOUR;
   const units = Math.max(1, Math.ceil(diffMs / unitMs));
 
-  // Ensure "Giờ Karaoke" category + product
+  // Ensure "Karaoke Time" category + product
   const karaokeCat = await db.category.upsert({
     where: { slug: "gio-karaoke" },
     update: {},
-    create: { name: "Giờ Karaoke", slug: "gio-karaoke", sortOrder: 99 },
+    create: { name: "Karaoke Time", slug: "gio-karaoke", sortOrder: 99 },
   });
   const unit = await db.unit.findFirst();
 
   const productSlug = `karaoke-${pricing.id}`;
   let timeProduct = await db.product.findFirst({ where: { slug: productSlug } });
   if (!timeProduct) {
-    const label = unitLabel[pricing.timeUnit] || "giờ";
+    const label = unitLabel[pricing.timeUnit] || "hours";
     const vat = await db.vat.findFirst({ orderBy: { rate: "asc" } });
     timeProduct = await db.product.create({
       data: {

@@ -33,7 +33,7 @@ interface BillCfg {
 const defaultBillCfg: BillCfg = {
   header: { showLogo: true, showAddress: true, showPhone: true, showTaxCode: false, showDateTime: true },
   body: { showTable: true, showGuestCount: true, showQuantity: true, showUnitPrice: true, showAmount: true, showTopping: true, showNote: false, showOrderNumber: true },
-  footer: { showSubtotal: true, showVat: true, showDiscount: true, showServiceCharge: true, showTotal: true, showPaymentMethod: true, showCashier: true, thankYou: "Cảm ơn quý khách!" },
+  footer: { showSubtotal: true, showVat: true, showDiscount: true, showServiceCharge: true, showTotal: true, showPaymentMethod: true, showCashier: true, thankYou: "Thank you!" },
 };
 
 function parseTplConfig(raw: string): { order: OrderCfg; bill: BillCfg } {

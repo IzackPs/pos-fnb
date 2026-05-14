@@ -89,7 +89,7 @@ export async function getDashboardStats() {
 
 function minutesAgo(date: Date) {
   const mins = Math.round((Date.now() - date.getTime()) / 60000);
-  if (mins < 1) return "Vừa xong";
+  if (mins < 1) return "Just now";
   if (mins < 60) return `${mins} phút`;
   return `${Math.floor(mins / 60)}h${mins % 60}m`;
 }

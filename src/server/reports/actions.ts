@@ -305,7 +305,7 @@ export async function getIngredientReport(mode: string, date?: string, startDate
     totalAmount: stockIns.reduce((s, si) => s + si.totalAmount, 0),
     totalItems: stockIns.reduce((s, si) => s + si.items.length, 0),
     bySupplier: stockIns.reduce((acc, si) => {
-      const key = si.supplier || "Không rõ";
+      const key = si.supplier || "Unknown";
       acc[key] = (acc[key] || 0) + si.totalAmount;
       return acc;
     }, {} as Record<string, number>),

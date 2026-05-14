@@ -183,7 +183,7 @@ export async function closeCashRegister(registerId: string, data: {
     where: { id: registerId },
     include: { transactions: true },
   });
-  if (!register) throw new Error("Không tìm thấy sổ quỹ");
+  if (!register) throw new Error("Cash register not found");
 
   // Calculate expected balance
   const pettyIncome = register.transactions.filter(t => t.type === "INCOME").reduce((s, t) => s + t.amount, 0);

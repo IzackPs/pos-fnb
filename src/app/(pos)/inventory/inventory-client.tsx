@@ -87,7 +87,7 @@ export function InventoryClient({
   return (
     <div className="h-full overflow-y-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div><h2 className="text-2xl font-bold text-gray-900">{t.inventory.title}</h2><p className="text-sm text-gray-500 mt-1">Nhập kho, xuất kho, tồn kho nguyên liệu</p></div>
+        <div><h2 className="text-2xl font-bold text-gray-900">{t.inventory.title}</h2><p className="text-sm text-gray-500 mt-1">{t.inventory.stockInSubtitle}</p></div>
         <button onClick={() => setOpen(true)} className="btn-pos-primary"><Plus className="h-4 w-4" /> {t.inventory.addStockIn}</button>
       </div>
 
@@ -124,12 +124,12 @@ export function InventoryClient({
         <TabsContent value="in" className="mt-4">
           <div className="section-amber overflow-hidden"><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4">{t.inventory.code}</th><th className="text-left p-4">{t.inventory.date}</th><th className="text-left p-4">{t.inventory.supplier}</th><th className="text-center p-4">{t.inventory.items}</th><th className="text-right p-4">{t.inventory.totalAmount}</th><th className="text-left p-4">{t.inventory.staff}</th></tr></thead>
             <tbody>{stockIns.map(si => (<tr key={si.id} className="border-b border-gray-100 hover:bg-amber-50/30"><td className="p-4 font-mono text-xs text-amber-700 font-semibold">{si.code}</td><td className="p-4 font-semibold">{new Date(si.createdAt).toLocaleDateString("vi-VN")}</td><td className="p-4">{si.supplier || "—"}</td><td className="p-4 text-center">{si.items.length} {t.inventory.items}</td><td className="p-4 text-right font-mono font-bold">{fmt(si.totalAmount)}đ</td><td className="p-4">{si.user.name}</td></tr>))}</tbody></table>
-            {stockIns.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} phiếu nhập</p>}</div>
+            {stockIns.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} {t.inventory.noStockIns}</p>}</div>
         </TabsContent>
         <TabsContent value="out" className="mt-4">
           <div className="section-amber overflow-hidden"><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4">{t.inventory.date}</th><th className="text-left p-4">{t.inventory.ingredient}</th><th className="text-right p-4">SL</th><th className="text-left p-4">{t.inventory.reason}</th><th className="text-left p-4">{t.inventory.staff}</th></tr></thead>
             <tbody>{stockOuts.map(so => (<tr key={so.id} className="border-b border-gray-100"><td className="p-4 font-semibold">{new Date(so.createdAt).toLocaleDateString("vi-VN")}</td><td className="p-4">{so.ingredient?.name}</td><td className="p-4 text-right font-mono">{so.quantity}</td><td className="p-4"><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td><td className="p-4">{so.user?.name}</td></tr>))}</tbody></table>
-            {stockOuts.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} phiếu xuất</p>}</div>
+            {stockOuts.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} {t.inventory.noStockOuts}</p>}</div>
         </TabsContent>
       </Tabs>
 
@@ -196,7 +196,7 @@ function StockInPanel({
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">{t.inventory.stockIn}</h2>
-              <p className="text-sm text-gray-500">Chọn nhà cung cấp để tự động điền danh sách nguyên liệu</p>
+              <p className="text-sm text-gray-500">{t.inventory.selectSupplierToAutoFill}</p>
             </div>
           </div>
           <button onClick={onClose} className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
@@ -210,7 +210,7 @@ function StockInPanel({
             <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.supplier}</Label>
             <Select value={supplierId} onValueChange={v => setSupplierId(v ?? "")}>
               <SelectTrigger className="h-11 rounded-lg">
-                <SelectValue placeholder="— Chọn nhà cung cấp —">{suppliers.find(s => s.id === supplierId)?.name}</SelectValue>
+                <SelectValue placeholder={t.inventory.selectSupplier}>{suppliers.find(s => s.id === supplierId)?.name}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {suppliers.map(s => (
@@ -232,7 +232,7 @@ function StockInPanel({
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.note}</Label>
-            <Input className="h-11 rounded-lg" value={note} onChange={e => setNote(e.target.value)} placeholder={t.inventory.note + " phiếu nhập"} />
+            <Input className="h-11 rounded-lg" value={note} onChange={e => setNote(e.target.value)} placeholder={t.inventory.notes} />
           </div>
         </div>
 
@@ -245,7 +245,7 @@ function StockInPanel({
             </Label>
             <div className="flex gap-2">
               <button onClick={addEmptyRow} className="h-9 px-3 text-xs rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
-                + Thêm dòng
+                + {t.inventory.addRow}
               </button>
             </div>
           </div>
@@ -306,7 +306,7 @@ function StockInPanel({
                       <td className="p-2">
                         <Input
                           className="h-10 rounded-lg w-24 text-center tabular-nums"
-                          type="number" min="0" step="0.01" placeholder="SL"
+                          type="number" min="0" step="0.01" placeholder={t.inventory.quantity}
                           value={item.quantity}
                           onChange={e => updateItem(idx, "quantity", e.target.value)}
                         />
@@ -335,8 +335,8 @@ function StockInPanel({
             {items.length === 0 && (
               <div className="py-16 text-center text-gray-400">
                 <Package className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                <p>Chọn nhà cung cấp để tự động điền nguyên liệu</p>
-                <button onClick={addEmptyRow} className="text-amber-500 text-sm mt-1 hover:underline">Hoặc thêm dòng thủ công</button>
+                <p>{t.inventory.fillFromSupplier}</p>
+                <button onClick={addEmptyRow} className="text-amber-500 text-sm mt-1 hover:underline">{t.inventory.manualAddRow}</button>
               </div>
             )}
           </div>
@@ -346,11 +346,11 @@ function StockInPanel({
         <div className="shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div>
-              <span className="text-xs text-gray-500">Tổng số dòng:</span>
+              <span className="text-xs text-gray-500">{t.inventory.totalLines}</span>
               <span className="ml-1 font-bold text-gray-700">{items.length}</span>
             </div>
             <div>
-              <span className="text-xs text-gray-500">Tổng số lượng:</span>
+              <span className="text-xs text-gray-500">{t.inventory.totalItems}</span>
               <span className="ml-1 font-bold text-gray-700">{fmt(items.reduce((s, i) => s + (parseFloat(i.quantity) || 0), 0))}</span>
             </div>
             <div className="text-lg">

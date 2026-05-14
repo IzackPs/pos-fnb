@@ -135,7 +135,19 @@ export const vi = {
     "notApplied": "Không áp dụng",
     "typeSingle": "Chọn 1",
     "typeMultiple": "Nhiều",
-    "typeRequired": "Bắt buộc"
+    "typeRequired": "Bắt buộc",
+    "stockInSubtitle": "Nhập kho, xuất kho, tồn kho nguyên liệu",
+    "addRow": "Thêm dòng",
+    "totalLines": "Tổng số dòng:",
+    "fillFromSupplier": "Chọn nhà cung cấp để tự động điền nguyên liệu",
+    "autoFillNotice": "Đã điền danh sách nguyên liệu từ lần nhập gần nhất",
+    "selectSupplier": "Chọn nhà cung cấp",
+    "notes": "Ghi chú",
+    "noStockIns": "Chưa có phiếu nhập kho nào",
+    "noStockOuts": "Chưa có phiếu xuất kho nào",
+    "manualAddRow": "Hoặc thêm dòng thủ công",
+    "totalItems": "Tổng số lượng:",
+    "selectSupplierToAutoFill": "Chọn nhà cung cấp để tự động điền danh sách nguyên liệu"
   },
   "cash": {
     "title": "Thu Chi",

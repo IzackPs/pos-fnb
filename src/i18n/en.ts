@@ -188,7 +188,11 @@ export const en = {
     "recipeHelpText": "💡 Enter ingredient quantity for 1 serving. Cost auto-calculated from purchase prices.",
     "noToppingGroups": "No topping groups yet. Go to Toppings to create.",
     "linkedToppingBadge": "Assigned",
-    "optionsFor": "Options for:"
+    "optionsFor": "Options for:",
+    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
+    "appliesTo": "Áp dụng cho",
+    "allCategoriesItems": "Tất cả loại món",
+    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
   },
   "cash": {
     "title": "Cash",

@@ -186,6 +186,7 @@ export const vi = {
     "noToppingGroups": "Chưa có nhóm topping nào. Vào Topping để tạo.",
     "linkedToppingBadge": "Đã gán",
     "optionsFor": "Tuỳ chọn cho:",
+    "extraPrice": "Giá thêm (đ, 0 = miễn phí)", "appliesTo": "Áp dụng cho", "allCategoriesItems": "Tất cả loại món", "allItemsAssigned": "Tất cả món trong loại này đã được gán",
     "selectSupplierToAutoFill": "Chọn nhà cung cấp để tự động điền danh sách nguyên liệu"
   },
   "cash": {

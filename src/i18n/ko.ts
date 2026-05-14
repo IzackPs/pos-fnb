@@ -188,7 +188,11 @@ export const ko = {
     "recipeHelpText": "💡 1인분에 필요한 원재료 수량 입력. 구매가에서 원가 자동 계산.",
     "noToppingGroups": "토핑 그룹 없음. 토핑 페이지에서 생성.",
     "linkedToppingBadge": "할당됨",
-    "optionsFor": "옵션:"
+    "optionsFor": "옵션:",
+    "extraPrice": "Giá thêm (đ, 0 = miễn phí)",
+    "appliesTo": "Áp dụng cho",
+    "allCategoriesItems": "Tất cả loại món",
+    "allItemsAssigned": "Tất cả món trong loại này đã được gán"
   },
   "cash": {
     "title": "출납",

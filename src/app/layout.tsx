@@ -8,9 +8,17 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "POS F&B",
-  description: "POS F&B",
+  description: "Hệ thống quản lý nhà hàng — POS F&B",
   manifest: "/manifest.json",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+  },
 };
 
 export default function RootLayout({

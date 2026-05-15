@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   description: "Hệ thống quản lý nhà hàng — POS F&B",
   manifest: "/manifest.json",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   icons: {
     icon: [
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
@@ -31,7 +34,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <DeviceProvider>
           <I18nProvider>
-            <SessionProvider>
+            <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
               <TooltipProvider>
                 {children}
                 <Toaster position="top-center" richColors />

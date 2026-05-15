@@ -788,7 +788,8 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       )}
 
       {/* DIALOGS */}
-      {toppingProduct && <Dialog onClose={() => setToppingProduct(null)} title={`${t.order.topping} — ${toppingProduct.name}`}>
+      {toppingProduct && (
+        <MobileSheet open={!!toppingProduct} onClose={() => setToppingProduct(null)} title={`${t.order.topping} — ${toppingProduct.name}`}>
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
           {toppingProduct.toppingGroups?.filter(g => g.toppingGroup.toppings.length > 0).map(g => (
             <div key={g.toppingGroup.id}>
@@ -811,9 +812,10 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
           <button onClick={() => setToppingProduct(null)} className="flex-1 h-11 rounded-lg border border-gray-200 font-medium text-sm text-gray-600">{t.order.cancel}</button>
           <button onClick={confirmTopping} disabled={pending} className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm">{t.order.addItem}</button>
         </div>
-      </Dialog>}
+        </MobileSheet>
+      )}
 
-      {checkoutDialog && <Dialog onClose={() => setCheckoutDialog(false)} title={t.order.checkout}>
+      {checkoutDialog && <MobileSheet open={checkoutDialog} onClose={() => setCheckoutDialog(false)} title={t.order.checkout}>
         <div className="space-y-4">
           <div className="rounded-xl bg-gray-50 p-4 space-y-1.5">
             <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono">{fmt(orderDetail!.subtotal)}đ</span></div>
@@ -833,9 +835,9 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
             <button onClick={confirmCheckout} disabled={pending} className="flex-1 h-11 rounded-lg bg-red-500 text-white font-semibold text-sm">{t.order.checkout}</button>
           </div>
         </div>
-      </Dialog>}
+      </MobileSheet>}
 
-      {splitDialog && <Dialog onClose={() => setSplitDialog(false)} title={t.order.splitTable}>
+      {splitDialog && <MobileSheet open={splitDialog} onClose={() => setSplitDialog(false)} title={t.order.splitTable}>
         <p className="text-sm text-gray-500 mb-3">{t.order.selectItems}</p>
         <div className="space-y-1 max-h-40 overflow-y-auto mb-4">
           {orderDetail?.items.filter(i => i.status !== "CANCELLED").map(item => (
@@ -848,12 +850,37 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
           <button onClick={() => setSplitDialog(false)} className="flex-1 h-11 rounded-lg border border-gray-200 font-medium text-sm text-gray-600">{t.order.cancel}</button>
           <button onClick={confirmSplit} disabled={pending || selectedItemIds.size === 0} className="flex-1 h-11 rounded-lg bg-purple-500 text-white font-semibold text-sm">{t.order.split}</button>
         </div>
-      </Dialog>}
+      </MobileSheet>}
     </div>
   );
 }
 
-// Reusable modal wrapper
+// Adaptive: Sheet on mobile, Dialog on desktop
+function MobileSheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+  const { isMobile } = useDeviceInfo();
+  if (!isMobile) {
+    return open ? (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4" onClick={e => e.stopPropagation()}>
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
+          {children}
+        </div>
+      </div>
+    ) : null;
+  }
+  return (
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent side="bottom" className="max-h-[85vh] p-0 rounded-t-2xl [&>button]:hidden">
+        <div className="px-4 pt-4 pb-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
+          {children}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// Reusable modal wrapper (fallback)
 function Dialog({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>

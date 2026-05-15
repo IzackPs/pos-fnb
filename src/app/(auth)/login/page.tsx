@@ -26,7 +26,8 @@ export default function LoginPage() {
         toast.error(t.login.wrongCredentials);
         return;
       }
-      router.push("/dashboard");
+      // Redirect to first accessible module based on session scopes
+      window.location.href = "/order";
     });
   }
 

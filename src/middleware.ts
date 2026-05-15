@@ -51,7 +51,12 @@ export default auth((req) => {
 
   // Check scope access
   if (!scopes.includes(targetModule)) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    // Redirect to first accessible module, not dashboard (avoids loop)
+    const firstModule = scopes[0];
+    const fallback = firstModule ? `/${firstModule}` : "/order";
+    // If already on fallback, don't redirect (prevent loop)
+    if (pathname === fallback || pathname.startsWith(fallback + "/")) return NextResponse.next();
+    return NextResponse.redirect(new URL(fallback, req.url));
   }
 
   return NextResponse.next();

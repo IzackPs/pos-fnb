@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export type Device = "mobile" | "tablet" | "desktop";
 
@@ -34,21 +34,28 @@ function getDeviceInfo(width: number, height: number): DeviceInfo {
   };
 }
 
-export function useDevice(): DeviceInfo {
-  const [info, setInfo] = useState<DeviceInfo>(() => {
-    if (typeof window === "undefined") {
-      // SSR default: assume desktop (no flash of mobile UI)
-      return getDeviceInfo(1024, 768);
-    }
+function getInitialInfo(): DeviceInfo {
+  if (typeof window !== "undefined") {
     return getDeviceInfo(window.innerWidth, window.innerHeight);
-  });
+  }
+  return getDeviceInfo(1024, 768); // SSR fallback
+}
+
+export function useDevice(): DeviceInfo {
+  const [info, setInfo] = useState<DeviceInfo>(getInitialInfo);
+  const lastDeviceRef = useRef<Device>(getDevice(typeof window !== "undefined" ? window.innerWidth : 1024));
 
   useEffect(() => {
     let raf = 0;
     function handleResize() {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        setInfo(getDeviceInfo(window.innerWidth, window.innerHeight));
+        const newDevice = getDevice(window.innerWidth);
+        // Only re-render if the device category actually changed
+        if (newDevice !== lastDeviceRef.current) {
+          lastDeviceRef.current = newDevice;
+          setInfo(getDeviceInfo(window.innerWidth, window.innerHeight));
+        }
       });
     }
     window.addEventListener("resize", handleResize, { passive: true });

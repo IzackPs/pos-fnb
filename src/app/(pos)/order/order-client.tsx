@@ -254,6 +254,7 @@ function OrderDetailView({
   onAddItem, onUpdateQty, onRemoveItem, onCancelItem,
   pending, onGuestChange,
   btState, onBtConnect, onBtDisconnect,
+  onMobileCheckout, mobileCheckoutPending,
 }: {
   orderDetail: OrderDetail; categories: Category[]; onBack: () => void;
   onSend: () => void; onTempBill: () => void; onCheckout: () => void; onMerge: () => void; onSplit: () => void;
@@ -266,11 +267,17 @@ function OrderDetailView({
   btState: { connected: boolean; connecting: boolean; error: string | null };
   onBtConnect: () => void;
   onBtDisconnect: () => void;
+  onMobileCheckout: (method: string, amount: string) => void;
+  mobileCheckoutPending: boolean;
 }) {
   const { t } = useI18n();
   const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const [activeCatId, setActiveCatId] = useState(categories[0]?.id ?? "");
   const [orderSheetOpen, setOrderSheetOpen] = useState(false);
+  // Mobile checkout states (inline, no popup)
+  const [mobileCheckout, setMobileCheckout] = useState(false);
+  const [mPaymentMethod, setMPaymentMethod] = useState("CASH");
+  const [mPaymentAmount, setMPaymentAmount] = useState("");
   if (!orderDetail) return null;
   const activeCat = categories.find(c => c.id === activeCatId);
   const pendingItems = orderDetail.items.filter(i => i.status === "PENDING");
@@ -356,7 +363,7 @@ function OrderDetailView({
             <Merge className="h-3 w-3" /> {t.order.merge}</button>
           <button onClick={onSplit} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all touch-manipulation">
             <Split className="h-3 w-3" /> {t.order.split}</button>
-          <button onClick={onCheckout} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
+          <button onClick={() => { if (compact) { setOrderSheetOpen(false); setMPaymentAmount(String(orderDetail!.totalAmount)); setMobileCheckout(true); } else { onCheckout(); } }} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
             <Banknote className="h-4 w-4" /> {t.order.checkout}</button>
         </div>
       </div>
@@ -364,6 +371,44 @@ function OrderDetailView({
   }
 
   // ══════ MOBILE: Full-width products + bottom sheet order ══════
+
+  // ══════ Mobile Checkout View (inline, replaces sheet) ══════
+  function MobileCheckoutView() {
+    const raw = mPaymentAmount.replace(/[^0-9]/g, "");
+    return (
+      <div className="flex-1 flex flex-col bg-white">
+        <div className="px-4 py-3 border-b border-gray-200 shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setMobileCheckout(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 touch-manipulation">
+              <ArrowLeft className="h-4 w-4 text-gray-600" />
+            </button>
+            <h3 className="font-bold text-lg">{t.order.checkout}</h3>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="rounded-xl bg-gray-50 p-4 space-y-1.5">
+            <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono">{fmt(orderDetail!.subtotal)}đ</span></div>
+            {(orderDetail!.vatAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail!.vatAmount)}đ</span></div>}
+            {(orderDetail!.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail!.exciseTaxAmount)}đ</span></div>}
+            {(orderDetail!.serviceCharge ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail!.serviceCharge)}đ</span></div>}
+            {(orderDetail!.discountAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail!.discountAmount)}đ</span></div>}
+            <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-1.5 text-amber-600"><span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail!.totalAmount)}đ</span></div>
+          </div>
+          <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.paymentMethod}</label>
+            <select className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={mPaymentMethod} onChange={e => setMPaymentMethod(e.target.value)}>
+              <option value="CASH">💵 {t.order.cash}</option><option value="BANK_TRANSFER">🏦 {t.order.transfer}</option><option value="MOMO">📱 Momo</option></select></div>
+          <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.amount}</label>
+            <input type="text" inputMode="numeric" style={{ textAlign: "right" }} className="w-full h-12 px-4 rounded-lg border border-gray-200 text-xl font-mono font-bold" value={mPaymentAmount ? Number(mPaymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = mPaymentAmount || ""} onBlur={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} placeholder="0" /></div>
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setMobileCheckout(false)} className="flex-1 h-12 rounded-xl border border-gray-200 font-medium text-sm text-gray-600 touch-manipulation">{t.order.cancel}</button>
+            <button onClick={() => { if (!mobileCheckoutPending) onMobileCheckout(mPaymentMethod, raw); }} disabled={mobileCheckoutPending || !raw || parseFloat(raw) <= 0} className="flex-1 h-12 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
+              {mobileCheckoutPending ? (<><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> {t.common.loading}</>) : (t.order.confirm + " — " + fmt(orderDetail!.totalAmount) + "đ")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (isMobile) {
     return (
       <div className="flex flex-col h-full">
@@ -391,7 +436,10 @@ function OrderDetailView({
           </button>
         </div>
 
-        {/* Product Catalog — full width */}
+        {/* Product Catalog — full width / Checkout View */}
+        {mobileCheckout ? (
+          <MobileCheckoutView />
+        ) : (
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Category tabs */}
           <div className="px-2 py-1.5 flex gap-1 overflow-x-auto shrink-0 bg-gray-50 border-b border-gray-200">
@@ -429,8 +477,10 @@ function OrderDetailView({
             </div>
           </div>
         </div>
+        )}
 
-        {/* Floating Order Button */}
+        {/* Floating Order Button — hide during checkout */}
+        {!mobileCheckout && (
         <button
           onClick={() => setOrderSheetOpen(true)}
           className="fixed bottom-16 left-3 right-3 z-30 h-12 rounded-xl bg-amber-500 text-white font-bold text-sm flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-all touch-manipulation"
@@ -439,6 +489,7 @@ function OrderDetailView({
           <span>{t.order.orderedItems} ({orderDetail.items.length})</span>
           <span className="font-mono">{fmt(orderDetail.totalAmount)}đ</span>
         </button>
+        )}
 
         {/* Order Sheet — slides up from bottom */}
         <Sheet open={orderSheetOpen} onOpenChange={setOrderSheetOpen}>
@@ -557,6 +608,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   const [checkoutDialog, setCheckoutDialog] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [paymentAmount, setPaymentAmount] = useState("");
+  const [mobileCheckoutPending, setMobileCheckoutPending] = useState(false);
   const [splitDialog, setSplitDialog] = useState(false);
   const [splitTableId, setSplitTableId] = useState("");
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
@@ -692,6 +744,24 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       router.refresh();
     });
   }
+  // Mobile checkout: inline, no dialog
+  function handleMobileCheckout(method: string, amount: string) {
+    if (!activeOrderId || mobileCheckoutPending) return;
+    setMobileCheckoutPending(true);
+    start(async () => {
+      try {
+        await checkoutOrder(activeOrderId!, [{ method, amount: parseFloat(amount) }]);
+        toast.success(t.order.checkoutSuccess);
+        if (bt.connected) await handlePrintBluetooth(activeOrderId!, "BILL");
+        handleBack();
+        router.refresh();
+      } catch {
+        toast.error(t.common.error);
+      } finally {
+        setMobileCheckoutPending(false);
+      }
+    });
+  }
   function handleGuestChange(delta: number) {
     if (!activeOrderId || !orderDetail) return;
     start(async () => { await updateOrderGuest(activeOrderId, Math.max(1, orderDetail.guestCount + delta)); setRefreshKey(k => k + 1); });
@@ -712,6 +782,8 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
           onCancelItem={handleCancelItem} pending={pending} onGuestChange={handleGuestChange}
           btState={{ connected: bt.connected, connecting: bt.connecting, error: bt.error }}
           onBtConnect={bt.connect} onBtDisconnect={bt.disconnect}
+          onMobileCheckout={handleMobileCheckout}
+          mobileCheckoutPending={mobileCheckoutPending}
         />
       )}
 

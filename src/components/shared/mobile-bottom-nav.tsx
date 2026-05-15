@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  UtensilsCrossed, Package, Banknote, BarChart3, Settings, LayoutDashboard,
+  UtensilsCrossed, Package, Banknote, BarChart3, Settings,
 } from "lucide-react";
 import { useI18n } from "@/i18n/context";
 import { usePermission } from "@/hooks/use-permission";
@@ -28,26 +28,29 @@ export function MobileBottomNav({ enabledModules }: { enabledModules: Set<string
   const { t } = useI18n();
   const { canAccessModule } = usePermission();
 
-  const items = NAV_ITEMS.filter(item => {
-    // Must have module enabled
+  // Check visibility per item (module enabled + user has permission)
+  function isVisible(item: NavItem) {
     if (item.module && !enabledModules.has(item.module)) return false;
-    // Must have permission to access
     if (item.module && !canAccessModule(item.module)) return false;
     return true;
-  });
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 safe-area-pb"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div className="flex justify-around h-14">
-        {items.map(item => {
+        {NAV_ITEMS.map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
+          const visible = isVisible(item);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 touch-manipulation ${
+              aria-disabled={!visible}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-95 touch-manipulation ${
+                !visible ? "invisible pointer-events-none" : ""
+              } ${
                 active ? "text-amber-600" : "text-gray-400 hover:text-gray-600"
               }`}
             >

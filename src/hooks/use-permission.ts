@@ -10,7 +10,7 @@ type Action = "read" | "write" | "view" | "create" | "edit" | "delete";
  */
 export function usePermission() {
   const { data: session, status } = useSession();
-  const loading = status === "loading";
+  const authenticated = status === "authenticated";
   const permissions: string[] = (() => {
     if (!session?.user) return [];
     try { return JSON.parse(session.user.permissions || "[]"); }
@@ -23,9 +23,8 @@ export function usePermission() {
   })();
 
   function canAccessModule(moduleKey: string): boolean {
-    // Still loading session → allow all (prevents empty nav flash)
-    if (loading) return true;
-    if (!session?.user) return true;
+    // While session is loading or unauthenticated → don't filter (prevent flash)
+    if (!authenticated) return true;
     if (permissions.includes("*") || scopes.includes("*")) return true;
     if (scopes.includes(moduleKey)) return true;
     // Fallback: infer from permissions if scopes is empty (legacy JWT)

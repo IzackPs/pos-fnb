@@ -14,5 +14,5 @@ const getCachedModules = unstable_cache(
 
 export default async function PosLayout({ children }: { children: React.ReactNode }) {
   const moduleNames = await getCachedModules();
-  return <PosLayoutClient enabledModules={new Set(moduleNames)}>{children}</PosLayoutClient>;
+  return <PosLayoutClient enabledModuleNames={moduleNames}>{children}</PosLayoutClient>;
 }

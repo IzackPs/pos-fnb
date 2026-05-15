@@ -29,7 +29,7 @@ export function ReportsClient({ today }: { today: string }) {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "" : "p-6"}`}>
+    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "px-3 py-4" : "p-6"}`}>
       <div>
         <h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.reports.title}</h2>
         <p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.reports}</p>

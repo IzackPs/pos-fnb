@@ -57,7 +57,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const allItems = groups.flatMap(g => g.items);
 
   return (
-    <div className={`h-full overflow-y-auto ${isMobile ? "" : "p-6"}`}>
+    <div className={`h-full overflow-y-auto ${isMobile ? "px-3 py-4" : "p-6"}`}>
       {/* Mobile: Horizontal scroll tabs */}
       {isMobile ? (
         <>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getCashRegisters, getCashFlow, getCashFlowCategories, createCashFlow, openCashRegister, closeCashRegister, createPettyTransaction } from "@/server/inventory/actions";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/context";
+import { useDeviceInfo } from "@/components/shared/device-provider";
 import { Wallet, Plus, TrendingUp, TrendingDown } from "lucide-react";
 
 type CashRegister = Awaited<ReturnType<typeof getCashRegisters>>[0];
@@ -18,6 +19,7 @@ function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); 
 
 export function CashClient({ registers, flows, categories, today }: { registers: CashRegister[]; flows: CashFlow[]; categories: CashCategory[]; today: string }) {
   const { t } = useI18n();
+  const { isMobile } = useDeviceInfo();
   const [pending, start] = useTransition();
   const [openReg, setOpenReg] = useState(false);
   const [closeReg, setCloseReg] = useState(false);
@@ -37,23 +39,24 @@ export function CashClient({ registers, flows, categories, today }: { registers:
   function doAct(fn: Function, ...args: any[]) { start(async () => { try { await fn(...args); toast.success(t.common.success); setOpenReg(false); setCloseReg(false); setOpenFlow(false); setOpenPetty(false); } catch { toast.error(t.common.error); } }); }
 
   return (
-    <div className="h-full overflow-y-auto p-6 space-y-6">
-      <div className="flex items-center justify-between"><div><h2 className="text-2xl font-bold text-gray-900">{t.cash.title}</h2><p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.cash}</p></div>
+    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "px-3 py-4" : "p-6"}`}>
+      <div className={`flex items-center justify-between ${isMobile ? "flex-wrap gap-2" : ""}`}>
+        <div><h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.cash.title}</h2><p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.cash}</p></div>
         <div className="flex gap-2">
-          {!activeRegister ? <button onClick={() => setOpenReg(true)} className="btn-pos-primary"><Plus className="h-4 w-4" /> {t.cash.openRegister}</button>
-            : <button onClick={() => { setActiveRegisterId(activeRegister.id); setCloseReg(true); }} className="btn-pos-secondary text-red-600 hover:bg-red-50">{t.cash.closeRegister}</button>}
-          <button onClick={() => setOpenFlow(true)} className="btn-pos-secondary"><Plus className="h-4 w-4" /> {t.cash.income}/{t.cash.expense}</button>
+          {!activeRegister ? <button onClick={() => setOpenReg(true)} className={`${isMobile ? "btn-pos-secondary text-sm" : "btn-pos-primary"}`}><Plus className="h-4 w-4" /> {t.cash.openRegister}</button>
+            : <button onClick={() => { setActiveRegisterId(activeRegister.id); setCloseReg(true); }} className="btn-pos-secondary text-red-600 hover:bg-red-50 text-sm">{t.cash.closeRegister}</button>}
+          <button onClick={() => setOpenFlow(true)} className="btn-pos-secondary text-sm"><Plus className="h-4 w-4" /> {isMobile ? "+" : `${t.cash.income}/${t.cash.expense}`}</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4`}>
         {[{ label: `${t.cash.income} ${t.reports.today.toLowerCase()}`, value: fmt(totalIncome) + "đ", color: "text-emerald-600" }, { label: `${t.cash.expense} ${t.reports.today.toLowerCase()}`, value: fmt(totalExpense) + "đ", color: "text-red-500" }, { label: t.cash.cashRegister, value: activeRegister ? fmt(activeRegister.openingBalance) + "đ" : "—", color: "text-amber-600" }].map((s, i) => (
           <div key={i} className="stat-card"><p className="text-xs font-medium text-gray-500">{s.label}</p><p className={`text-xl font-bold font-mono ${s.color}`}>{s.value}</p></div>
         ))}
       </div>
 
       <Tabs defaultValue="flows">
-        <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-full">
+        <TabsList className={`bg-gray-100 border border-gray-200 p-1 rounded-full ${isMobile ? "flex flex-wrap" : ""}`}>
           <TabsTrigger value="flows" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.cash.title}</TabsTrigger>
           <TabsTrigger value="register" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.cash.cashRegister}</TabsTrigger>
           {activeRegister && <TabsTrigger value="petty" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.cash.pettyCash}</TabsTrigger>}

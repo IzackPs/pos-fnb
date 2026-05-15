@@ -10,6 +10,7 @@ import { getLastStockInBySupplier } from "@/server/inventory/supplier-actions";
 import { getIngredients } from "@/server/settings/actions";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/context";
+import { useDeviceInfo } from "@/components/shared/device-provider";
 import { Package, AlertTriangle, Plus, Trash2, X, FileText, RefreshCw, Store } from "lucide-react";
 
 type Ingredient = Awaited<ReturnType<typeof getInventoryStatus>>[0];
@@ -27,6 +28,7 @@ export function InventoryClient({
   ingredients: Ingredient[]; stockIns: StockIn[]; stockOuts: any[]; lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>; allIngredients: IngredientBasic[]; suppliers: Supplier[];
 }) {
   const { t } = useI18n();
+  const { isMobile } = useDeviceInfo();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<StockInItem[]>([]);
@@ -85,10 +87,10 @@ export function InventoryClient({
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div><h2 className="text-2xl font-bold text-gray-900">{t.inventory.title}</h2><p className="text-sm text-gray-500 mt-1">{t.inventory.stockInSubtitle}</p></div>
-        <button onClick={() => setOpen(true)} className="btn-pos-primary"><Plus className="h-4 w-4" /> {t.inventory.addStockIn}</button>
+    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "px-3 py-4" : "p-6"}`}>
+      <div className={`flex items-center justify-between ${isMobile ? "flex-wrap gap-2" : ""}`}>
+        <div><h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.inventory.title}</h2><p className="text-sm text-gray-500 mt-1">{t.inventory.stockInSubtitle}</p></div>
+        <button onClick={() => setOpen(true)} className={`${isMobile ? "btn-pos-secondary text-sm" : "btn-pos-primary"}`}><Plus className="h-4 w-4" /> {isMobile ? t.inventory.stockIn : t.inventory.addStockIn}</button>
       </div>
 
       {lowStock.length > 0 && (
@@ -171,6 +173,7 @@ function StockInPanel({
   addEmptyRow: () => void;
 }) {
   const { t } = useI18n();
+  const { isMobile } = useDeviceInfo();
   const total = items.reduce((s, i) => s + (parseFloat(i.quantity) || 0) * (parseFloat(i.unitPrice) || 0), 0);
 
   function removeRow(idx: number) {
@@ -185,18 +188,18 @@ function StockInPanel({
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
       <div className="absolute inset-0 bg-black/50" />
       <div
-        className="relative ml-auto w-full max-w-6xl bg-white h-full overflow-hidden flex flex-col shadow-2xl"
+        className={`relative ml-auto ${isMobile ? "w-full" : "w-full max-w-6xl"} bg-white h-full overflow-hidden flex flex-col shadow-2xl`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="shrink-0 flex items-center justify-between px-8 py-5 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-              <FileText className="h-5 w-5 text-amber-600" />
+        <div className={`shrink-0 flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white ${isMobile ? "px-4 py-3" : "px-8 py-5"}`}>
+          <div className="flex items-center gap-2.5">
+            <div className={`${isMobile ? "w-8 h-8 rounded-lg" : "w-10 h-10 rounded-xl"} bg-amber-100 flex items-center justify-center`}>
+              <FileText className={`${isMobile ? "h-4 w-4" : "h-5 w-5"} text-amber-600`} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{t.inventory.stockIn}</h2>
-              <p className="text-sm text-gray-500">{t.inventory.selectSupplierToAutoFill}</p>
+              <h2 className={`${isMobile ? "text-lg" : "text-xl"} font-bold text-gray-900`}>{t.inventory.stockIn}</h2>
+              <p className={`text-gray-500 ${isMobile ? "text-xs" : "text-sm"}`}>{t.inventory.selectSupplierToAutoFill}</p>
             </div>
           </div>
           <button onClick={onClose} className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
@@ -205,7 +208,7 @@ function StockInPanel({
         </div>
 
         {/* Meta info */}
-        <div className="shrink-0 px-8 py-4 border-b border-gray-100 bg-white grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className={`shrink-0 border-b border-gray-100 bg-white gap-4 ${isMobile ? "px-4 py-3 grid grid-cols-1" : "px-8 py-4 grid grid-cols-1 md:grid-cols-2"}`}>
           <div className="space-y-1">
             <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.supplier}</Label>
             <Select value={supplierId} onValueChange={v => setSupplierId(v ?? "")}>
@@ -226,7 +229,7 @@ function StockInPanel({
             {supplierId && (
               <p className="text-xs text-amber-600 flex items-center gap-1 mt-1">
                 <RefreshCw className="h-3 w-3" />
-                Đã điền danh sách nguyên liệu từ lần nhập gần nhất
+                {isMobile ? "Đã tự điền từ lần nhập gần nhất" : "Đã điền danh sách nguyên liệu từ lần nhập gần nhất"}
               </p>
             )}
           </div>
@@ -237,20 +240,18 @@ function StockInPanel({
         </div>
 
         {/* Items table */}
-        <div className="flex-1 overflow-y-auto px-8 py-4">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? "px-2 py-3" : "px-8 py-4"}`}>
           <div className="flex items-center justify-between mb-3">
-            <Label className="text-sm font-semibold text-gray-700">
-              Danh sách nguyên liệu nhập ({items.length} dòng)
+            <Label className={`font-semibold text-gray-700 ${isMobile ? "text-xs" : "text-sm"}`}>
+              Danh sách nguyên liệu ({items.length})
               {loadingItems && <span className="ml-2 text-amber-500 font-normal animate-pulse">{t.common.loading}</span>}
             </Label>
-            <div className="flex gap-2">
-              <button onClick={addEmptyRow} className="h-9 px-3 text-xs rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
-                + {t.inventory.addRow}
-              </button>
-            </div>
+            <button onClick={addEmptyRow} className="h-9 px-3 text-xs rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors touch-manipulation">
+              + {t.inventory.addRow}
+            </button>
           </div>
 
-          <div className="border border-gray-200 rounded-xl overflow-hidden">
+          <div className="border border-gray-200 rounded-xl overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
@@ -343,27 +344,27 @@ function StockInPanel({
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div>
-              <span className="text-xs text-gray-500">{t.inventory.totalLines}</span>
+        <div className={`shrink-0 border-t border-gray-200 bg-gray-50 flex items-center justify-between ${isMobile ? "px-3 py-3 flex-wrap gap-2" : "px-8 py-4"}`}>
+          <div className={`flex items-center ${isMobile ? "gap-3 flex-wrap" : "gap-8"}`}>
+            <div className="text-xs">
+              <span className="text-gray-500">{t.inventory.totalLines}</span>
               <span className="ml-1 font-bold text-gray-700">{items.length}</span>
             </div>
-            <div>
-              <span className="text-xs text-gray-500">{t.inventory.totalItems}</span>
+            <div className="text-xs">
+              <span className="text-gray-500">{t.inventory.totalItems}</span>
               <span className="ml-1 font-bold text-gray-700">{fmt(items.reduce((s, i) => s + (parseFloat(i.quantity) || 0), 0))}</span>
             </div>
-            <div className="text-lg">
-              <span className="text-sm text-gray-500">{t.inventory.totalAmount}:</span>
+            <div className={`${isMobile ? "text-base" : "text-lg"}`}>
+              <span className={`text-gray-500 ${isMobile ? "text-xs" : "text-sm"}`}>{t.inventory.totalAmount}:</span>
               <span className="ml-2 font-bold text-amber-600">{fmt(total)}đ</span>
             </div>
           </div>
-          <div className="flex gap-3">
-            <button onClick={onClose} className="h-11 px-6 rounded-lg border border-gray-200 font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors">{t.inventory.cancel}</button>
+          <div className="flex gap-2">
+            <button onClick={onClose} className={`${isMobile ? "h-10 px-4" : "h-11 px-6"} rounded-lg border border-gray-200 font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors`}>{t.inventory.cancel}</button>
             <button
               onClick={onSubmit}
               disabled={pending || items.length === 0 || !items.some(i => i.ingredientId && parseFloat(i.quantity) > 0)}
-              className="h-11 px-8 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors"
+              className={`${isMobile ? "h-10 px-5" : "h-11 px-8"} rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors touch-manipulation`}
             >
               {pending ? t.common.saving : t.inventory.save}
             </button>

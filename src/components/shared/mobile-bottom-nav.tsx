@@ -3,23 +3,38 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  UtensilsCrossed, Package, Banknote, BarChart3, Settings,
+  UtensilsCrossed, Package, Banknote, BarChart3, Settings, LayoutDashboard,
 } from "lucide-react";
 import { useI18n } from "@/i18n/context";
+import { usePermission } from "@/hooks/use-permission";
 
-const NAV_ITEMS: { href: string; icon: typeof UtensilsCrossed; labelKey: string; module?: string }[] = [
-  { href: "/order", icon: UtensilsCrossed, labelKey: "sales" },
+interface NavItem {
+  href: string;
+  icon: typeof UtensilsCrossed;
+  labelKey: string;
+  module?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { href: "/order", icon: UtensilsCrossed, labelKey: "sales", module: "order" },
   { href: "/inventory", icon: Package, labelKey: "inventory", module: "inventory" },
-  { href: "/cash", icon: Banknote, labelKey: "cash" },
+  { href: "/cash", icon: Banknote, labelKey: "cash", module: "cash" },
   { href: "/reports", icon: BarChart3, labelKey: "reports", module: "reports" },
-  { href: "/settings", icon: Settings, labelKey: "settings" },
+  { href: "/settings", icon: Settings, labelKey: "settings", module: "settings" },
 ];
 
 export function MobileBottomNav({ enabledModules }: { enabledModules: Set<string> }) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { canAccessModule } = usePermission();
 
-  const items = NAV_ITEMS.filter(item => !item.module || enabledModules.has(item.module));
+  const items = NAV_ITEMS.filter(item => {
+    // Must have module enabled
+    if (item.module && !enabledModules.has(item.module)) return false;
+    // Must have permission to access
+    if (item.module && !canAccessModule(item.module)) return false;
+    return true;
+  });
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 safe-area-pb"

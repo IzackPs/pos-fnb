@@ -436,6 +436,7 @@ export const ja = {
       "payments": "支払",
       "discounts": "値引 / 割引",
       "serviceCharges": "手数料とサービス料",
+      "currencies": "通貨",
       "systemModules": "システムモジュール",
       "karaoke": "カラオケ"
     },

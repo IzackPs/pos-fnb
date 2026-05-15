@@ -30,7 +30,8 @@ model User {
 model Role {
   id          String   @id @default(cuid())
   name        String   @unique
-  permissions String
+  permissions String           // JSON: ["order:write", "settings:read", ...]
+  scopes      String   @default("[]") // JSON: ["order", "inventory", "cash", "settings"]
   users       User[]
   createdAt   DateTime @default(now())
 }
@@ -46,10 +47,24 @@ model GeneralConfig {
   taxCode        String?
   taxMode        String   @default("EXCLUSIVE") // INCLUSIVE | EXCLUSIVE
   logoUrl        String?
-  currency       String   @default("VND")
+  currencyCode   String   @default("VND")
   timezone       String   @default("Asia/Ho_Chi_Minh")
   dateFormat     String   @default("dd/MM/yyyy")
   updatedAt      DateTime @updatedAt
+}
+
+// ============ CURRENCY ============
+
+model Currency {
+  id        String   @id @default(cuid())
+  code      String   @unique  // VND, USD, EUR...
+  name      String             // Việt Nam Đồng, US Dollar...
+  symbol    String             // ₫, $, €...
+  rate      Float    @default(1) // Tỷ giá quy đổi (với tiền tệ chính)
+  isDefault Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ============ TAX ============

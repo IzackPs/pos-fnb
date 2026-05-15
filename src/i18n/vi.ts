@@ -437,6 +437,7 @@ export const vi = {
       "discounts": "Giảm giá / KM",
       "serviceCharges": "Phí & Phụ thu",
       "systemModules": "Module hệ thống",
+      "currencies": "Tiền tệ",
       "karaoke": "Karaoke"
     },
     "userList": "Danh sách người dùng",

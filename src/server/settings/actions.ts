@@ -16,6 +16,7 @@ export async function updateGeneralConfig(data: {
   taxCode?: string;
   taxMode?: string;
   logoUrl?: string;
+  currencyCode?: string;
 }) {
   await db.generalConfig.upsert({
     where: { id: "default" },
@@ -74,7 +75,7 @@ export async function createRole(data: { name: string; permissions: string }) {
   revalidatePath("/settings/users");
 }
 
-export async function updateRole(id: string, data: { name?: string; permissions?: string }) {
+export async function updateRole(id: string, data: { name?: string; permissions?: string; scopes?: string }) {
   await db.role.update({ where: { id }, data });
   revalidatePath("/settings/users");
 }
@@ -671,4 +672,28 @@ export async function updateHoliday(id: string, data: { name: string; date: stri
 export async function deleteHoliday(id: string) {
   await db.holiday.delete({ where: { id } });
   revalidatePath("/settings/holidays");
+}
+
+// ============ Currencies ============
+export async function getCurrencies() {
+  return db.currency.findMany({ orderBy: { sortOrder: "asc" } });
+}
+export async function getDefaultCurrency() {
+  return db.currency.findFirst({ where: { isDefault: true } });
+}
+export async function createCurrency(data: { code: string; name: string; symbol: string; rate: number }) {
+  await db.currency.create({ data });
+  revalidatePath("/settings/currencies");
+}
+export async function updateCurrency(id: string, data: { code?: string; name?: string; symbol?: string; rate?: number; isDefault?: boolean }) {
+  if (data.isDefault) {
+    // Unset previous default
+    await db.currency.updateMany({ where: { isDefault: true }, data: { isDefault: false } });
+  }
+  await db.currency.update({ where: { id }, data });
+  revalidatePath("/settings/currencies");
+}
+export async function deleteCurrency(id: string) {
+  await db.currency.delete({ where: { id } });
+  revalidatePath("/settings/currencies");
 }

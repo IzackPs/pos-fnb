@@ -436,6 +436,7 @@ export const ko = {
       "payments": "결제",
       "discounts": "할인 / 프로모션",
       "serviceCharges": "수수료 & 봉사료",
+      "currencies": "통화",
       "systemModules": "시스템 모듈",
       "karaoke": "노래방"
     },

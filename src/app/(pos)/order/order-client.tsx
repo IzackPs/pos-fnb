@@ -201,15 +201,21 @@ export function TableGridView({
                   hasOrder ? "bg-amber-50 border-amber-300" : "bg-emerald-50 border-emerald-200"
                 }`}>
                 <div className="flex items-center justify-between">
-                  <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
-                  {inMode && <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] ${isSelected ? "bg-blue-500 border-blue-500 text-white" : "border-gray-300"}`}>{isSelected ? "✓" : ""}</span>}
-                  {order?.status === "SENT" && !inMode && <Flame className="h-3.5 w-3.5 text-orange-500" />}
+                  <div className="flex items-center gap-2">
+                    <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
+                    {hasOrder && order && (
+                      <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-0.5">
+                        <Clock className="h-2.5 w-2.5" />{Math.round((Date.now() - new Date(order.openedAt).getTime()) / 60000)}&apos;
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {order?.status === "SENT" && !inMode && <Flame className="h-3.5 w-3.5 text-orange-500" />}
+                    {inMode && <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] ${isSelected ? "bg-blue-500 border-blue-500 text-white" : "border-gray-300"}`}>{isSelected ? "✓" : ""}</span>}
+                  </div>
                 </div>
                 {hasOrder && order ? (
                   <>
-                    <div className="text-[10px] font-semibold text-amber-700 flex items-center gap-1">
-                      <Clock className="h-2.5 w-2.5" />{Math.round((Date.now() - new Date(order.openedAt).getTime()) / 60000)}&apos;
-                    </div>
                     <span className="text-[11px] font-mono font-bold text-amber-800">
                       #{String(order.orderNumber).padStart(8, "0")}{order.orderNumberSuffix ? `-${order.orderNumberSuffix}` : ""}
                     </span>
@@ -232,13 +238,13 @@ export function TableGridView({
               className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
                 mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
               }`}>
-              <Merge className="h-4 w-4" /> Gộp
+              <Merge className="h-4 w-4" /> {t.order.merge}
             </button>
             <button onClick={toggleSplit}
               className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
                 splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600"
               }`}>
-              <Split className="h-4 w-4" /> Tách
+              <Split className="h-4 w-4" /> {t.order.split}
             </button>
           </div>
         </div>

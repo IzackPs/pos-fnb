@@ -4,6 +4,29 @@ All notable changes to POS-F&B are documented here.
 
 ---
 
+## [1.1.2] — 2026-05-15
+
+### ⚡ Performance
+- **Zero-DB middleware**: Decode JWT from cookie (no DB query per request)
+- **Cached layout**: `unstable_cache` system modules for 5 minutes
+- **RSC caching**: `staleTimes` 30s dynamic / 180s static
+- **Image cache**: `minimumCacheTTL` 86400 (1 day)
+- **Session**: `refetchOnWindowFocus=false`, `refetchInterval=0`
+- **useDevice**: Only re-render on device category change (not pixel resize)
+
+### 🎨 UI Polish
+- **Table grid**: Minutes elapsed on same row as table name (aligned right)
+- **Nav tabs**: Disabled/greyed-out instead of hidden for unauthorized modules
+- **Header logo**: Replaced `next/Image` with native `<img>` (fixes re-fetch flicker)
+- **Mobile bottom bar**: Merge/Split buttons now i18n (`t.order.merge` / `t.order.split`)
+
+### 🐛 Fixes
+- Fix login page hardcoded Vietnamese (tagline, copyright → i18n)
+- Fix mobile bottom nav flash (hidden → invisible → disabled approach)
+- Fix TypeScript error in `usePermission` hook
+
+---
+
 ## [1.1.1] — 2026-05-15
 
 ### 🔒 Role-Based Access Control

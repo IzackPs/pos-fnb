@@ -10,9 +10,9 @@ import { useI18n } from "@/i18n/context";
 import { useDeviceInfo } from "@/components/shared/device-provider";
 import { MobileBottomNav } from "@/components/shared/mobile-bottom-nav";
 import { usePermission } from "@/hooks/use-permission";
-import Image from "next/image";
 
-export function PosLayoutClient({ children, enabledModules }: { children: React.ReactNode; enabledModules: Set<string> }) {
+export function PosLayoutClient({ children, enabledModuleNames }: { children: React.ReactNode; enabledModuleNames: string[] }) {
+  const enabledModules = new Set(enabledModuleNames);
   const pathname = usePathname();
   const { data: session } = useSession();
   const { t } = useI18n();
@@ -45,7 +45,7 @@ export function PosLayoutClient({ children, enabledModules }: { children: React.
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
-              <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
+              <img src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
             </div>
             <span className="font-bold text-sm text-gray-900">POS F&B</span>
           </Link>
@@ -88,7 +88,7 @@ export function PosLayoutClient({ children, enabledModules }: { children: React.
       <header className="h-11 flex items-center justify-between px-3 shrink-0 bg-white border-b border-[#e5e7eb]">
         <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
-            <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
+            <img src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
           </div>
           <span className="font-bold text-sm text-gray-900">POS F&B</span>
         </Link>

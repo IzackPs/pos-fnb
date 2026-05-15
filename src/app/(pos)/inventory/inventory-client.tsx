@@ -87,7 +87,7 @@ export function InventoryClient({
   }
 
   return (
-    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "px-3 py-4" : "p-6"}`}>
+    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "" : "p-6"}`}>
       <div className={`flex items-center justify-between ${isMobile ? "flex-wrap gap-2" : ""}`}>
         <div><h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.inventory.title}</h2><p className="text-sm text-gray-500 mt-1">{t.inventory.stockInSubtitle}</p></div>
         <button onClick={() => setOpen(true)} className={`${isMobile ? "btn-pos-secondary text-sm" : "btn-pos-primary"}`}><Plus className="h-4 w-4" /> {isMobile ? t.inventory.stockIn : t.inventory.addStockIn}</button>

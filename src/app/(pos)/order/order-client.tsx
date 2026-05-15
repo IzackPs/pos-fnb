@@ -103,18 +103,23 @@ export function TableGridView({
             {a.name}
           </button>
         ))}
-        <div className="flex-1" />
-        <button onClick={toggleMerge} className={`${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} rounded-full font-semibold transition-all flex items-center gap-1 ${
-          mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }`}><Merge className={isMobile ? "h-3.5 w-3.5" : "h-4 w-4"} /> {isMobile ? "" : t.order.merge}</button>
-        <button onClick={toggleSplit} className={`${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} rounded-full font-semibold transition-all flex items-center gap-1 ${
-          splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }`}><Split className={isMobile ? "h-3.5 w-3.5" : "h-4 w-4"} /> {isMobile ? "" : t.order.split}</button>
+        {/* Desktop: Gộp/Tách buttons in top bar */}
+        {!isMobile && (
+          <>
+            <div className="flex-1" />
+            <button onClick={toggleMerge} className={`px-4 py-2 text-sm rounded-full font-semibold transition-all flex items-center gap-1 ${
+              mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}><Merge className="h-4 w-4" /> {t.order.merge}</button>
+            <button onClick={toggleSplit} className={`px-4 py-2 text-sm rounded-full font-semibold transition-all flex items-center gap-1 ${
+              splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}><Split className="h-4 w-4" /> {t.order.split}</button>
+          </>
+        )}
       </div>
 
-      {/* Mode banner */}
-      {(mergeMode || splitMode) && (
-        <div className={`${isMobile ? "px-3 py-2 text-xs" : "px-6 py-2 text-sm"} flex items-center gap-2 shrink-0 bg-blue-50 border-b border-blue-200`}>
+      {/* Mobile: Mode banner + action bar ở dưới đầu trang */}
+      {isMobile && (mergeMode || splitMode) && (
+        <div className="px-3 py-2 text-xs flex items-center gap-2 shrink-0 bg-blue-50 border-b border-blue-200">
           <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
@@ -130,6 +135,31 @@ export function TableGridView({
           }}
             disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 touch-manipulation ${
+              mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
+            }`}>
+            {mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems}
+          </button>
+        </div>
+      )}
+
+      {/* Desktop: Mode banner */}
+      {!isMobile && (mergeMode || splitMode) && (
+        <div className="px-6 py-2 text-sm flex items-center gap-3 shrink-0 bg-blue-50 border-b border-blue-200">
+          <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
+          <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
+          <div className="flex-1" />
+          <button onClick={() => { setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
+            className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100">{t.order.cancel}</button>
+          <button onClick={() => {
+            if (mergeMode) confirmMerge();
+            else if (selectedTables.size === 1) {
+              const tbl = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
+              const orderId = tbl?.orders[0]?.id;
+              if (orderId) onSplitTable(orderId);
+            } else toast.error(t.order.splitTablePrompt);
+          }}
+            disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 ${
               mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
             }`}>
             {mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems}
@@ -193,6 +223,26 @@ export function TableGridView({
           })}
         </div>
       </div>
+
+      {/* Mobile: Fixed bottom action bar — Gộp/Tách */}
+      {isMobile && (
+        <div className="fixed bottom-14 left-0 right-0 z-30 px-2 pb-2 pt-0" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}>
+          <div className="flex gap-2 bg-white rounded-2xl shadow-lg border border-gray-200 px-3 py-2">
+            <button onClick={toggleMerge}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
+                mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}>
+              <Merge className="h-4 w-4" /> Gộp
+            </button>
+            <button onClick={toggleSplit}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
+                splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}>
+              <Split className="h-4 w-4" /> Tách
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

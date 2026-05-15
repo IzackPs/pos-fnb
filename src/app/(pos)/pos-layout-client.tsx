@@ -12,7 +12,8 @@ import { MobileBottomNav } from "@/components/shared/mobile-bottom-nav";
 import { usePermission } from "@/hooks/use-permission";
 import Image from "next/image";
 
-export function PosLayoutClient({ children, enabledModules }: { children: React.ReactNode; enabledModules: Set<string> }) {
+export function PosLayoutClient({ children, enabledModuleNames }: { children: React.ReactNode; enabledModuleNames: string[] }) {
+  const enabledModules = new Set(enabledModuleNames);
   const pathname = usePathname();
   const { data: session } = useSession();
   const { t } = useI18n();

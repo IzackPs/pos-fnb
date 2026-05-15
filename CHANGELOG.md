@@ -4,6 +4,42 @@ All notable changes to POS-F&B are documented here.
 
 ---
 
+## [1.1.1] — 2026-05-15
+
+### 🔒 Role-Based Access Control
+- **Permission Matrix UI**: Visual checkbox grid replacing JSON text input
+  - 8 modules × 4 actions (View/Create/Edit/Delete)
+  - Quick presets: Full Access / View Only / Clear All
+  - Auto serialize/deserialize from permission JSON format
+- **Scopes field** on Role model — limits module visibility
+- **Middleware** protects routes by user scope
+- **Nav/sidebar** auto-hides modules user doesn't have access to
+- **usePermission hook** (`src/hooks/use-permission.ts`) for client-side checks
+- **lib/permissions.ts** for server-side `canAccessModule()` / `canDo()` helpers
+
+### 💱 Currency Management
+- **Currency model**: code, name, symbol, rate, isDefault
+- **CRUD page** at Settings → Currencies with inline edit dialog
+- **Seed data**: VND (default), USD, EUR
+- **i18n**: 5 languages for currency labels
+
+### 🎨 UI/UX
+- **Login page redesign**: Full-screen gradient layout, logo branding, centered card
+- **Logo + Favicon**: Custom branding replaced ChefHat icon across app
+  - `public/logo.png`, `public/banner.png`
+  - Multi-size favicon generation (16–256px)
+- **MobileSheet component**: Adaptive Sheet/Dialog shared component
+  - Bottom Sheet on mobile, centered popup on desktop
+  - Applied to User dialog, Role dialog
+- **Role cards**: Visual badges with module colors, user count
+
+### 🐛 Fixes
+- Fix redirect loop: cashier/waiter now route to first accessible module
+- Fix Prisma schema: `currencyCode` + `scopes` field migrations
+- Remove `proxy.ts` conflict with new middleware
+
+---
+
 ## [1.1.0] — 2026-05-15
 
 ### 🌐 Complete i18n (5 Languages)

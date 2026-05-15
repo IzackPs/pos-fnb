@@ -39,7 +39,7 @@ export function CashClient({ registers, flows, categories, today }: { registers:
   function doAct(fn: Function, ...args: any[]) { start(async () => { try { await fn(...args); toast.success(t.common.success); setOpenReg(false); setCloseReg(false); setOpenFlow(false); setOpenPetty(false); } catch { toast.error(t.common.error); } }); }
 
   return (
-    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "" : "p-6"}`}>
+    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "px-3 py-4" : "p-6"}`}>
       <div className={`flex items-center justify-between ${isMobile ? "flex-wrap gap-2" : ""}`}>
         <div><h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.cash.title}</h2><p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.cash}</p></div>
         <div className="flex gap-2">

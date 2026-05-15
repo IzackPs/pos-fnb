@@ -32,7 +32,7 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className={`h-full overflow-y-auto space-y-8 ${isMobile ? "" : "p-6"}`}>
+    <div className={`h-full overflow-y-auto space-y-8 ${isMobile ? "px-3 py-4" : "p-6"}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

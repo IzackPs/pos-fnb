@@ -24,7 +24,8 @@ export function usePermission() {
 
   function canAccessModule(moduleKey: string): boolean {
     // Still loading session → allow all (prevents empty nav flash)
-    if (loading && !session?.user) return true;
+    if (loading) return true;
+    if (!session?.user) return true;
     if (permissions.includes("*") || scopes.includes("*")) return true;
     if (scopes.includes(moduleKey)) return true;
     // Fallback: infer from permissions if scopes is empty (legacy JWT)

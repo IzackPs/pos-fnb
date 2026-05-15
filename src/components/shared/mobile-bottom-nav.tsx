@@ -24,7 +24,7 @@ export function MobileBottomNav({ enabledModules }: { enabledModules: Set<string
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 safe-area-pb"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
-      <div className="grid grid-cols-5 h-14">
+      <div className="flex justify-around h-14">
         {items.map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
@@ -32,7 +32,7 @@ export function MobileBottomNav({ enabledModules }: { enabledModules: Set<string
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 touch-manipulation ${
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors active:scale-95 touch-manipulation ${
                 active ? "text-amber-600" : "text-gray-400 hover:text-gray-600"
               }`}
             >

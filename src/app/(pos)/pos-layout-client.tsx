@@ -46,7 +46,7 @@ export function PosLayoutClient({ children, enabledModules }: { children: React.
       <header className="h-12 flex items-center justify-between px-4 shrink-0 bg-white border-b border-[#e5e7eb]">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center overflow-hidden">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
               <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
             </div>
             <span className="font-bold text-sm text-gray-900">POS F&B</span>
@@ -86,7 +86,7 @@ export function PosLayoutClient({ children, enabledModules }: { children: React.
     return (
       <header className="h-11 flex items-center justify-between px-3 shrink-0 bg-white border-b border-[#e5e7eb]">
         <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center overflow-hidden">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
             <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
           </div>
           <span className="font-bold text-sm text-gray-900">POS F&B</span>

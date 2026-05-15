@@ -793,6 +793,8 @@ export const ja = {
     "usernamePlaceholder": "ユーザー名を入力",
     "passwordPlaceholder": "••••••••",
     "version": "Version 1.0.0",
-    "systemLabel": "POS システム"
+    "systemLabel": "POS システム",
+    "tagline": "レストラン管理システム",
+    "copyright": "POS F&B. All rights reserved.",
   }
 };

@@ -796,6 +796,8 @@ export const zh = {
     "usernamePlaceholder": "请输入用户名",
     "passwordPlaceholder": "••••••••",
     "version": "版本 1.0.0",
-    "systemLabel": "POS系统"
+    "systemLabel": "POS系统",
+    "tagline": "餐厅管理系统",
+    "copyright": "POS F&B. 版权所有。",
   }
 };

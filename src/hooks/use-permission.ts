@@ -9,27 +9,25 @@ type Action = "read" | "write" | "view" | "create" | "edit" | "delete";
  * Reads permissions + scopes from session.
  */
 export function usePermission() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const loading = status === "loading";
   const permissions: string[] = (() => {
-    try { return JSON.parse(session?.user?.permissions || "[]"); }
+    if (!session?.user) return [];
+    try { return JSON.parse(session.user.permissions || "[]"); }
     catch { return []; }
   })();
   const scopes: string[] = (() => {
-    try { return JSON.parse(session?.user?.scopes || "[]"); }
+    if (!session?.user) return [];
+    try { return JSON.parse(session.user.scopes || "[]"); }
     catch { return []; }
   })();
 
   function canAccessModule(moduleKey: string): boolean {
+    // Still loading session → allow all (prevents empty nav flash)
+    if (loading && !session?.user) return true;
     if (permissions.includes("*") || scopes.includes("*")) return true;
-    // Explicit scope check
     if (scopes.includes(moduleKey)) return true;
-    // Fallback: infer scope from permissions if scopes is empty (legacy session)
-    if (scopes.length === 0) {
-      return permissions.some(p => {
-        const sep = p.includes(":") ? ":" : ".";
-        return p.split(sep)[0] === moduleKey;
-      });
-    }
+    // Fallback: infer from permissions if scopes is empty (legacy JWT)
     return permissions.some(p => {
       const sep = p.includes(":") ? ":" : ".";
       return p.split(sep)[0] === moduleKey;

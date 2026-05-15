@@ -2,14 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useI18n } from "@/i18n/context";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { t } = useI18n();
   const [pending, start] = useTransition();
   const [form, setForm] = useState({ username: "", password: "" });
@@ -47,7 +45,7 @@ export default function LoginPage() {
             <Image src="/logo.png" alt="Logo" width={64} height={64} className="object-cover" />
           </div>
           <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">POS F&B</h1>
-          <p className="text-sm text-gray-500 mt-1.5">Hệ thống quản lý nhà hàng</p>
+          <p className="text-sm text-gray-500 mt-1.5">{t.login.tagline}</p>
         </div>
 
         {/* Login form */}
@@ -98,7 +96,7 @@ export default function LoginPage() {
 
       {/* Footer */}
       <div className="py-4 text-center text-xs text-gray-400">
-        © {new Date().getFullYear()} POS F&B. All rights reserved.
+        © {new Date().getFullYear()} {t.login.copyright}
       </div>
     </div>
   );

@@ -796,6 +796,8 @@ export const en = {
     "usernamePlaceholder": "Enter username",
     "passwordPlaceholder": "••••••••",
     "version": "Version 1.0.0",
-    "systemLabel": "POS SYSTEM"
+    "systemLabel": "POS SYSTEM",
+    "tagline": "Restaurant Management System",
+    "copyright": "POS F&B. All rights reserved.",
   }
 };

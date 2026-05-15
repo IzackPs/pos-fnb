@@ -8,12 +8,14 @@ declare module "next-auth" {
       username: string;
       role: string;
       permissions: string;
+      scopes: string;
     } & DefaultSession["user"];
   }
   interface User extends DefaultUser {
     username: string;
     role: string;
     permissions: string;
+    scopes: string;
   }
 }
 
@@ -23,5 +25,6 @@ declare module "@auth/core/jwt" {
     username: string;
     role: string;
     permissions: string;
+    scopes: string;
   }
 }

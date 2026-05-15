@@ -33,6 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           username: user.username,
           role: user.role.name,
           permissions: user.role.permissions,
+          scopes: user.role.scopes || "[]",
         };
       },
     }),
@@ -44,6 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.username = user.username!;
         token.role = user.role!;
         token.permissions = user.permissions!;
+        token.scopes = user.scopes!;
       }
       return token;
     },
@@ -53,6 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.username = token.username!;
         session.user.role = token.role!;
         session.user.permissions = token.permissions!;
+        session.user.scopes = token.scopes!;
       }
       return session;
     },

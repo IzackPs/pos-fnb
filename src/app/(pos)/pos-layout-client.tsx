@@ -3,31 +3,41 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { ChefHat, LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { useI18n } from "@/i18n/context";
 import { useDeviceInfo } from "@/components/shared/device-provider";
 import { MobileBottomNav } from "@/components/shared/mobile-bottom-nav";
+import { usePermission } from "@/hooks/use-permission";
+import Image from "next/image";
 
 export function PosLayoutClient({ children, enabledModules }: { children: React.ReactNode; enabledModules: Set<string> }) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { t } = useI18n();
   const { isMobile, isTablet, isDesktop } = useDeviceInfo();
+  const { canAccessModule } = usePermission();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   useEffect(() => { setUserMenuOpen(false); }, [pathname]);
 
   const allNavItems: { href: string; label: string; module?: string }[] = [
-    { href: "/order", label: t.nav.sales },
+    { href: "/dashboard", label: t.nav.dashboard, module: "dashboard" },
+    { href: "/order", label: t.nav.sales, module: "order" },
     { href: "/inventory", label: t.nav.inventory, module: "inventory" },
-    { href: "/cash", label: t.nav.cash },
+    { href: "/cash", label: t.nav.cash, module: "cash" },
     { href: "/reports", label: t.nav.reports, module: "reports" },
-    { href: "/settings", label: t.nav.settings },
+    { href: "/settings", label: t.nav.settings, module: "settings" },
   ];
 
-  const navItems = allNavItems.filter(item => !item.module || enabledModules.has(item.module));
+  const navItems = allNavItems.filter(item => {
+    // Must have module enabled
+    if (item.module && !enabledModules.has(item.module)) return false;
+    // Must have permission to access module
+    if (item.module && !canAccessModule(item.module)) return false;
+    return true;
+  });
   const isCompact = isMobile || isTablet;
 
   // ── Desktop Header ──────────────────────────────
@@ -36,8 +46,8 @@ export function PosLayoutClient({ children, enabledModules }: { children: React.
       <header className="h-12 flex items-center justify-between px-4 shrink-0 bg-white border-b border-[#e5e7eb]">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
-              <ChefHat className="h-4 w-4 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center overflow-hidden">
+              <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
             </div>
             <span className="font-bold text-sm text-gray-900">POS F&B</span>
           </Link>
@@ -76,8 +86,8 @@ export function PosLayoutClient({ children, enabledModules }: { children: React.
     return (
       <header className="h-11 flex items-center justify-between px-3 shrink-0 bg-white border-b border-[#e5e7eb]">
         <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
-            <ChefHat className="h-4 w-4 text-white" />
+          <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center overflow-hidden">
+            <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
           </div>
           <span className="font-bold text-sm text-gray-900">POS F&B</span>
         </Link>

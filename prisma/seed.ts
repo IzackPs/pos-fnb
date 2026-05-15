@@ -7,11 +7,17 @@ const db = new PrismaClient({ adapter: new PrismaLibSql({ url: process.env.DATAB
 async function main() {
   console.log("🌱 Seeding POS F&B...\n");
 
+  // ========== CURRENCIES ==========
+  await db.currency.upsert({ where: { code: "VND" }, update: {}, create: { code: "VND", name: "Việt Nam Đồng", symbol: "₫", rate: 1, isDefault: true, sortOrder: 1 } });
+  await db.currency.upsert({ where: { code: "USD" }, update: {}, create: { code: "USD", name: "US Dollar", symbol: "$", rate: 0.000042, isDefault: false, sortOrder: 2 } });
+  await db.currency.upsert({ where: { code: "EUR" }, update: {}, create: { code: "EUR", name: "Euro", symbol: "€", rate: 0.000038, isDefault: false, sortOrder: 3 } });
+  console.log("✅ Currencies");
+
   // ========== ROLES ==========
-  const adminRole = await db.role.upsert({ where: { name: "Admin" }, update: {}, create: { name: "Admin", permissions: JSON.stringify(["*"]) } });
-  await db.role.upsert({ where: { name: "Manager" }, update: {}, create: { name: "Manager", permissions: JSON.stringify(["reports.view","settings.*","inventory.*","cash.view"]) } });
-  await db.role.upsert({ where: { name: "Cashier" }, update: {}, create: { name: "Cashier", permissions: JSON.stringify(["order.*","payments.*"]) } });
-  await db.role.upsert({ where: { name: "Waiter" }, update: {}, create: { name: "Waiter", permissions: JSON.stringify(["order.open","order.item_add","order.send"]) } });
+  const adminRole = await db.role.upsert({ where: { name: "Admin" }, update: {}, create: { name: "Admin", permissions: JSON.stringify(["*"]), scopes: JSON.stringify(["*"]) } });
+  await db.role.upsert({ where: { name: "Manager" }, update: {}, create: { name: "Manager", permissions: JSON.stringify(["reports.view","settings.*","inventory.*","cash.view"]), scopes: JSON.stringify(["reports","settings","inventory","cash"]) } });
+  await db.role.upsert({ where: { name: "Cashier" }, update: {}, create: { name: "Cashier", permissions: JSON.stringify(["order.*","payments.*"]), scopes: JSON.stringify(["order","cash"]) } });
+  await db.role.upsert({ where: { name: "Waiter" }, update: {}, create: { name: "Waiter", permissions: JSON.stringify(["order.open","order.item_add","order.send"]), scopes: JSON.stringify(["order"]) } });
   console.log("✅ Roles");
 
   // ========== USERS ==========
@@ -22,7 +28,7 @@ async function main() {
   console.log("✅ Users (admin, cashier1, waiter1 / admin123)");
 
   // ========== GENERAL CONFIG ==========
-  await db.generalConfig.upsert({ where: { id: "default" }, update: {}, create: { restaurantName: "Nhà Hàng Mập", address: "123 Nguyễn Huệ, Q.1, TP.HCM", phone: "0901234567", currency: "VND" } });
+  await db.generalConfig.upsert({ where: { id: "default" }, update: {}, create: { restaurantName: "Nhà Hàng Mập", address: "123 Nguyễn Huệ, Q.1, TP.HCM", phone: "0901234567", currencyCode: "VND" } });
   console.log("✅ Config");
 
   // ========== VAT ==========

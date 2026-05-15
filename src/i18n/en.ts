@@ -439,6 +439,7 @@ export const en = {
       "payments": "Payments",
       "discounts": "Discounts / Promos",
       "serviceCharges": "Fees & Surcharges",
+      "currencies": "Currencies",
       "systemModules": "System Modules",
       "karaoke": "Karaoke"
     },

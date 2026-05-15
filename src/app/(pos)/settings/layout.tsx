@@ -8,7 +8,7 @@ import {
   Building2, Users, FolderTree, Tags, Scale,
   MapPin, Printer, FileText, Coffee, ListChecks, ShieldCheck,
   Clock, CreditCard, Percent, Receipt, Package, Puzzle, Truck,
-  CalendarDays, Menu, X,
+  CalendarDays, DollarSign, Menu, X,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -49,11 +49,12 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       { href: "/settings/payment-methods", label: t.settings.sidebar.payments, icon: CreditCard },
       { href: "/settings/discounts", label: t.settings.sidebar.discounts, icon: Percent },
       { href: "/settings/service-charges", label: t.settings.sidebar.serviceCharges, icon: Receipt },
+      { href: "/settings/currencies", label: t.settings.sidebar.currencies, icon: DollarSign },
       { href: "/settings/modules", label: t.settings.sidebar.systemModules, icon: Puzzle },
     ]},
   ];
 
-  // Flatten for mobile scroll
+  // Also import DollarSign
   const allItems = groups.flatMap(g => g.items);
 
   return (

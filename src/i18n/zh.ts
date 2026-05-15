@@ -439,6 +439,7 @@ export const zh = {
       "payments": "支付",
       "discounts": "折扣/促销",
       "serviceCharges": "费用与附加费",
+      "currencies": "货币",
       "systemModules": "系统模块",
       "karaoke": "卡拉OK"
     },

@@ -793,6 +793,8 @@ export const ko = {
     "usernamePlaceholder": "아이디 입력",
     "passwordPlaceholder": "••••••••",
     "version": "Version 1.0.0",
-    "systemLabel": "POS 시스템"
+    "systemLabel": "POS 시스템",
+    "tagline": "레스토랑 관리 시스템",
+    "copyright": "POS F&B. All rights reserved.",
   }
 };

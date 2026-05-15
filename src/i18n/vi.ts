@@ -793,6 +793,8 @@ export const vi = {
     "usernamePlaceholder": "Nhập tên người dùng",
     "passwordPlaceholder": "••••••••",
     "version": "Version 1.0.0",
-    "systemLabel": "HỆ THỐNG POS"
+    "systemLabel": "HỆ THỐNG POS",
+    "tagline": "Hệ thống quản lý nhà hàng",
+    "copyright": "POS F&B. All rights reserved.",
   }
 };

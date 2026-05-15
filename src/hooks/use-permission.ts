@@ -21,7 +21,16 @@ export function usePermission() {
 
   function canAccessModule(moduleKey: string): boolean {
     if (permissions.includes("*") || scopes.includes("*")) return true;
-    return scopes.includes(moduleKey) || permissions.some(p => {
+    // Explicit scope check
+    if (scopes.includes(moduleKey)) return true;
+    // Fallback: infer scope from permissions if scopes is empty (legacy session)
+    if (scopes.length === 0) {
+      return permissions.some(p => {
+        const sep = p.includes(":") ? ":" : ".";
+        return p.split(sep)[0] === moduleKey;
+      });
+    }
+    return permissions.some(p => {
       const sep = p.includes(":") ? ":" : ".";
       return p.split(sep)[0] === moduleKey;
     });

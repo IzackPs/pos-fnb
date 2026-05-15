@@ -6,7 +6,7 @@
 <p align="center"><strong>Open-source Point of Sale for Restaurants, Cafés & Karaoke</strong></p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version 1.0.0" />
+  <img src="https://img.shields.io/badge/version-1.1.0-blue" alt="Version 1.1.0" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License" />
   <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/Prisma-SQLite-blue" alt="Prisma + SQLite" />

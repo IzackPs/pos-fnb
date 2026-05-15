@@ -4,6 +4,50 @@ All notable changes to POS-F&B are documented here.
 
 ---
 
+## [1.1.0] — 2026-05-15
+
+### 🌐 Complete i18n (5 Languages)
+- **Client-side UI**: All 48+ pages use `useI18n()` — zero hardcoded Vietnamese strings remaining
+  - Products (datagrid, pagination, recipe, toppings modal)
+  - Inventory (stock-in panel, supplier auto-fill)
+  - Cash (datagrid, register, petty cash categories)
+  - Printers (form, labels, client hint)
+  - Holidays (list, usage guide, dialog)
+  - Toppings (groups, assignments, pricing)
+  - Karaoke, VAT, Shifts, Users, Categories, Suppliers, Areas, Units, Ingredients, Payment Methods, Discounts, Service Charges, Modules
+- **Server-side → English**: All Excel exports, error messages, print footer converted to English
+  - `excel.ts`: 70+ titles/sections/headers/summaries → EN
+  - `reports/actions.ts`, `order/actions.ts`, `inventory/actions.ts`, `print-actions.ts`, `dashboard/actions.ts`
+- **4 translations re-generated from scratch** via sub-agents
+  - `en.ts`: 644 keys — natural restaurant/F&B English
+  - `zh.ts`: 699 keys — Chinese (Simplified)
+  - `ko.ts`: 699 keys — Korean
+  - `ja.ts`: 644 keys — Japanese (kanji + katakana)
+
+### 🍪 Dynamic Locale via Cookie
+- LanguageSwitcher sets `pos-locale` cookie on change + initial load
+- Server components read cookie via `lib/locale.ts` → `getServerDictionary()`
+- All 15 settings `page.tsx` files now dynamic — no more hardcoded `getDictionary("vi")`
+
+### 🚀 CI/CD Pipeline
+- GitHub Actions: `build-merge.yml`
+- On push to `dev_lor`: `npm ci` → `prisma db push` → `tsc --noEmit` → `next build`
+- Build success → auto-merge `dev_lor` → `main` (no-ff)
+- Manual trigger via `workflow_dispatch`
+
+### 🐛 Bug Fixes
+- Fix profit double-count: `profit = income - expenses` only
+- Fix printer type labels (`Bếp` → i18n key)
+- Fix sync script overwriting translated dictionary values
+- Fix `tsc` duplicate keys in `vi.ts`
+- Fix literal strings rendered as text (`t.settings.vat`, `t.settings.addKaraokePrice`)
+
+### 🏷️ Repository
+- Branches: `main` (stable, CI-merged), `dev_lor` (development), `master` (legacy)
+- Tag: `v1.1.0`
+
+---
+
 ## [1.0.0] — 2026-05-14
 
 ### 🎉 First Release

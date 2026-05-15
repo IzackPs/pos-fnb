@@ -4,6 +4,8 @@ import { useState, useTransition, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/context";
+import { useDeviceInfo } from "@/components/shared/device-provider";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import {
   Users, Clock, Send, Printer, Merge, Split,
   Plus, Minus, ShoppingCart, X, ArrowLeft,
@@ -43,6 +45,7 @@ export function TableGridView({
   onSplitTable: (orderId: string) => void;
 }) {
   const { t } = useI18n();
+  const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const [pending, start] = useTransition();
   const [mergeMode, setMergeMode] = useState(false);
   const [splitMode, setSplitMode] = useState(false);
@@ -69,11 +72,10 @@ export function TableGridView({
     if (tableIds.length < 2) { toast.error(t.order.mergeTablePrompt); return; }
     start(async () => {
       const targetTableId = tableIds[0];
-      // Get order IDs for source tables
       const sourceOrderIds: string[] = [];
       for (const tid of tableIds.slice(1)) {
-        const t = activeArea.tables.find(tb => tb.id === tid);
-        const oid = t?.orders[0]?.id;
+        const tbl = activeArea.tables.find(tb => tb.id === tid);
+        const oid = tbl?.orders[0]?.id;
         if (oid) sourceOrderIds.push(oid);
       }
       await mergeTables(sourceOrderIds, targetTableId);
@@ -83,32 +85,66 @@ export function TableGridView({
   }
 
   const hasOrders = activeArea.tables.filter(t => t.orders.length > 0 && (t.orders[0].status === "OPEN" || t.orders[0].status === "SENT"));
-  const selectableTables = mergeMode ? hasOrders : splitMode ? hasOrders.filter(t => selectedTables.size === 0 || t.id === Array.from(selectedTables)[0]) : activeArea.tables;
+
+  // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
+  const gridCols = isMobile ? "grid-cols-3" : isTablet ? "grid-cols-4" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
+  const cardPadding = isMobile ? "p-2.5" : "p-4";
+  const gapSize = isMobile ? "gap-2" : "gap-4";
 
   return (
     <div className="flex flex-col h-full">
       {/* Area tabs + buttons */}
-      <div className="px-6 py-3 flex gap-2 items-center overflow-x-auto shrink-0 border-b border-gray-200 bg-white">
+      <div className={`${isMobile ? "px-3 py-2 gap-1.5" : "px-6 py-3 gap-2"} flex items-center overflow-x-auto shrink-0 border-b border-gray-200 bg-white`}>
         {areas.map(a => (
           <button key={a.id} onClick={() => { setActiveAreaId(a.id); setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
-            className={`px-5 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all active:scale-95 ${
+            className={`${isMobile ? "px-3 py-1.5 text-xs" : "px-5 py-2 text-sm"} rounded-full font-semibold whitespace-nowrap transition-all active:scale-95 ${
               activeAreaId === a.id ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}>
             {a.name}
           </button>
         ))}
-        <div className="flex-1" />
-        <button onClick={toggleMerge} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5 ${
-          mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }`}><Merge className="h-4 w-4" /> {t.order.merge}</button>
-        <button onClick={toggleSplit} className={`px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5 ${
-          splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-        }`}><Split className="h-4 w-4" /> {t.order.split}</button>
+        {/* Desktop: Gộp/Tách buttons in top bar */}
+        {!isMobile && (
+          <>
+            <div className="flex-1" />
+            <button onClick={toggleMerge} className={`px-4 py-2 text-sm rounded-full font-semibold transition-all flex items-center gap-1 ${
+              mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}><Merge className="h-4 w-4" /> {t.order.merge}</button>
+            <button onClick={toggleSplit} className={`px-4 py-2 text-sm rounded-full font-semibold transition-all flex items-center gap-1 ${
+              splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}><Split className="h-4 w-4" /> {t.order.split}</button>
+          </>
+        )}
       </div>
 
-      {/* Mode banner */}
-      {(mergeMode || splitMode) && (
-        <div className="px-6 py-2 flex items-center gap-3 text-sm shrink-0 bg-blue-50 border-b border-blue-200">
+      {/* Mobile: Mode banner + action bar ở dưới đầu trang */}
+      {isMobile && (mergeMode || splitMode) && (
+        <div className="px-3 py-2 text-xs flex items-center gap-2 shrink-0 bg-blue-50 border-b border-blue-200">
+          <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
+          <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
+          <div className="flex-1" />
+          <button onClick={() => { setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
+            className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100 touch-manipulation">{t.order.cancel}</button>
+          <button onClick={() => {
+            if (mergeMode) confirmMerge();
+            else if (selectedTables.size === 1) {
+              const tbl = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
+              const orderId = tbl?.orders[0]?.id;
+              if (orderId) onSplitTable(orderId);
+            } else toast.error(t.order.splitTablePrompt);
+          }}
+            disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 touch-manipulation ${
+              mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
+            }`}>
+            {mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems}
+          </button>
+        </div>
+      )}
+
+      {/* Desktop: Mode banner */}
+      {!isMobile && (mergeMode || splitMode) && (
+        <div className="px-6 py-2 text-sm flex items-center gap-3 shrink-0 bg-blue-50 border-b border-blue-200">
           <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
@@ -117,8 +153,8 @@ export function TableGridView({
           <button onClick={() => {
             if (mergeMode) confirmMerge();
             else if (selectedTables.size === 1) {
-              const t = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
-              const orderId = t?.orders[0]?.id;
+              const tbl = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
+              const orderId = tbl?.orders[0]?.id;
               if (orderId) onSplitTable(orderId);
             } else toast.error(t.order.splitTablePrompt);
           }}
@@ -132,15 +168,17 @@ export function TableGridView({
       )}
 
       {/* Legend */}
-      <div className="px-6 py-2 flex items-center gap-6 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-200 shrink-0">
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> {t.order.tableFree}</span>
-        <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> {t.order.occupied}</span>
-        <span className="text-gray-400">{occupied}/{activeArea.tables.length} {t.order.occupied}</span>
-      </div>
+      {!isMobile && (
+        <div className="px-6 py-2 flex items-center gap-6 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-200 shrink-0">
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> {t.order.tableFree}</span>
+          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> {t.order.occupied}</span>
+          <span className="text-gray-400">{occupied}/{activeArea.tables.length} {t.order.occupied}</span>
+        </div>
+      )}
 
       {/* Table Grid */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4">
+      <div className={`flex-1 overflow-y-auto ${isMobile ? "p-2" : "p-6"}`}>
+        <div className={`grid ${gridCols} ${gapSize}`}>
           {activeArea.tables.map(table => {
             const hasOrder = table.orders.length > 0 && (table.orders[0].status === "OPEN" || table.orders[0].status === "SENT");
             const order = table.orders[0];
@@ -155,7 +193,7 @@ export function TableGridView({
                   else if (splitMode) { if (hasOrder && selectedTables.size === 0) { toggleTable(table.id); } }
                   else { hasOrder ? onSelectOrder(order.id) : onOpenTable(table); }
                 }}
-                className={`rounded-xl p-4 flex flex-col gap-1.5 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[88px] justify-center ${
+                className={`rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
                   disabled ? "opacity-30 cursor-not-allowed" : ""
                 } ${
                   inMode && isSelected ? "bg-blue-100 border-blue-500 ring-2 ring-blue-300" :
@@ -163,7 +201,7 @@ export function TableGridView({
                   hasOrder ? "bg-amber-50 border-amber-300" : "bg-emerald-50 border-emerald-200"
                 }`}>
                 <div className="flex items-center justify-between">
-                  <span className={`text-sm font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
+                  <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
                   {inMode && <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] ${isSelected ? "bg-blue-500 border-blue-500 text-white" : "border-gray-300"}`}>{isSelected ? "✓" : ""}</span>}
                   {order?.status === "SENT" && !inMode && <Flame className="h-3.5 w-3.5 text-orange-500" />}
                 </div>
@@ -175,16 +213,36 @@ export function TableGridView({
                     <span className="text-[11px] font-mono font-bold text-amber-800">
                       #{String(order.orderNumber).padStart(8, "0")}{order.orderNumberSuffix ? `-${order.orderNumberSuffix}` : ""}
                     </span>
-                    <span className="text-xs font-bold text-amber-600">{fmt(order.totalAmount ?? 0)}đ</span>
+                    <span className={`${isMobile ? "text-[10px]" : "text-xs"} font-bold text-amber-600`}>{fmt(order.totalAmount ?? 0)}đ</span>
                   </>
                 ) : (
-                  <span className="text-[10px] font-medium text-emerald-700">{table.capacity} {t.order.seats}</span>
+                  <span className="text-[10px] font-medium text-emerald-700">{table.capacity} {isMobile ? "" : t.order.seats}</span>
                 )}
               </button>
             );
           })}
         </div>
       </div>
+
+      {/* Mobile: Fixed bottom action bar — Gộp/Tách */}
+      {isMobile && (
+        <div className="fixed bottom-14 left-0 right-0 z-30 px-2 pb-2 pt-0" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}>
+          <div className="flex gap-2 bg-white rounded-2xl shadow-lg border border-gray-200 px-3 py-2">
+            <button onClick={toggleMerge}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
+                mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}>
+              <Merge className="h-4 w-4" /> Gộp
+            </button>
+            <button onClick={toggleSplit}
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
+                splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600"
+              }`}>
+              <Split className="h-4 w-4" /> Tách
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -210,12 +268,189 @@ function OrderDetailView({
   onBtDisconnect: () => void;
 }) {
   const { t } = useI18n();
+  const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const [activeCatId, setActiveCatId] = useState(categories[0]?.id ?? "");
+  const [orderSheetOpen, setOrderSheetOpen] = useState(false);
   if (!orderDetail) return null;
   const activeCat = categories.find(c => c.id === activeCatId);
   const pendingItems = orderDetail.items.filter(i => i.status === "PENDING");
   const canSend = pendingItems.length > 0;
+  const sidebarW = isTablet ? "w-[300px]" : "w-[380px]";
 
+  // ══════ Shared: Order Panel content ══════
+  function OrderPanelContent({ compact }: { compact?: boolean }) {
+    if (!orderDetail) return null;
+    return (
+      <div className="flex flex-col h-full bg-white">
+        {compact && (
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-200 shrink-0">
+            <span className="font-bold text-sm">{t.order.orderedItems} ({orderDetail!.items.length})</span>
+            <button onClick={() => setOrderSheetOpen(false)} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center active:scale-90 touch-manipulation">
+              <X className="h-4 w-4 text-gray-500" />
+            </button>
+          </div>
+        )}
+        {!compact && (
+          <div className="px-4 pt-3 pb-1 text-xs font-bold uppercase tracking-wider text-gray-400 shrink-0">
+            {t.order.orderedItems} ({orderDetail.items.length})
+          </div>
+        )}
+        <div className="flex-1 overflow-y-auto px-3 space-y-1">
+          {orderDetail.items.map(item => (
+            <div key={item.id} className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs ${
+              item.status === "CANCELLED" ? "opacity-40 line-through bg-red-50 border-red-100" : "bg-gray-50 border-gray-200"
+            }`}>
+              {item.status === "SENT" && <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+              {item.status === "PENDING" && <div className="h-3.5 w-3.5 rounded-full border-2 border-gray-300 shrink-0" />}
+              {item.status === "CANCELLED" && <X className="h-3.5 w-3.5 text-red-400 shrink-0" />}
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-gray-900 truncate">{item.product.name}</div>
+                {item.toppings?.length > 0 && (
+                  <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((t: any) => t.topping?.name).join(", ")}</div>
+                )}
+              </div>
+              {item.status === "PENDING" && !item.product.slug?.startsWith("karaoke-") ? (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => item.quantity <= 1 ? onRemoveItem(item.id) : onUpdateQty(item.id, item.quantity - 1)}
+                    className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 active:scale-90 touch-manipulation">
+                    <Minus className="h-2.5 w-2.5" /></button>
+                  <span className="w-5 text-center font-mono font-bold text-xs">{item.quantity}</span>
+                  <button onClick={() => onUpdateQty(item.id, item.quantity + 1)}
+                    className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 active:scale-90 touch-manipulation">
+                    <Plus className="h-2.5 w-2.5" /></button>
+                </div>
+              ) : (
+                <span className="text-[10px] font-semibold text-gray-500">x{item.quantity}</span>
+              )}
+              <span className="font-mono font-bold text-xs shrink-0 w-16 text-right text-gray-900">{fmt(item.unitPrice * item.quantity)}đ</span>
+              {item.status === "PENDING" && !item.product.slug.startsWith("karaoke-") && (
+                <button onClick={() => onCancelItem(item.id)} className="text-[10px] text-red-400 hover:text-red-600 shrink-0 font-medium">{t.order.cancel}</button>
+              )}
+            </div>
+          ))}
+          {orderDetail.items.length === 0 && (
+            <div className="text-center py-16 text-sm text-gray-400">{t.order.selectItems}</div>
+          )}
+        </div>
+
+        {/* Totals + Actions */}
+        <div className="px-4 py-3 space-y-1 text-sm shrink-0 border-t border-gray-200 bg-gray-50">
+          <div className="flex justify-between"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono font-semibold">{fmt(orderDetail.subtotal)}đ</span></div>
+          {(orderDetail.vatAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail.vatAmount)}đ</span></div>}
+          {(orderDetail.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail.exciseTaxAmount)}đ</span></div>}
+          {(orderDetail.serviceCharge ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail.serviceCharge)}đ</span></div>}
+          {(orderDetail.discountAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail.discountAmount)}đ</span></div>}
+          <div className="flex justify-between text-base font-extrabold pt-1.5 border-t border-gray-200 text-amber-600">
+            <span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail.totalAmount)}đ</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className={`grid ${compact ? "grid-cols-3" : "grid-cols-3"} gap-1.5 px-3 py-2.5 shrink-0 border-t border-gray-200`}>
+          <button onClick={onSend} disabled={pending || !canSend}
+            className="col-span-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 transition-all touch-manipulation">
+            <Send className="h-4 w-4" /> {t.order.sendToKitchen}</button>
+          <button onClick={onTempBill} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all touch-manipulation">
+            <Printer className="h-3 w-3" /> {t.order.tempBill}</button>
+          <button onClick={onMerge} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all touch-manipulation">
+            <Merge className="h-3 w-3" /> {t.order.merge}</button>
+          <button onClick={onSplit} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all touch-manipulation">
+            <Split className="h-3 w-3" /> {t.order.split}</button>
+          <button onClick={onCheckout} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
+            <Banknote className="h-4 w-4" /> {t.order.checkout}</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ══════ MOBILE: Full-width products + bottom sheet order ══════
+  if (isMobile) {
+    return (
+      <div className="flex flex-col h-full">
+        {/* Compact Header */}
+        <div className="flex items-center justify-between px-3 py-2 gap-2 shrink-0 bg-amber-500 text-white">
+          <button onClick={onBack} className="p-1 -ml-1 rounded-lg hover:bg-white/10 active:scale-90 transition-all touch-manipulation">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <span className="font-extrabold text-sm">{orderDetail.table?.name}</span>
+            <span className="text-xs opacity-80">#{String(orderDetail.orderNumber).padStart(8, "0")}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs">
+            <button onClick={() => onGuestChange(-1)} className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 active:scale-90 touch-manipulation">−</button>
+            <span className="font-medium">{orderDetail.guestCount}</span>
+            <button onClick={() => onGuestChange(1)} className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 active:scale-90 touch-manipulation">+</button>
+            <Users className="h-3 w-3 ml-1 opacity-70" />
+          </div>
+          <button
+            onClick={btState.connected ? onBtDisconnect : onBtConnect}
+            disabled={btState.connecting}
+            className={`p-1.5 rounded-lg transition-all touch-manipulation ${btState.connected ? "bg-white/20 text-white" : "bg-white/20 text-white/60"}`}
+          >
+            {btState.connecting ? <Bluetooth className="h-4 w-4 animate-pulse" /> : btState.connected ? <BluetoothConnected className="h-4 w-4" /> : <BluetoothOff className="h-4 w-4" />}
+          </button>
+        </div>
+
+        {/* Product Catalog — full width */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Category tabs */}
+          <div className="px-2 py-1.5 flex gap-1 overflow-x-auto shrink-0 bg-gray-50 border-b border-gray-200">
+            {categories.map(c => (
+              <button key={c.id} onClick={() => setActiveCatId(c.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all active:scale-95 touch-manipulation ${
+                  activeCatId === c.id ? "bg-white text-amber-700 border border-gray-200 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+          {/* Product grid — 2 cols on mobile */}
+          <div className="flex-1 overflow-y-auto p-2">
+            <div className="grid grid-cols-2 gap-2">
+              {activeCat?.products.map(p => (
+                <button key={p.id} onClick={() => onAddItem(p)}
+                  className="bg-white rounded-xl p-3 text-left border border-gray-200 hover:border-amber-300 hover:shadow-sm active:scale-[0.97] transition-all touch-manipulation">
+                  <div className="flex items-center gap-1">
+                    <UtensilsCrossed className="h-3 w-3 text-amber-500 shrink-0" />
+                    <span className="text-xs font-semibold text-gray-900 truncate">{p.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <span className="text-xs font-bold text-amber-600">{fmt(p.price)}đ</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-medium">{p.unit?.name}</span>
+                  </div>
+                  {(p.toppingGroups?.length ?? 0) > 0 && (
+                    <span className="text-[10px] mt-1 block font-medium text-amber-600">+ {t.order.topping}</span>
+                  )}
+                </button>
+              ))}
+              {activeCat?.products.length === 0 && (
+                <div className="col-span-full text-center py-12 text-sm text-gray-400">{t.settings.noData}</div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Order Button */}
+        <button
+          onClick={() => setOrderSheetOpen(true)}
+          className="fixed bottom-16 left-3 right-3 z-30 h-12 rounded-xl bg-amber-500 text-white font-bold text-sm flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-all touch-manipulation"
+        >
+          <ShoppingCart className="h-5 w-5" />
+          <span>{t.order.orderedItems} ({orderDetail.items.length})</span>
+          <span className="font-mono">{fmt(orderDetail.totalAmount)}đ</span>
+        </button>
+
+        {/* Order Sheet — slides up from bottom */}
+        <Sheet open={orderSheetOpen} onOpenChange={setOrderSheetOpen}>
+          <SheetContent side="bottom" className="h-[80vh] p-0 rounded-t-2xl [&>button]:hidden">
+            <OrderPanelContent compact />
+          </SheetContent>
+        </Sheet>
+      </div>
+    );
+  }
+
+  // ══════ TABLET / DESKTOP: Side-by-side ══════
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -272,7 +507,7 @@ function OrderDetailView({
             ))}
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-2">
+            <div className={`grid ${isTablet ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-5" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7"} gap-2`}>
               {activeCat?.products.map(p => (
                 <button key={p.id} onClick={() => onAddItem(p)}
                   className="bg-white rounded-lg p-3 text-left border border-gray-200 hover:border-amber-300 hover:shadow-sm active:scale-[0.97] transition-all">
@@ -290,81 +525,15 @@ function OrderDetailView({
                 </button>
               ))}
               {activeCat?.products.length === 0 && (
-                <div className="col-span-full text-center py-12 text-sm text-gray-400">{t.settings.noData} trong danh mục này</div>
+                <div className="col-span-full text-center py-12 text-sm text-gray-400">{t.settings.noData}</div>
               )}
             </div>
           </div>
         </div>
 
         {/* RIGHT — Order Panel */}
-        <div className="w-[380px] shrink-0 flex flex-col border-l border-gray-200 bg-white">
-          <div className="px-4 pt-3 pb-1 text-xs font-bold uppercase tracking-wider text-gray-400">
-            {t.order.orderedItems} ({orderDetail.items.length})
-          </div>
-          <div className="flex-1 overflow-y-auto px-3 space-y-1">
-            {orderDetail.items.map(item => (
-              <div key={item.id} className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs ${
-                item.status === "CANCELLED" ? "opacity-40 line-through bg-red-50 border-red-100" : "bg-gray-50 border-gray-200"
-              }`}>
-                {item.status === "SENT" && <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
-                {item.status === "PENDING" && <div className="h-3.5 w-3.5 rounded-full border-2 border-gray-300 shrink-0" />}
-                {item.status === "CANCELLED" && <X className="h-3.5 w-3.5 text-red-400 shrink-0" />}
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-gray-900 truncate">{item.product.name}</div>
-                  {item.toppings?.length > 0 && (
-                    <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((t: any) => t.topping?.name).join(", ")}</div>
-                  )}
-                </div>
-                {item.status === "PENDING" && !item.product.slug?.startsWith("karaoke-") ? (
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => item.quantity <= 1 ? onRemoveItem(item.id) : onUpdateQty(item.id, item.quantity - 1)}
-                      className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 active:scale-90">
-                      <Minus className="h-2.5 w-2.5" /></button>
-                    <span className="w-5 text-center font-mono font-bold text-xs">{item.quantity}</span>
-                    <button onClick={() => onUpdateQty(item.id, item.quantity + 1)}
-                      className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 active:scale-90">
-                      <Plus className="h-2.5 w-2.5" /></button>
-                  </div>
-                ) : (
-                  <span className="text-[10px] font-semibold text-gray-500">x{item.quantity}</span>
-                )}
-                <span className="font-mono font-bold text-xs shrink-0 w-16 text-right text-gray-900">{fmt(item.unitPrice * item.quantity)}đ</span>
-                {item.status === "PENDING" && !item.product.slug.startsWith("karaoke-") && (
-                  <button onClick={() => onCancelItem(item.id)} className="text-[10px] text-red-400 hover:text-red-600 shrink-0 font-medium">{t.order.cancel}</button>
-                )}
-              </div>
-            ))}
-            {orderDetail.items.length === 0 && (
-              <div className="text-center py-16 text-sm text-gray-400">{t.order.selectItems}</div>
-            )}
-          </div>
-
-          {/* Totals */}
-          <div className="px-4 py-3 space-y-1 text-sm shrink-0 border-t border-gray-200 bg-gray-50">
-            <div className="flex justify-between"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono font-semibold">{fmt(orderDetail.subtotal)}đ</span></div>
-            {(orderDetail.vatAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail.vatAmount)}đ</span></div>}
-            {(orderDetail.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail.exciseTaxAmount)}đ</span></div>}
-            {(orderDetail.serviceCharge ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail.serviceCharge)}đ</span></div>}
-            {(orderDetail.discountAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail.discountAmount)}đ</span></div>}
-            <div className="flex justify-between text-base font-extrabold pt-1.5 border-t border-gray-200 text-amber-600">
-              <span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail.totalAmount)}đ</span>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="grid grid-cols-3 gap-1.5 px-4 py-2.5 shrink-0 border-t border-gray-200">
-            <button onClick={onSend} disabled={pending || !canSend}
-              className="col-span-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 transition-all">
-              <Send className="h-4 w-4" /> {t.order.sendToKitchen}</button>
-            <button onClick={onTempBill} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all">
-              <Printer className="h-3 w-3" /> {t.order.tempBill}</button>
-            <button onClick={() => onMerge()} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all">
-              <Merge className="h-3 w-3" /> {t.order.merge}</button>
-            <button onClick={() => onSplit()} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all">
-              <Split className="h-3 w-3" /> {t.order.split}</button>
-            <button onClick={onCheckout} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm">
-              <Banknote className="h-4 w-4" /> {t.order.checkout}</button>
-          </div>
+        <div className={`${sidebarW} shrink-0 flex flex-col border-l border-gray-200`}>
+          <OrderPanelContent />
         </div>
       </div>
     </div>
@@ -616,7 +785,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
 function Dialog({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-0" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-0 mx-4" onClick={e => e.stopPropagation()}>
         <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
         {children}
       </div>

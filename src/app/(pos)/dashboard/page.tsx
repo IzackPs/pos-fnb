@@ -7,6 +7,7 @@ import {
   UtensilsCrossed, Coffee, ShoppingCart,
 } from "lucide-react";
 import { useI18n } from "@/i18n/context";
+import { useDeviceInfo } from "@/components/shared/device-provider";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { getDashboardStats } from "@/server/dashboard/actions";
 
@@ -16,6 +17,7 @@ const fmt = (v: number) => new Intl.NumberFormat("vi-VN").format(v);
 
 export default function DashboardPage() {
   const { t, locale } = useI18n();
+  const { isMobile } = useDeviceInfo();
   const [stats, setStats] = useState<Stats | null>(null);
   const [pending, start] = useTransition();
 
@@ -30,20 +32,22 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="h-full overflow-y-auto p-6 space-y-8">
+    <div className={`h-full overflow-y-auto space-y-8 ${isMobile ? "px-3 py-4" : "p-6"}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t.dashboard.title}</h1>
+          <h1 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.dashboard.title}</h1>
           <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString(locale === "vi" ? "vi-VN" : locale === "en" ? "en-US" : locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "ja-JP", { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
-        <Link href="/order" className="btn-pos-primary">
-          <ShoppingCart className="h-4 w-4" /> {t.dashboard.newOrder}
-        </Link>
+        {!isMobile && (
+          <Link href="/order" className="btn-pos-primary">
+            <ShoppingCart className="h-4 w-4" /> {t.dashboard.newOrder}
+          </Link>
+        )}
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid ${isMobile ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-4"} gap-3`}>
         <div className="stat-card">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-emerald-50">
             <DollarSign className="h-5 w-5 text-emerald-600" />
@@ -84,8 +88,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Modules + Timeline */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-1 lg:grid-cols-3"} gap-4`}>
+        <div className={`lg:col-span-2 grid ${isMobile ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3"} gap-3`}>
           {moduleKeys.map((key, i) => {
             const Icon = moduleIcons[i];
             return (

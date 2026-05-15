@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getDailyReport, getTopProducts } from "@/server/inventory/actions";
 import { getInvoiceReport, getSoldItemsReport, getRevenueReport, getIngredientReport, getWarehouseReport } from "@/server/reports/actions";
 import { useI18n } from "@/i18n/context";
+import { useDeviceInfo } from "@/components/shared/device-provider";
 import { Download, DollarSign, FileText, ShoppingBag, TrendingUp, Package, ClipboardList, AlertTriangle } from "lucide-react";
 
 function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
@@ -24,17 +25,18 @@ export function ReportsClientWrapper({ today }: { today: string }) {
 
 export function ReportsClient({ today }: { today: string }) {
   const { t } = useI18n();
+  const { isMobile } = useDeviceInfo();
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="h-full overflow-y-auto p-6 space-y-6">
+    <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "px-3 py-4" : "p-6"}`}>
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">{t.reports.title}</h2>
+        <h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.reports.title}</h2>
         <p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.reports}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-gray-100 border border-gray-200 p-1 rounded-full flex flex-wrap">
+        <TabsList className={`bg-gray-100 border border-gray-200 p-1 rounded-full ${isMobile ? "flex flex-wrap" : "flex flex-wrap"}`}>
           <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.reports.overview}</TabsTrigger>
           <TabsTrigger value="invoices" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.reports.invoices}</TabsTrigger>
           <TabsTrigger value="sold" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.reports.soldItems}</TabsTrigger>
@@ -148,7 +150,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
     <div className="space-y-6">
       <p className="text-sm text-gray-500">{new Date(today).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "numeric", year: "numeric" })}</p>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: t.reports.revenue, value: fmt(report.revenue) + "đ", sub: report.orders + " " + t.dashboard.orders_unit, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
           { label: t.reports.expenseLabel, value: fmt(report.totalExpense) + "đ", sub: t.reports.expenseSub, icon: TrendingUp, color: "text-red-500", bg: "bg-red-50" },
@@ -162,7 +164,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="section-amber">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byPaymentMethod}</h3>
           {Object.keys(report.paymentMethods).length === 0 ? <p className="text-sm text-gray-400">{t.reports.noData}</p> : (
@@ -213,7 +215,7 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
 
       {loading ? <p className="text-center text-gray-400 py-16">{t.reports.loading}</p> : !data ? <p className="text-center text-gray-400 py-16">{t.reports.noData}</p> : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: t.reports.totalInvoice, value: data.summary.totalOrders },
               { label: t.reports.subtotalLabel, value: fmt(data.summary.totalSubtotal) + "đ" },
@@ -287,7 +289,7 @@ function SoldItemsTab({ today, t }: { today: string; t: any }) {
 
       {loading ? <p className="text-center text-gray-400 py-16">{t.reports.loading}</p> : !data ? <p className="text-center text-gray-400 py-16">{t.reports.noData}</p> : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {[
               { label: t.reports.totalSoldItems, value: data.summary.totalItems },
               { label: t.reports.totalSoldQty, value: data.summary.totalQuantity },
@@ -300,7 +302,7 @@ function SoldItemsTab({ today, t }: { today: string; t: any }) {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* By product */}
             <div className="section-amber">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byProduct}</h3>
@@ -357,7 +359,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
 
       {loading ? <p className="text-center text-gray-400 py-16">{t.reports.loading}</p> : !data ? <p className="text-center text-gray-400 py-16">{t.reports.noData}</p> : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             {[
               { label: t.reports.revenue, value: fmt(data.summary.totalRevenue) + "đ" },
               { label: t.reports.subtotalLabel, value: fmt(data.summary.totalSubtotal) + "đ" },
@@ -372,7 +374,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Payment methods */}
             <div className="section-amber">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byPaymentMethod}</h3>
@@ -447,7 +449,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
 
       {loading ? <p className="text-center text-gray-400 py-16">{t.reports.loading}</p> : !data ? <p className="text-center text-gray-400 py-16">{t.reports.noData}</p> : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: t.reports.stockInNote, value: data.stockInSummary.totalStockIns, icon: Package },
               { label: t.reports.totalMoneyIn, value: fmt(data.stockInSummary.totalAmount) + "đ", highlight: true },
@@ -461,7 +463,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Nhập theo NCC */}
             <div className="section-amber">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.inventory.stockIn} {t.settings.suppliers.toLowerCase()}</h3>
@@ -588,7 +590,7 @@ function WarehouseTab({ today: _today, t }: { today: string; t: any }) {
 
       {loading ? <p className="text-center text-gray-400 py-16">{t.reports.loading}</p> : !data ? <p className="text-center text-gray-400 py-16">{t.reports.noData}</p> : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: t.reports.ingredientCount, value: data.summary.totalIngredients },
               { label: t.reports.stockValue, value: fmt(data.summary.totalStockValue) + "đ", highlight: true },

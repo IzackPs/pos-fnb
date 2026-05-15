@@ -93,7 +93,7 @@ export function InventoryClient({
         <button onClick={() => setOpen(true)} className={`${isMobile ? "btn-pos-secondary text-sm" : "btn-pos-primary"}`}><Plus className="h-4 w-4" /> {isMobile ? t.inventory.stockIn : t.inventory.addStockIn}</button>
       </div>
 
-      {lowStock.length > 0 && (
+      {!isMobile && lowStock.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
           <div><p className="font-semibold text-sm text-amber-800">{t.inventory.lowStock}</p>
@@ -113,14 +113,7 @@ export function InventoryClient({
 
         <TabsContent value="status" className="mt-4">
           <div className="section-amber overflow-hidden"><div className="overflow-x-auto">
-            <table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4 font-semibold">{t.settings.name}</th><th className="text-left p-4">{t.inventory.purchaseUnit}</th><th className="text-left p-4">{t.inventory.baseUnit}</th><th className="text-right p-4">{t.inventory.conversionFactor}</th><th className="text-right p-4">{t.inventory.currentStock}</th><th className="text-right p-4">{t.inventory.minStock}</th><th className="text-right p-4">{t.inventory.costPrice}</th></tr></thead>
-              <tbody>{ingredients.map(i => (
-                <tr key={i.id} className={`border-b border-gray-100 ${i.currentStock <= i.minStock && i.minStock > 0 ? "bg-amber-50" : ""}`}>
-                  <td className="p-4 font-semibold">{i.name}</td><td className="p-4 text-gray-500">{i.purchaseUnit}</td><td className="p-4 text-gray-500">{i.baseUnit}</td><td className="p-4 text-right text-gray-500">{fmt(i.conversionFactor)}</td>
-                  <td className={`p-4 text-right font-mono font-bold ${i.currentStock <= i.minStock && i.minStock > 0 ? "text-amber-600" : ""}`}>{fmt(i.currentStock)}</td>
-                  <td className="p-4 text-right text-gray-500">{fmt(i.minStock)}</td><td className="p-4 text-right font-mono">{fmt(i.costPerBaseUnit)}đ</td></tr>
-              ))}</tbody></table>
-            {ingredients.length === 0 && <p className="text-center text-gray-400 py-12">{t.settings.noData}</p>}
+            <SortableStockTable ingredients={ingredients} isMobile={isMobile} />
           </div></div>
         </TabsContent>
         <TabsContent value="in" className="mt-4">
@@ -151,6 +144,70 @@ export function InventoryClient({
         addEmptyRow={addEmptyRow}
       />}
     </div>
+  );
+}
+
+// ===== SORTABLE STOCK STATUS TABLE =====
+function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient[]; isMobile: boolean }) {
+  const { t } = useI18n();
+  const [sortField, setSortField] = useState<"name" | "stock" | "unit">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  function toggleSort(field: "name" | "stock" | "unit") {
+    if (sortField === field) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDir(field === "stock" ? "asc" : "asc");
+    }
+  }
+
+  const sorted = [...ingredients].sort((a, b) => {
+    let cmp = 0;
+    if (sortField === "name") cmp = a.name.localeCompare(b.name);
+    else if (sortField === "stock") cmp = a.currentStock - b.currentStock;
+    else if (sortField === "unit") cmp = a.baseUnit.localeCompare(b.baseUnit);
+    return sortDir === "asc" ? cmp : -cmp;
+  });
+
+  const SortArrow = ({ field }: { field: "name" | "stock" | "unit" }) => {
+    if (sortField !== field) return <span className="ml-1 text-gray-300">↕</span>;
+    return <span className="ml-1 text-amber-500">{sortDir === "asc" ? "↑" : "↓"}</span>;
+  };
+
+  if (ingredients.length === 0) {
+    return <p className="text-center text-gray-400 py-12">{t.settings.noData}</p>;
+  }
+
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="bg-gray-50 border-b border-gray-200">
+          <th className="text-left p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("name")}>
+            {t.settings.name}<SortArrow field="name" />
+          </th>
+          {!isMobile && (
+            <th className="text-left p-3 cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("unit")}>
+              {t.inventory.baseUnit}<SortArrow field="unit" />
+            </th>
+          )}
+          <th className={`text-right p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors ${isMobile ? "pr-4" : ""}`} onClick={() => toggleSort("stock")}>
+            {t.inventory.currentStock}<SortArrow field="stock" />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {sorted.map(i => (
+          <tr key={i.id} className={`border-b border-gray-100 ${i.currentStock <= i.minStock && i.minStock > 0 ? "bg-amber-50" : ""}`}>
+            <td className={`p-3 font-semibold ${isMobile ? "pl-4" : ""}`}>{i.name}</td>
+            {!isMobile && <td className="p-3 text-gray-500">{i.baseUnit}</td>}
+            <td className={`p-3 text-right font-mono font-bold ${isMobile ? "pr-4" : ""} ${i.currentStock <= i.minStock && i.minStock > 0 ? "text-amber-600" : ""}`}>
+              {fmt(i.currentStock)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 

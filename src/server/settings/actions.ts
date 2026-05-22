@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 // ============ General Config ============
 export async function getGeneralConfig() {
@@ -328,9 +328,15 @@ export async function getSystemModules() {
   return db.systemModule.findMany();
 }
 
+export async function isSystemModuleEnabled(name: string) {
+  const module = await db.systemModule.findUnique({ where: { name } });
+  return module?.enabled ?? false;
+}
+
 export async function toggleModule(id: string, enabled: boolean) {
   await db.systemModule.update({ where: { id }, data: { enabled } });
   revalidatePath("/settings/modules");
+  revalidateTag("system-modules", "max");
 }
 
 // ============ Karaoke Pricing ============

@@ -4,6 +4,26 @@ All notable changes to POS-F&B are documented here.
 
 ---
 
+## [1.2.0] — 2026-05-22
+
+### 📦 Inventory FIFO / Negative Stock
+- **FIFO batch tracking**: Added `InventoryBatch` and `StockOutBatch` to track inventory by stock-in layer.
+- **FIFO stock deduction**: Stock-outs now consume oldest available batches first.
+- **Negative stock support**: When stock is insufficient, checkout/manual stock-out still succeeds and records a `NEGATIVE` batch layer for later replenishment.
+- **Auto reconciliation**: New stock-ins automatically offset existing negative batches before becoming available stock.
+- **Opening balance migration**: Existing ingredient balances are migrated into `OPENING` batches.
+- **FIFO valuation**: Stock-out total cost and warehouse value are calculated from batch layers instead of last purchase price.
+
+### 📊 Reports
+- **Ingredient export**: Added FIFO cost-out summary and batch layer details for stock-outs.
+- **Warehouse export**: Added FIFO batch balance section with remaining quantity, unit cost, and stock value.
+
+### ⚙️ System Modules
+- **Inventory module enforcement**: When `inventory` is disabled, checkout no longer auto-deducts stock or creates FIFO stock-out records.
+- **Module cache refresh**: Toggling system modules now revalidates the cached module list immediately.
+
+---
+
 ## [1.1.2] — 2026-05-15
 
 ### ⚡ Performance

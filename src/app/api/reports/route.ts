@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
         break;
       }
       case "warehouse": {
-        const { ingredients, summary, lowStock, outOfStock } = await getWarehouseReport();
-        buffer = Buffer.from(await exportWarehouseToExcel(ingredients, summary, lowStock, outOfStock));
+        const { ingredients, summary, lowStock, outOfStock, batches } = await getWarehouseReport();
+        buffer = Buffer.from(await exportWarehouseToExcel(ingredients, summary, lowStock, outOfStock, batches));
         filename = `bao-cao-kho-${new Date().toISOString().slice(0, 10)}.xlsx`;
         break;
       }

@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { consumeFifoStock } from "@/server/inventory/fifo";
 
 // ============ GET RECIPE FOR A PRODUCT ============
 export async function getProductRecipe(productId: string) {
@@ -101,22 +102,28 @@ export async function autoDeductStockForOrder(orderId: string) {
         // Vẫn trừ nhưng log warning
       }
 
-      // Create StockOut record
-      await db.stockOut.create({
-        data: {
+      await db.$transaction(async (tx) => {
+        const stockOut = await tx.stockOut.create({
+          data: {
+            ingredientId: recipe.ingredientId,
+            quantity: totalDeduct,
+            reason: "ORDER_COMPLETED",
+            referenceId: item.id,
+            userId: order.userId || null,
+            note: `Order #${order.orderNumber} - ${item.product.name} x${item.quantity}`,
+          },
+        });
+
+        await consumeFifoStock(tx, {
+          stockOutId: stockOut.id,
           ingredientId: recipe.ingredientId,
           quantity: totalDeduct,
-          reason: "ORDER_COMPLETED",
-          referenceId: item.id,
-          userId: order.userId || null,
-          note: `Order #${order.orderNumber} - ${item.product.name} x${item.quantity}`,
-        },
-      });
+        });
 
-      // Decrease stock
-      await db.ingredient.update({
-        where: { id: recipe.ingredientId },
-        data: { currentStock: { decrement: totalDeduct } },
+        await tx.ingredient.update({
+          where: { id: recipe.ingredientId },
+          data: { currentStock: { decrement: totalDeduct } },
+        });
       });
     }
   }

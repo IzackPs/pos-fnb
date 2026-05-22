@@ -288,6 +288,7 @@ export async function getIngredientReport(mode: string, date?: string, startDate
       include: {
         ingredient: { select: { name: true, baseUnit: true } },
         user: { select: { name: true } },
+        batches: { include: { batch: { select: { batchCode: true, receivedAt: true, unitCost: true } } } },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -314,6 +315,7 @@ export async function getIngredientReport(mode: string, date?: string, startDate
   const stockOutSummary = {
     totalStockOuts: stockOuts.length,
     totalQuantity: stockOuts.reduce((s, so) => s + so.quantity, 0),
+    totalCost: stockOuts.reduce((s, so) => s + so.totalCost, 0),
     byReason: stockOuts.reduce((acc, so) => {
       acc[so.reason] = (acc[so.reason] || 0) + so.quantity;
       return acc;
@@ -337,12 +339,25 @@ export async function getWarehouseReport() {
   const ingredients = await db.ingredient.findMany({
     include: {
       recipes: { include: { product: { select: { name: true } } } },
+      batches: {
+        where: { remainingQuantity: { gt: 0 } },
+        orderBy: [{ receivedAt: "asc" }, { createdAt: "asc" }],
+      },
       _count: { select: { stockIns: true, stockOuts: true } },
     },
     orderBy: { name: "asc" },
   });
 
-  const totalValue = ingredients.reduce((s, i) => s + i.currentStock * i.costPerBaseUnit, 0);
+  const batches = await db.inventoryBatch.findMany({
+    where: { remainingQuantity: { gt: 0 } },
+    include: {
+      ingredient: { select: { name: true, baseUnit: true } },
+      stockInItem: { include: { stockIn: { select: { code: true, supplier: true, createdAt: true } } } },
+    },
+    orderBy: [{ receivedAt: "asc" }, { createdAt: "asc" }],
+  });
+
+  const totalValue = batches.reduce((s, b) => s + b.remainingQuantity * b.unitCost, 0);
   const totalProducts = await db.product.count({ where: { isAvailable: true } });
   const totalCategories = await db.category.count();
   const totalSuppliers = await db.supplier.count();
@@ -363,5 +378,6 @@ export async function getWarehouseReport() {
     },
     lowStock,
     outOfStock,
+    batches,
   };
 }

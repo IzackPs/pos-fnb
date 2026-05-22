@@ -179,6 +179,7 @@ model Ingredient {
   recipes          IngredientRecipe[]
   stockIns         StockInIngredient[]
   stockOuts        StockOut[]
+  batches          InventoryBatch[]
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt
 }
@@ -480,29 +481,71 @@ model StockIn {
 }
 
 model StockInIngredient {
-  id           String     @id @default(cuid())
+  id           String            @id @default(cuid())
   stockInId    String
-  stockIn      StockIn    @relation(fields: [stockInId], references: [id])
+  stockIn      StockIn           @relation(fields: [stockInId], references: [id])
   ingredientId String
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient   Ingredient        @relation(fields: [ingredientId], references: [id])
   quantity     Float
   unitPrice    Float
   totalPrice   Float
   expiryDate   DateTime?
-  createdAt    DateTime   @default(now())
+  batch        InventoryBatch?
+  createdAt    DateTime          @default(now())
 }
 
 model StockOut {
-  id           String     @id @default(cuid())
+  id           String          @id @default(cuid())
   ingredientId String
-  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredient   Ingredient      @relation(fields: [ingredientId], references: [id])
   quantity     Float
   reason       String
   referenceId  String?
   userId       String?
-  user         User?      @relation("UserStockOut", fields: [userId], references: [id])
+  user         User?           @relation("UserStockOut", fields: [userId], references: [id])
   note         String?
-  createdAt    DateTime   @default(now())
+  totalCost    Float           @default(0)
+  batches      StockOutBatch[]
+  createdAt    DateTime        @default(now())
+}
+
+model InventoryBatch {
+  id                String              @id @default(cuid())
+  ingredientId      String
+  ingredient        Ingredient          @relation(fields: [ingredientId], references: [id])
+  stockInItemId     String?             @unique
+  stockInItem       StockInIngredient?  @relation(fields: [stockInItemId], references: [id])
+  batchCode         String?
+  receivedAt        DateTime            @default(now())
+  expiryDate        DateTime?
+  quantityIn        Float
+  remainingQuantity Float
+  unitCost          Float
+  status            String              @default("OPEN")
+  stockOutBatches   StockOutBatch[]
+  negativeAllocations StockOutBatch[]   @relation("NegativeBatchAllocation")
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([ingredientId, remainingQuantity, receivedAt])
+}
+
+model StockOutBatch {
+  id         String          @id @default(cuid())
+  stockOutId String
+  stockOut   StockOut        @relation(fields: [stockOutId], references: [id], onDelete: Cascade)
+  batchId    String
+  batch      InventoryBatch  @relation(fields: [batchId], references: [id])
+  negativeBatchId String?
+  negativeBatch   InventoryBatch? @relation("NegativeBatchAllocation", fields: [negativeBatchId], references: [id])
+  quantity   Float
+  unitCost   Float
+  totalCost  Float
+  createdAt  DateTime        @default(now())
+
+  @@index([stockOutId])
+  @@index([batchId])
+  @@index([negativeBatchId])
 }
 
 // ============ CASH FLOW ============

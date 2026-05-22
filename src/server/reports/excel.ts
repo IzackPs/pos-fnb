@@ -281,6 +281,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   const outSummary = [
     ["Total Stock Outs:", stockOutSummary.totalStockOuts],
     ["Total Qty Out:", stockOutSummary.totalQuantity],
+    ["FIFO Cost Out:", `${fmt(stockOutSummary.totalCost || 0)}đ`],
   ];
   outSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -313,14 +314,17 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
 
   // Stock Out table
   addSection(ws, "📤 STOCK OUT DETAIL", row, 1); row++;
-  const outHeaders = ["Date Out", "Ingredient", "Quantity", "Reason", "Staff", "Note"];
+  const outHeaders = ["Date Out", "Ingredient", "Quantity", "Reason", "FIFO Cost", "Batch Layers", "Staff", "Note"];
   addHeaderRow(ws, outHeaders, row); row++;
   stockOuts.forEach((so) => {
+    const layers = so.batches?.map((b: any) => `${b.quantity} @ ${fmt(b.unitCost)} (${b.batch?.batchCode || "batch"})`).join("; ") || "";
     addDataRow(ws, [
       new Date(so.createdAt).toLocaleDateString("vi-VN"),
       so.ingredient?.name || "—",
       so.quantity,
       so.reason,
+      so.totalCost || 0,
+      layers,
       so.user?.name || "—",
       so.note || "",
     ], row);
@@ -353,7 +357,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   return buf;
 }
 
-export async function exportWarehouseToExcel(ingredients: any[], summary: any, lowStock: any[], outOfStock: any[]) {
+export async function exportWarehouseToExcel(ingredients: any[], summary: any, lowStock: any[], outOfStock: any[], batches: any[] = []) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Warehouse");
 
@@ -392,6 +396,27 @@ export async function exportWarehouseToExcel(ingredients: any[], summary: any, l
     addHeaderRow(ws, outHeaders, row); row++;
     outOfStock.forEach((i) => {
       addDataRow(ws, [i.name, i.currentStock, i.minStock, i.baseUnit, i.supplier || "—"], row);
+      row++;
+    });
+    row++;
+  }
+
+  // FIFO batch valuation
+  if (batches.length > 0) {
+    addSection(ws, "📚 FIFO BATCH BALANCE", row, 1); row++;
+    const batchHeaders = ["Ingredient", "Batch", "Date In", "Supplier", "Qty Left", "Unit", "Unit Cost", "Stock Value"];
+    addHeaderRow(ws, batchHeaders, row); row++;
+    batches.forEach((b) => {
+      addDataRow(ws, [
+        b.ingredient?.name || "—",
+        b.batchCode || b.stockInItem?.stockIn?.code || "—",
+        new Date(b.receivedAt).toLocaleDateString("vi-VN"),
+        b.stockInItem?.stockIn?.supplier || "—",
+        b.remainingQuantity,
+        b.ingredient?.baseUnit || "",
+        b.unitCost,
+        b.remainingQuantity * b.unitCost,
+      ], row);
       row++;
     });
     row++;

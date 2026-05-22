@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { consumeFifoStock, createBatchForStockInItem } from "./fifo";
 
 // ============ STOCK IN ============
 
@@ -39,40 +40,54 @@ export async function createStockIn(data: {
     supplierName = sup?.name;
   }
 
-  let totalAmount = 0;
-  const stockIn = await db.stockIn.create({
-    data: {
-      code,
-      supplier: supplierName,
-      supplierId: data.supplierId,
-      note: data.note,
-      userId: data.userId,
-      totalAmount: 0,
-      items: {
-        create: await Promise.all(data.items.map(async (it) => {
-          const price = it.quantity * it.unitPrice;
-          totalAmount += price;
-          await db.ingredient.update({
-            where: { id: it.ingredientId },
-            data: {
-              currentStock: { increment: it.quantity },
-              purchasePrice: it.unitPrice,
-              costPerBaseUnit: it.unitPrice,
-            },
-          });
-          return {
-            ingredientId: it.ingredientId,
-            quantity: it.quantity,
-            unitPrice: it.unitPrice,
-            totalPrice: price,
-          };
-        })),
-      },
-    },
-  });
+  const validItems = data.items.filter((it) => it.ingredientId && it.quantity > 0);
+  const totalAmount = validItems.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
 
-  // Update total
-  await db.stockIn.update({ where: { id: stockIn.id }, data: { totalAmount } });
+  const stockIn = await db.$transaction(async (tx) => {
+    const created = await tx.stockIn.create({
+      data: {
+        code,
+        supplier: supplierName,
+        supplierId: data.supplierId,
+        note: data.note,
+        userId: data.userId,
+        totalAmount,
+      },
+    });
+
+    for (const it of validItems) {
+      const price = it.quantity * it.unitPrice;
+      const stockInItem = await tx.stockInIngredient.create({
+        data: {
+          stockInId: created.id,
+          ingredientId: it.ingredientId,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          totalPrice: price,
+        },
+      });
+
+      await createBatchForStockInItem(tx, {
+        ingredientId: it.ingredientId,
+        stockInItemId: stockInItem.id,
+        stockInCode: code,
+        quantity: it.quantity,
+        unitCost: it.unitPrice,
+        receivedAt: created.createdAt,
+      });
+
+      await tx.ingredient.update({
+        where: { id: it.ingredientId },
+        data: {
+          currentStock: { increment: it.quantity },
+          purchasePrice: it.unitPrice,
+          costPerBaseUnit: it.unitPrice,
+        },
+      });
+    }
+
+    return created;
+  });
 
   // Add to cash flow (expense)
   if (totalAmount > 0) {
@@ -108,11 +123,18 @@ export async function createStockOut(data: {
   userId: string;
   note?: string;
 }) {
-  const stockOut = await db.stockOut.create({ data });
-  // Decrease stock
-  await db.ingredient.update({
-    where: { id: data.ingredientId },
-    data: { currentStock: { decrement: data.quantity } },
+  const stockOut = await db.$transaction(async (tx) => {
+    const created = await tx.stockOut.create({ data });
+    await consumeFifoStock(tx, {
+      stockOutId: created.id,
+      ingredientId: data.ingredientId,
+      quantity: data.quantity,
+    });
+    await tx.ingredient.update({
+      where: { id: data.ingredientId },
+      data: { currentStock: { decrement: data.quantity } },
+    });
+    return created;
   });
   revalidatePath("/inventory");
   return stockOut;

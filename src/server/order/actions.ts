@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { autoDeductStockForOrder } from "@/server/recipe/actions";
+import { isSystemModuleEnabled } from "@/server/settings/actions";
 
 // ============ TABLE VIEW ============
 
@@ -323,7 +324,9 @@ export async function checkoutOrder(orderId: string, payments: { method: string;
     data: { status: "PAID", closedAt: new Date(), userId },
   });
 
-  try { await autoDeductStockForOrder(orderId); } catch (e) { console.error("Stock deduction error:", e); }
+  if (await isSystemModuleEnabled("inventory")) {
+    try { await autoDeductStockForOrder(orderId); } catch (e) { console.error("Stock deduction error:", e); }
+  }
 
   if (order.type !== "COMP") {
     await db.cashFlow.create({

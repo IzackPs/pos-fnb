@@ -1,8 +1,8 @@
-name: CI Quality Gate — Out_Main → main
+name: CI Quality Gate — Out-Main → main
 
 on:
   push:
-    branches: [Out_Main]
+    branches: [Out-Main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -11,6 +11,10 @@ permissions:
   contents: write
   actions: write
   pull-requests: read
+
+# Força o uso de Node.js 24 em todas as GitHub Actions (checkout, setup-node, etc.)
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 1: Lint (ESLint)
@@ -44,6 +48,10 @@ jobs:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 2: Type Check (TypeScript)
+# Usa `prisma db push` em vez de `migrate deploy` porque o migration_lock.toml
+# ainda precisa ser resetado localmente para PostgreSQL.
+# Após rodar `prisma migrate dev --name init_postgres` localmente e commitar,
+# este job pode ser trocado por `migrate deploy`.
 # ─────────────────────────────────────────────────────────────────────────────
   typecheck:
     name: Type Check (TypeScript)
@@ -85,8 +93,10 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Run Prisma migrations
-        run: npx prisma migrate deploy
+      # db push aplica o schema diretamente sem checar o migration_lock.toml
+      # Isso resolve o conflito SQLite→PostgreSQL até as migrations serem resetadas
+      - name: Apply schema to DB (db push)
+        run: npx prisma db push --skip-generate --accept-data-loss
 
       - name: Type check
         run: npx tsc --noEmit
@@ -135,8 +145,8 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Run Prisma migrations
-        run: npx prisma migrate deploy
+      - name: Apply schema to DB (db push)
+        run: npx prisma db push --skip-generate --accept-data-loss
 
       - name: Build
         run: npm run build
@@ -185,9 +195,9 @@ jobs:
 # Job 5: Auto-merge (só roda se TODOS os jobs anteriores passarem)
 # ─────────────────────────────────────────────────────────────────────────────
   auto-merge:
-    name: Auto-Merge Out_Main → main
+    name: Auto-Merge Out-Main → main
     needs: sonar
-    if: success() && github.event_name == 'push' && github.ref == 'refs/heads/Out_Main'
+    if: success() && github.event_name == 'push' && github.ref == 'refs/heads/Out-Main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -197,13 +207,13 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge Out_Main → main
+      - name: Merge Out-Main → main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout main
-          git merge Out_Main --no-ff -m "🔀 Auto-merge Out_Main → main (lint ✅ | types ✅ | build ✅ | sonar ✅)"
+          git merge Out-Main --no-ff -m "🔀 Auto-merge Out-Main → main (lint ✅ | types ✅ | build ✅ | sonar ✅)"
           git push origin main
 
-          echo "✅ Out_Main merged into main successfully!"
+          echo "✅ Out-Main merged into main successfully!"

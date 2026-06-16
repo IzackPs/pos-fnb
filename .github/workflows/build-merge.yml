@@ -1,4 +1,4 @@
-name: Build & Auto-Merge dev_lor → main
+name: Build & Auto-Merge Out_Main → main
 
 on:
   push:
@@ -50,13 +50,13 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge dev_lor → main
+      - name: Merge Out_Main → main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout main
-          git merge dev_lor --no-ff -m "🔀 Auto-merge dev_lor → main (build ✅)"
+          git merge Out_Main --no-ff -m "🔀 Auto-merge Out_Main → main (build ✅)"
           git push origin main
 
-          echo "✅ dev_lor merged into main successfully!"
+          echo "✅ Out_Main merged into main successfully!"

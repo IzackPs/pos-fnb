@@ -329,8 +329,8 @@ export async function getSystemModules() {
 }
 
 export async function isSystemModuleEnabled(name: string) {
-  const module = await db.systemModule.findUnique({ where: { name } });
-  return module?.enabled ?? false;
+  const mod = await db.systemModule.findUnique({ where: { name } });
+  return mod?.enabled ?? false;
 }
 
 export async function toggleModule(id: string, enabled: boolean) {

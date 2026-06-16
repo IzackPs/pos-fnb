@@ -185,7 +185,7 @@ export function ProductsManager({
       <p className="text-xs text-gray-400 mb-3">
         {t.inventory.showing} {filtered.length > 0 ? (page - 1) * perPage + 1 : 0}–{Math.min(page * perPage, filtered.length)} / {t.inventory.totalItems_products} {filtered.length}
         {catFilter && <span className="ml-2">· {t.inventory.filterBy} {categories.find(c => c.id === catFilter)?.name}</span>}
-        {search.trim() && <span className="ml-2">· {t.inventory.searchFor} "{search.trim()}"</span>}
+        {search.trim() && <span className="ml-2">· {t.inventory.searchFor} &quot;{search.trim()}&quot;</span>}
       </p>
 
       {/* Table */}
@@ -409,7 +409,7 @@ function ToppingLinkDialog({
   onUnlink: (groupId: string) => Promise<void>;
   onClose: () => void;
 }) {
-  const [pending, start] = useTransition();
+  const [, start] = useTransition();
   const [localSelected, setLocalSelected] = useState(new Set(selectedGroupIds));
   const { t } = useI18n();
 

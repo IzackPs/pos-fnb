@@ -2,7 +2,6 @@
 
 import { useI18n } from "./context";
 import { locales } from "./index";
-import { Globe } from "lucide-react";
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useI18n();

@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/i18n/context";
 import { useDeviceInfo } from "@/components/shared/device-provider";
-import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { getDashboardStats } from "@/server/dashboard/actions";
 
 type Stats = Awaited<ReturnType<typeof getDashboardStats>>;
@@ -19,7 +18,7 @@ export default function DashboardPage() {
   const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [stats, setStats] = useState<Stats | null>(null);
-  const [pending, start] = useTransition();
+  const [, start] = useTransition();
 
   const moduleKeys = ["sales", "inventory", "cash", "reports", "settings"] as const;
   const moduleIcons = [ClipboardList, Package, DollarSign, BarChart3, Settings];

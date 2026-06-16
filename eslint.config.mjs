@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Dev-only Playwright screenshot script (CommonJS).
+    "screenshot.cjs",
   ]),
 ]);
 

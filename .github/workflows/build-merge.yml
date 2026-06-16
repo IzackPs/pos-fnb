@@ -96,7 +96,7 @@ jobs:
       # db push aplica o schema diretamente sem checar o migration_lock.toml
       # Isso resolve o conflito SQLite→PostgreSQL até as migrations serem resetadas
       - name: Apply schema to DB (db push)
-        run: npx prisma db push --skip-generate --accept-data-loss
+        run: npx prisma db push --accept-data-loss
 
       - name: Type check
         run: npx tsc --noEmit
@@ -146,7 +146,7 @@ jobs:
         run: npx prisma generate
 
       - name: Apply schema to DB (db push)
-        run: npx prisma db push --skip-generate --accept-data-loss
+        run: npx prisma db push --accept-data-loss
 
       - name: Build
         run: npm run build

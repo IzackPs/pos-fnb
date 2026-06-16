@@ -193,7 +193,7 @@ jobs:
   auto-merge:
     name: Auto-Merge Out-Main → main
     needs: sonar
-    if: success() && github.event_name == 'push' && github.ref == 'refs/heads/Out-Main'
+    if: success() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/Out-Main'
     runs-on: ubuntu-latest
     permissions:
       contents: write

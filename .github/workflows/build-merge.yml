@@ -1,19 +1,24 @@
-name: Build & Auto-Merge dev_lor → main
+name: CI Quality Gate — Out_Main → main
 
 on:
   push:
-    branches: [dev_lor]
+    branches: [Out_Main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
   actions: write
+  pull-requests: read
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 1: Lint (ESLint)
+# ─────────────────────────────────────────────────────────────────────────────
 jobs:
-  build:
+  lint:
+    name: Lint (ESLint)
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: "file:./dev.db"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,25 +27,167 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma client
+      # Gera relatório em formato compatível com SonarQube
+      - name: Run ESLint
+        run: npx eslint --format json --output-file eslint-report.json || true
+
+      - name: Upload ESLint report
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: eslint-report.json
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 2: Type Check (TypeScript)
+# ─────────────────────────────────────────────────────────────────────────────
+  typecheck:
+    name: Type Check (TypeScript)
+    runs-on: ubuntu-latest
+    needs: lint
+    env:
+      DATABASE_URL: "postgresql://posfnb:posfnb@localhost:5432/posfnb?schema=public"
+      AUTH_SECRET: "ci-secret-not-used"
+      AUTH_URL: "http://localhost:3000"
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: posfnb
+          POSTGRES_USER: posfnb
+          POSTGRES_PASSWORD: posfnb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Push database schema
-        run: npx prisma db push --accept-data-loss
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
 
       - name: Type check
         run: npx tsc --noEmit
 
-      - name: Build
-        run: npx next build
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 3: Build (Next.js)
+# ─────────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build (Next.js)
+    runs-on: ubuntu-latest
+    needs: typecheck
+    env:
+      DATABASE_URL: "postgresql://posfnb:posfnb@localhost:5432/posfnb?schema=public"
+      AUTH_SECRET: "ci-secret-not-used"
+      AUTH_URL: "http://localhost:3000"
+      NEXT_TELEMETRY_DISABLED: "1"
 
-  auto-merge:
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: posfnb
+          POSTGRES_USER: posfnb
+          POSTGRES_PASSWORD: posfnb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+
+      - name: Build
+        run: npm run build
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 4: SonarQube Scan + Quality Gate
+# ─────────────────────────────────────────────────────────────────────────────
+  sonar:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
     needs: build
-    if: success()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # fetch-depth 0 é obrigatório para blame e histórico correto
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download ESLint report
+        uses: actions/download-artifact@v4
+        with:
+          name: eslint-report
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # Este step falha o job se o Quality Gate do SonarQube reprovar
+      - name: SonarQube Quality Gate Check
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 5: Auto-merge (só roda se TODOS os jobs anteriores passarem)
+# ─────────────────────────────────────────────────────────────────────────────
+  auto-merge:
+    name: Auto-Merge Out_Main → main
+    needs: sonar
+    if: success() && github.event_name == 'push' && github.ref == 'refs/heads/Out_Main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -50,13 +197,13 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge dev_lor → main
+      - name: Merge Out_Main → main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout main
-          git merge dev_lor --no-ff -m "🔀 Auto-merge dev_lor → main (build ✅)"
+          git merge Out_Main --no-ff -m "🔀 Auto-merge Out_Main → main (lint ✅ | types ✅ | build ✅ | sonar ✅)"
           git push origin main
 
-          echo "✅ dev_lor merged into main successfully!"
+          echo "✅ Out_Main merged into main successfully!"

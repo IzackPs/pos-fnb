@@ -67,7 +67,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/public          ./public
 # Copia schema e migrations do Prisma para que prisma migrate deploy
 # possa ser executado dentro do container (via entrypoint ou job externo)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma          ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # Copia o entrypoint que roda migrate antes de iniciar o servidor
 COPY --from=builder --chown=nextjs:nodejs /app/docker-entrypoint.sh ./docker-entrypoint.sh

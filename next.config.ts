@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Generates a self-contained output for Docker (no full node_modules needed at runtime)
+  output: "standalone",
   // Cache client-side navigations to reduce RSC requests
   experimental: {
     staleTimes: {

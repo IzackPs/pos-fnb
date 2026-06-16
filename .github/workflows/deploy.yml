@@ -1,0 +1,45 @@
+name: Deploy to Production (VPS)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          # Ajuste o diretório onde o repositório será clonado no servidor
+          script: |
+            export TARGET_DIR="/opt/pos-fnb"
+            
+            # Se a pasta não existir, clona o repositório
+            if [ ! -d "$TARGET_DIR" ]; then
+              echo "Diretório não encontrado. Por favor, clone o repositório na máquina primeiro:"
+              echo "git clone https://github.com/IzackPs/pos-fnb.git $TARGET_DIR"
+              exit 1
+            fi
+
+            cd $TARGET_DIR
+
+            echo "Baixando atualizações da branch main..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "Reiniciando os containers do Docker..."
+            # O docker-compose.yml e o .env da máquina serão usados
+            docker compose up -d --build
+
+            echo "Limpando imagens antigas do Docker (opcional, para liberar espaço)..."
+            docker image prune -f
+
+            echo "✅ Deploy finalizado com sucesso!"

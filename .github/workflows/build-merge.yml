@@ -6,9 +6,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: build-merge-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
-  contents: write
-  actions: write
+  contents: read
   pull-requests: read
 
 # Força o uso de Node.js 24 em todas as GitHub Actions (checkout, setup-node, etc.)
@@ -24,8 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -37,7 +38,7 @@ jobs:
 
       # Gera relatório em formato compatível com SonarQube
       - name: Run ESLint
-        run: npx eslint --format json --output-file eslint-report.json || true
+        run: npm run lint -- --format json --output-file eslint-report.json
 
       - name: Upload ESLint report
         uses: actions/upload-artifact@v4
@@ -55,7 +56,6 @@ jobs:
   typecheck:
     name: Type Check (TypeScript)
     runs-on: ubuntu-latest
-    needs: lint
     env:
       DATABASE_URL: "postgresql://posfnb:posfnb@localhost:5432/posfnb?schema=public"
       AUTH_SECRET: "ci-secret-not-used"
@@ -78,8 +78,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -106,7 +104,6 @@ jobs:
   test:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
-    needs: typecheck
     env:
       AUTH_SECRET: "ci-secret-not-used"
       AUTH_URL: "http://localhost:3000"
@@ -140,7 +137,6 @@ jobs:
   build:
     name: Build (Next.js)
     runs-on: ubuntu-latest
-    needs: test
     env:
       DATABASE_URL: "postgresql://posfnb:posfnb@localhost:5432/posfnb?schema=public"
       AUTH_SECRET: "ci-secret-not-used"
@@ -164,8 +160,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -190,20 +184,12 @@ jobs:
   sonar:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
-    needs: build
+    needs: [lint, typecheck, test, build]
     steps:
       - uses: actions/checkout@v4
         with:
           # fetch-depth 0 é obrigatório para blame e histórico correto
           fetch-depth: 0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Download ESLint report
         uses: actions/download-artifact@v4

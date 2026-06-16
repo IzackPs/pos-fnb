@@ -34,7 +34,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
   updateServiceCharge: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteServiceCharge: (id: string) => Promise<void>;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -120,9 +120,9 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
 
   function condLabel(d: ServiceCharge) {
     switch (d.applyCondition) {
-      case "DATE_RANGE": return d.startDate ? `${new Date(d.startDate).toLocaleDateString("vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString("vi-VN") : "∞"}` : t.settings.scCondition.DATE_RANGE;
+      case "DATE_RANGE": return d.startDate ? `${new Date(d.startDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : "∞"}` : t.settings.scCondition.DATE_RANGE;
       case "HOLIDAY": return t.settings.scCondition.HOLIDAY;
-      case "MIN_ORDER": return `${t.settings.scCondition.MIN_ORDER.replace("X", Intl.NumberFormat("vi-VN").format(d.minOrderValue || 0) + "đ")}`;
+      case "MIN_ORDER": return `${t.settings.scCondition.MIN_ORDER.replace("X", new Intl.NumberFormat().format(d.minOrderValue || 0) + t.common.d)}`;
       case "GUEST_COUNT": return `${t.settings.scCondition.GUEST_COUNT.replace("X", String(d.minGuestCount))}`;
       default: return t.settings.scAllDays;
     }
@@ -158,7 +158,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
                 <td className="px-4 py-3 font-semibold">{c.name}</td>
                 <td className="px-4 py-3"><Badge variant="outline" className="text-xs">{scTypeMap[c.type as keyof typeof scTypeMap] || c.type}</Badge></td>
                 <td className="px-4 py-3 text-right font-mono">
-                  {c.type === "PERCENTAGE" ? `${c.value}%` : c.type === "PER_GUEST" ? `${Intl.NumberFormat("vi-VN").format(c.value)}đ/${t.order.guestCount.toLowerCase()}` : `${Intl.NumberFormat("vi-VN").format(c.value)}đ`}
+                  {c.type === "PERCENTAGE" ? `${c.value}%` : c.type === "PER_GUEST" ? `${new Intl.NumberFormat().format(c.value)}${t.common.d}/${t.order.guestCount.toLowerCase()}` : `${new Intl.NumberFormat().format(c.value)}${t.common.d}`}
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500">
                   {c.scope === "AREA" ? `${t.settings.areas}: ${c.area?.name || c.areaId}` : c.scope === "CATEGORY" && c.categoryIds ? (
@@ -241,7 +241,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
               </div>
             )}
             {applyCondition === "MIN_ORDER" && (
-              <div className="space-y-1"><Label>{t.settings.scCondition.MIN_ORDER} (đ)</Label><Input type="number" value={minOrder} onChange={e => setMinOrder(e.target.value)} /></div>
+              <div className="space-y-1"><Label>{t.settings.scCondition.MIN_ORDER} ({t.common.d})</Label><Input type="number" value={minOrder} onChange={e => setMinOrder(e.target.value)} /></div>
             )}
             {applyCondition === "GUEST_COUNT" && (
               <div className="space-y-1"><Label>{t.settings.scCondition.GUEST_COUNT}</Label><Input type="number" value={minGuest} onChange={e => setMinGuest(e.target.value)} /></div>

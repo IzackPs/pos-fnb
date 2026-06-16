@@ -21,7 +21,7 @@ export function HolidaysUI({ holidays, createHoliday, updateHoliday, deleteHolid
   updateHoliday: (id: string, data: HolidayInput) => Promise<void>;
   deleteHoliday: (id: string) => Promise<void>;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -85,7 +85,7 @@ export function HolidaysUI({ holidays, createHoliday, updateHoliday, deleteHolid
               <div key={h.id} className="flex items-center justify-between px-4 py-2.5 bg-white border border-amber-200 rounded-lg hover:bg-amber-50/30 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-mono text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-                    {new Date(h.date).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })}
+                    {new Date(h.date).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { day: "2-digit", month: "2-digit" })}
                   </span>
                   <span className="font-medium text-sm">{h.name}</span>
                   {h.recurring && <Badge variant="outline" className="text-xs">{t.inventory.recurringYearly}</Badge>}
@@ -107,7 +107,7 @@ export function HolidaysUI({ holidays, createHoliday, updateHoliday, deleteHolid
             {past.map(h => (
               <div key={h.id} className="flex items-center justify-between px-4 py-2 bg-gray-50 border border-gray-100 rounded-lg opacity-60">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-gray-400">{new Date(h.date).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })}</span>
+                  <span className="text-xs font-mono text-gray-400">{new Date(h.date).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { day: "2-digit", month: "2-digit" })}</span>
                   <span className="text-sm">{h.name}</span>
                 </div>
                 <div className="flex items-center gap-1">

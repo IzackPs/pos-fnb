@@ -22,7 +22,7 @@ type LooseFn = (...args: unknown[]) => Promise<unknown>;
 export function PrintersManager({
   printers, areas, createPrinter, updatePrinter, deletePrinter
 }: { printers: P[]; areas: A[]; createPrinter: ActionFn; updatePrinter: ActionFn; deletePrinter: ActionFn }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<P | null>(null);

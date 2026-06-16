@@ -15,7 +15,7 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
   const enabledModules = new Set(enabledModuleNames);
   const pathname = usePathname();
   const { data: session } = useSession();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const { canAccessModule } = usePermission();
   const [userMenuOpen, setUserMenuOpen] = useState(false);

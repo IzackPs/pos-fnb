@@ -47,10 +47,10 @@ export async function getDashboardStats() {
 
   const timeline = recentOrders.map(o => ({
     label: o.status === "PAID"
-      ? `Bàn ${o.table.name} thanh toán`
+      ? `Table ${o.table.name} checkout`
       : o.status === "SENT"
-        ? `Bàn ${o.table.name} đang chuẩn bị`
-        : `Bàn ${o.table.name} mở order`,
+        ? `Table ${o.table.name} preparing`
+        : `Table ${o.table.name} opened`,
     amount: o.totalAmount,
     time: o.closedAt ? minutesAgo(o.closedAt) : minutesAgo(o.openedAt),
     color: o.status === "PAID" ? "#10b981" : o.status === "SENT" ? "#d97706" : "#3b82f6",
@@ -90,6 +90,6 @@ export async function getDashboardStats() {
 function minutesAgo(date: Date) {
   const mins = Math.round((Date.now() - date.getTime()) / 60000);
   if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins} phút`;
+  if (mins < 60) return `${mins} mins`;
   return `${Math.floor(mins / 60)}h${mins % 60}m`;
 }

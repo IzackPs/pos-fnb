@@ -43,7 +43,7 @@ function parseTplConfig(raw: string): { order: OrderCfg; bill: BillCfg } {
   return { order: defaultOrderCfg, bill: defaultBillCfg };
 }
 
-// ======================== BUILD ORDER TICKET CONTENT (ĐƠN GIẢN: STT + Bàn + Món x SL) ========================
+// ======================== BUILD ORDER TICKET CONTENT (SIMPLE: SEQ + TABLE + ITEM x QTY) ========================
 
 async function buildOrderContent(orderId: string, orderCfg: OrderCfg, sequence: number): Promise<string> {
   const order = await db.order.findUnique({
@@ -129,7 +129,7 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
   lines.push("\x1B\x61\x01");
   lines.push("\x1B\x21\x10");
   if (billCfg.header.showLogo) lines.push("🍽️");
-  lines.push((genCfg?.restaurantName || "NHÀ HÀNG").toUpperCase());
+  lines.push((genCfg?.restaurantName || "RESTAURANT").toUpperCase());
   lines.push("\x1B\x21\x00");
 
   const addrParts: string[] = [];

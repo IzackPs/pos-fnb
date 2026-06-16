@@ -73,7 +73,7 @@ function unpackConfig(raw: string): { order: OrderConfig; bill: BillConfig } {
 export function PrintTemplatesManager({
   templates, printers, createTemplate, updateTemplate, deleteTemplate
 }: { templates: Tpl[]; printers: Printer[]; createTemplate: ActionFn; updateTemplate: ActionFn; deleteTemplate: ActionFn }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<Tpl | null>(null);
@@ -309,7 +309,7 @@ export function PrintTemplatesManager({
                 {isOrder ? (
                   <OrderPreview config={orderCfg} width={form.width} name={form.name} t={t} />
                 ) : (
-                  <BillPreview config={billCfg} width={form.width} name={form.name} t={t} />
+                  <BillPreview config={billCfg} width={form.width} name={form.name} t={t} locale={locale} />
                 )}
               </ScrollArea>
             </div>
@@ -388,7 +388,7 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
   const discount = 25000;
   const service = Math.round(subtotal * 0.05);
   const total = subtotal + vat - discount + service;
-  const f = (n: number) => new Intl.NumberFormat("vi-VN").format(n) + "đ";
+  const f = (n: number) => new Intl.NumberFormat().format(n) + (t.common.d || "");
 
   return (
     <div style={{ width: maxW }} className="bg-white shadow-md rounded-none p-3 font-mono text-[10px] leading-relaxed text-black">
@@ -397,7 +397,7 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
       {config.header.showAddress && <div className="text-center text-[8px] text-gray-600">123 Nguyễn Huệ, Q.1, TP.HCM</div>}
       {config.header.showPhone && <div className="text-center text-[8px] text-gray-600">📞 0909 123 456</div>}
       {config.header.showTaxCode && <div className="text-center text-[8px] text-gray-600">{t.settings.taxCode}: 0312345678</div>}
-      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString("vi-VN")} {new Date().toLocaleTimeString("vi-VN")}</div>}
+      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} {new Date().toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</div>}
       <div className="border-t border-dashed border-gray-300 my-1" />
 
       {config.body.showOrderNumber && <div className="text-[9px] text-gray-500">{t.order.orderNumber}: #0042</div>}

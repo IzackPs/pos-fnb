@@ -150,12 +150,12 @@ export async function exportInvoicesToExcel(invoices: InvoiceRow[], summary: Inv
   addSection(ws, "📊 OVERVIEW", row, 1); row++;
   const summaryData = [
     ["Total Orders:", summary.totalOrders],
-    ["Total Revenue:", `${fmt(summary.totalRevenue)}đ`],
-    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}đ`],
-    ["Total VAT:", `${fmt(summary.totalVat)}đ`],
-    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}đ`],
-    ["Total Discount:", `${fmt(summary.totalDiscount)}đ`],
-    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}đ`],
+    ["Total Revenue:", `${fmt(summary.totalRevenue)}`],
+    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}`],
+    ["Total VAT:", `${fmt(summary.totalVat)}`],
+    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}`],
+    ["Total Discount:", `${fmt(summary.totalDiscount)}`],
+    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}`],
   ];
   summaryData.forEach(([k, v]) => {
     ws.getCell(row, 1).value = k;
@@ -211,7 +211,7 @@ export async function exportSoldItemsToExcel(items: SoldItemRow[], byProduct: So
   const summaryData = [
     ["Total Lines Sold:", summary.totalItems],
     ["Total Quantity:", summary.totalQuantity],
-    ["Total Revenue:", `${fmt(summary.totalRevenue)}đ`],
+    ["Total Revenue:", `${fmt(summary.totalRevenue)}`],
   ];
   summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -258,15 +258,15 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
   addSection(ws, "📊 OVERVIEW", row, 1); row++;
   const summaryData = [
     ["Total Orders:", summary.totalOrders],
-    ["Total Sales Revenue:", `${fmt(summary.totalRevenue)}đ`],
-    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}đ`],
-    ["Total VAT:", `${fmt(summary.totalVat)}đ`],
-    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}đ`],
-    ["Total Discount:", `${fmt(summary.totalDiscount)}đ`],
-    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}đ`],
-    ["Total Other Income:", `${fmt(summary.totalOtherIncome)}đ`],
-    ["Total Expenses:", `${fmt(summary.totalExpenses)}đ`],
-    ["Profit:", `${fmt(summary.profit)}đ`],
+    ["Total Sales Revenue:", `${fmt(summary.totalRevenue)}`],
+    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}`],
+    ["Total VAT:", `${fmt(summary.totalVat)}`],
+    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}`],
+    ["Total Discount:", `${fmt(summary.totalDiscount)}`],
+    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}`],
+    ["Total Other Income:", `${fmt(summary.totalOtherIncome)}`],
+    ["Total Expenses:", `${fmt(summary.totalExpenses)}`],
+    ["Profit:", `${fmt(summary.profit)}`],
   ];
   summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -277,7 +277,7 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
     Object.entries(summary.byPaymentMethod).forEach(([method, amount]) => {
       ws.getCell(row, 1).value = method;
       ws.getCell(row, 1).font = { bold: true, size: 10 };
-      ws.getCell(row, 2).value = `${fmt(amount as number)}đ`;
+      ws.getCell(row, 2).value = `${fmt(amount as number)}`;
       ws.getCell(row, 2).font = AMOUNT_FONT;
       row++;
     });
@@ -286,7 +286,7 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
 
   // Daily breakdown
   addSection(ws, "📅 DAILY REVENUE", row, 1); row++;
-  const dayHeaders = ["Ngày", "Số HĐ", "Tiền hàng", "VAT", "TTĐB", "Giảm giá", "Phí DV", "Doanh thu", "Normal", "Complimentary"];
+  const dayHeaders = ["Date", "Invoices", "Subtotal", "VAT", "Excise Tax", "Discount", "Service Charge", "Revenue", "Normal", "Complimentary"];
   addHeaderRow(ws, dayHeaders, row); row++;
   days.forEach((d) => {
     addDataRow(ws, [
@@ -303,7 +303,7 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
     Object.entries(expensesByCategory).forEach(([cat, amount]) => {
       ws.getCell(row, 1).value = cat;
       ws.getCell(row, 1).font = { bold: true, size: 10 };
-      ws.getCell(row, 2).value = `${fmt(amount as number)}đ`;
+      ws.getCell(row, 2).value = `${fmt(amount as number)}`;
       ws.getCell(row, 2).font = AMOUNT_FONT;
       row++;
     });
@@ -329,7 +329,7 @@ export async function exportIngredientsToExcel(stockIns: StockInRow[], stockOuts
   const inSummary = [
     ["Total Stock Ins:", stockInSummary.totalStockIns],
     ["Total Items In:", stockInSummary.totalItems],
-    ["Total Stock In Value:", `${fmt(stockInSummary.totalAmount)}đ`],
+    ["Total Stock In Value:", `${fmt(stockInSummary.totalAmount)}`],
   ];
   inSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -338,7 +338,7 @@ export async function exportIngredientsToExcel(stockIns: StockInRow[], stockOuts
   const outSummary = [
     ["Total Stock Outs:", stockOutSummary.totalStockOuts],
     ["Total Qty Out:", stockOutSummary.totalQuantity],
-    ["FIFO Cost Out:", `${fmt(stockOutSummary.totalCost || 0)}đ`],
+    ["FIFO Cost Out:", `${fmt(stockOutSummary.totalCost || 0)}`],
   ];
   outSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -425,7 +425,7 @@ export async function exportWarehouseToExcel(ingredients: IngredientRow[], summa
   addSection(ws, "📊 WAREHOUSE OVERVIEW", row, 1); row++;
   const summaryData = [
     ["Total Ingredients:", summary.totalIngredients],
-    ["Total Stock Value:", `${fmt(summary.totalStockValue)}đ`],
+    ["Total Stock Value:", `${fmt(summary.totalStockValue)}`],
     ["Total Products:", summary.totalProducts],
     ["Total Categories:", summary.totalCategories],
     ["Total Suppliers:", summary.totalSuppliers],

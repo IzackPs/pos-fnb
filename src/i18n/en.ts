@@ -477,6 +477,9 @@ export const en = {
     "toppingPageDesc": "Option groups for items: Size, Sweetness, Extra Toppings...",
     "areaPageDesc": "Manage areas and tables in each zone.",
     "paymentMethodPageDesc": "Cash, bank transfer, Momo, card...",
+    "currenciesPageDesc": "Manage currencies — set primary currency and exchange rates.",
+    "exchangeRate": "Exchange Rate",
+    "primary": "Primary",
     "ingredientPageDesc": "List of ingredients and recipes for each dish.",
     "productPageDesc": "Manage food and beverage menu items.",
     "unitPageDesc": "Units of measure: kg, g, liter, piece, serving...",
@@ -664,6 +667,8 @@ export const en = {
     "noDesc": "No description."
   },
   "common": {
+    "symbol": "Symbol",
+    "confirmDelete": "Are you sure you want to delete?",
     "save": "Save",
     "cancel": "Cancel",
     "add": "Add",

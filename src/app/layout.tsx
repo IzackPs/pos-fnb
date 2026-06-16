@@ -21,7 +21,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "POS F&B",
-  description: "Hệ thống quản lý nhà hàng — POS F&B",
+  description: "Restaurant Management System — POS F&B",
   manifest: "/manifest.json",
   other: {
     "mobile-web-app-capable": "yes",

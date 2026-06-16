@@ -28,7 +28,7 @@ type Props = {
 const fmt = (v: number) => new Intl.NumberFormat("vi-VN").format(v);
 
 export function KaraokePricingManager({ pricings, areas, createKP, updateKP, deleteKP }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<KP | null>(null);
@@ -103,7 +103,7 @@ export function KaraokePricingManager({ pricings, areas, createKP, updateKP, del
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground">{t.settings.pricePerUnit.replace("{unit}", t.settings.timeUnits[kp.timeUnit as keyof typeof t.settings.timeUnits] || "?")}</span>
-                    <p className="font-bold text-amber-600 mt-0.5">{fmt(kp.pricePerHour)}đ</p>
+                    <p className="font-bold text-amber-600 mt-0.5">{fmt(kp.pricePerHour)}{t.common.d}</p>
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground">{t.settings.minLabel}</span>
@@ -168,7 +168,7 @@ export function KaraokePricingManager({ pricings, areas, createKP, updateKP, del
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label>{t.settings.pricePerUnit.replace("{unit}", t.settings.timeUnits[form.timeUnit as keyof typeof t.settings.timeUnits] || "?")} (₫)</Label>
+                <Label>{t.settings.pricePerUnit.replace("{unit}", t.settings.timeUnits[form.timeUnit as keyof typeof t.settings.timeUnits] || "?")} ({t.common.d})</Label>
                 <Input type="number" value={form.pricePerHour} onChange={e => setForm(f => ({ ...f, pricePerHour: e.target.value }))} />
               </div>
             </div>

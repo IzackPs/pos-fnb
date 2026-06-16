@@ -36,7 +36,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.dashboard.title}</h1>
-          <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString(locale === "vi" ? "vi-VN" : locale === "en" ? "en-US" : locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "ja-JP", { day: "numeric", month: "long", year: "numeric" })}</p>
+          <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
         {!isMobile && (
           <Link href="/order" className="btn-pos-primary">
@@ -53,7 +53,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-xs font-medium text-gray-500">{t.dashboard.revenue} {t.dashboard.today.toLowerCase()}</p>
-            <p className="text-xl font-bold text-gray-900">{stats ? fmt(stats.revenue) + "đ" : "—"}</p>
+            <p className="text-xl font-bold text-gray-900">{stats ? fmt(stats.revenue) + (t.common.d || "") : "—"}</p>
           </div>
         </div>
         <div className="stat-card">
@@ -127,7 +127,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-medium text-gray-900">{item.label}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{item.time} {t.dashboard.ago}</p>
                   </div>
-                  <p className="text-sm font-semibold" style={{ color: item.color }}>{fmt(item.amount)}đ</p>
+                  <p className="text-sm font-semibold" style={{ color: item.color }}>{fmt(item.amount)}{t.common.d || ""}</p>
                 </div>
               </div>
             ))}

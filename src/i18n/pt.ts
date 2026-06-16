@@ -129,7 +129,7 @@ export const pt = {
     taxIncluded: "Imposto Incluído",
     taxNotIncluded: "Imposto Não Incluído",
     taxIncludedDesc: "💡 Preços do menu já incluem imposto. O sistema fará o cálculo reverso do imposto a partir do preço final.",
-    taxNotIncludedDesc": "💡 Preços do menu não incluem imposto. Impostos serão adicionados na fatura.",
+    taxNotIncludedDesc: "💡 Preços do menu não incluem imposto. Impostos serão adicionados na fatura.",
     notApplied: "Não Aplicado",
     typeSingle: "Escolha Única",
     typeMultiple: "Múltipla",

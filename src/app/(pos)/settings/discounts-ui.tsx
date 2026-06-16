@@ -116,10 +116,10 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
               <tr key={d.id} className="hover:bg-amber-50/30 transition-colors">
                 <td className="px-4 py-3 font-semibold">{d.name}</td>
                 <td className="px-4 py-3">
-                  <Badge variant="outline" className="text-xs">{d.type === "PERCENTAGE" ? "%" : d.type === "FIXED" ? "đ" : "XY"}</Badge>
+                  <Badge variant="outline" className="text-xs">{d.type === "PERCENTAGE" ? "%" : d.type === "FIXED" ? t.common.d : "XY"}</Badge>
                 </td>
                 <td className="px-4 py-3 text-right font-mono">
-                  {d.type === "PERCENTAGE" ? `${d.value}%` : `${Intl.NumberFormat("vi-VN").format(d.value)}đ`}
+                  {d.type === "PERCENTAGE" ? `${d.value}%` : `${new Intl.NumberFormat().format(d.value)}${t.common.d}`}
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">
                   {d.scope === "CATEGORY" && d.categoryIds ? (
@@ -156,7 +156,7 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PERCENTAGE">{t.settings.discountType?.PERCENTAGE || "% - Percent"}</SelectItem>
-                    <SelectItem value="FIXED">{t.settings.discountType?.FIXED || "đ - Fixed"}</SelectItem>
+                    <SelectItem value="FIXED">{t.settings.discountType?.FIXED || `${t.common.d} - Fixed`}</SelectItem>
                     <SelectItem value="BUY_X_GET_Y">{t.settings.discountType?.BUY_X_GET_Y || "Buy X Get Y"}</SelectItem>
                   </SelectContent>
                 </Select>

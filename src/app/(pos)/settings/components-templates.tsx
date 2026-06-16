@@ -387,7 +387,7 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
   const discount = 25000;
   const service = Math.round(subtotal * 0.05);
   const total = subtotal + vat - discount + service;
-  const f = (n: number) => new Intl.NumberFormat("vi-VN").format(n) + "đ";
+  const f = (n: number) => new Intl.NumberFormat().format(n) + (t.common.d || "");
 
   return (
     <div style={{ width: maxW }} className="bg-white shadow-md rounded-none p-3 font-mono text-[10px] leading-relaxed text-black">

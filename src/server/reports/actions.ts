@@ -57,7 +57,7 @@ function dateRangeByMode(mode: "day" | "week" | "month" | "year" | "custom", dat
   return { start, end };
 }
 
-// ======================== 1. BÁO CÁO HÓA ĐƠN ========================
+// ======================== 1. INVOICE REPORT ========================
 
 export async function getInvoiceReport(mode: string, date?: string, startDate?: string, endDate?: string) {
   const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
@@ -92,7 +92,7 @@ export async function getInvoiceReport(mode: string, date?: string, startDate?: 
     discountAmount: o.discountAmount,
     serviceCharge: o.serviceCharge,
     totalAmount: o.totalAmount,
-    paymentMethods: o.payments.map(p => `${p.method}: ${p.amount.toLocaleString("vi-VN")}đ`).join("; "),
+    paymentMethods: o.payments.map(p => `${p.method}: ${p.amount.toLocaleString()}`).join("; "),
     staff: o.user?.name || "—",
     items: o.items.map(i => `${i.product.name} x${i.quantity}`).join(", "),
     openedAt: o.openedAt.toISOString(),
@@ -112,7 +112,7 @@ export async function getInvoiceReport(mode: string, date?: string, startDate?: 
   return { orders: mapped, summary, dateFrom: start.toISOString(), dateTo: end.toISOString() };
 }
 
-// ======================== 2. BÁO CÁO HÀNG ĐÃ BÁN ========================
+// ======================== 2. SOLD ITEMS REPORT ========================
 
 export async function getSoldItemsReport(mode: string, date?: string, startDate?: string, endDate?: string) {
   const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
@@ -168,7 +168,7 @@ export async function getSoldItemsReport(mode: string, date?: string, startDate?
   return { items: mapped, byProduct: Object.values(byProduct).sort((a, b) => b.revenue - a.revenue), summary, dateFrom: start.toISOString(), dateTo: end.toISOString() };
 }
 
-// ======================== 3. BÁO CÁO DOANH THU ========================
+// ======================== 3. REVENUE REPORT ========================
 
 export async function getRevenueReport(mode: string, date?: string, startDate?: string, endDate?: string) {
   const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
@@ -269,7 +269,7 @@ export async function getRevenueReport(mode: string, date?: string, startDate?: 
   };
 }
 
-// ======================== 4. BÁO CÁO NGUYÊN LIỆU ========================
+// ======================== 4. INGREDIENTS REPORT ========================
 
 export async function getIngredientReport(mode: string, date?: string, startDate?: string, endDate?: string) {
   const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
@@ -333,7 +333,7 @@ export async function getIngredientReport(mode: string, date?: string, startDate
   };
 }
 
-// ======================== 5. BÁO CÁO KHO (TỒN KHO) ========================
+// ======================== 5. WAREHOUSE REPORT ========================
 
 export async function getWarehouseReport() {
   const ingredients = await db.ingredient.findMany({

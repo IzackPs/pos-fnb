@@ -29,7 +29,7 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
   updateDiscount: (id: string, data: any) => Promise<any>;
   deleteDiscount: (id: string) => Promise<any>;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -129,7 +129,7 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
                   ) : t.settings.allItems}
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500">
-                  {d.startDate ? `${new Date(d.startDate).toLocaleDateString("vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString("vi-VN") : "∞"}` : t.settings.discountUnlimited}
+                  {d.startDate ? `${new Date(d.startDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : "∞"}` : t.settings.discountUnlimited}
                   {d.happyHourStart && <span className="block">🍸 {d.happyHourStart}–{d.happyHourEnd}</span>}
                 </td>
                 <td className="px-4 py-3 text-center">{d.isActive ? <Badge className="bg-emerald-50 text-emerald-700 text-xs">ON</Badge> : <Badge variant="secondary" className="text-xs">OFF</Badge>}</td>

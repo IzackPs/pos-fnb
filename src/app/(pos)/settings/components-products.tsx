@@ -48,7 +48,7 @@ export function ProductsManager({
   linkToppingGroup: ActionFn;
   unlinkToppingGroup: ActionFn;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [pending, start] = useTransition();
@@ -411,7 +411,7 @@ function ToppingLinkDialog({
 }) {
   const [pending, start] = useTransition();
   const [localSelected, setLocalSelected] = useState(new Set(selectedGroupIds));
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   if (!productId) return null;
 

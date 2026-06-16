@@ -44,7 +44,7 @@ export function TableGridView({
   onMergeTables: (orderIds: string[], targetTableId: string) => Promise<any>;
   onSplitTable: (orderId: string) => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const [pending, start] = useTransition();
   const [mergeMode, setMergeMode] = useState(false);
@@ -276,7 +276,7 @@ function OrderDetailView({
   onMobileCheckout: (method: string, amount: string) => void;
   mobileCheckoutPending: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const [activeCatId, setActiveCatId] = useState(categories[0]?.id ?? "");
   const [orderSheetOpen, setOrderSheetOpen] = useState(false);
@@ -521,8 +521,8 @@ function OrderDetailView({
           <span className="text-xs opacity-70 flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {orderDetail.closedAt
-              ? `${t.order.closedAt} · ${new Date(orderDetail.closedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`
-              : `${t.order.openedAt} ${new Date(orderDetail.openedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`
+              ? `${t.order.closedAt} · ${new Date(orderDetail.closedAt).toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" })}`
+              : `${t.order.openedAt} ${new Date(orderDetail.openedAt).toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" })}`
             }
           </span>
           <span className="text-xs opacity-70 flex items-center gap-1">
@@ -599,7 +599,7 @@ function OrderDetailView({
 
 // ─── MAIN ────────────────────────────────────────────────────────
 export function OrderClient({ areas, categories }: { areas: Area[]; categories: Category[] }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [view, setView] = useState<"tables" | "order">("tables");

@@ -37,7 +37,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.dashboard.title}</h1>
-          <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString(locale === "vi" ? "vi-VN" : locale === "en" ? "en-US" : locale === "zh" ? "zh-CN" : locale === "ko" ? "ko-KR" : "ja-JP", { day: "numeric", month: "long", year: "numeric" })}</p>
+          <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
         {!isMobile && (
           <Link href="/order" className="btn-pos-primary">

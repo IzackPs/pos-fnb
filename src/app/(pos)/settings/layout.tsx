@@ -14,7 +14,7 @@ import { useState } from "react";
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

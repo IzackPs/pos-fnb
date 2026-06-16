@@ -28,7 +28,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
   updateServiceCharge: (id: string, data: any) => Promise<any>;
   deleteServiceCharge: (id: string) => Promise<any>;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -114,7 +114,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
 
   function condLabel(d: ServiceCharge) {
     switch (d.applyCondition) {
-      case "DATE_RANGE": return d.startDate ? `${new Date(d.startDate).toLocaleDateString("vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString("vi-VN") : "∞"}` : t.settings.scCondition.DATE_RANGE;
+      case "DATE_RANGE": return d.startDate ? `${new Date(d.startDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : "∞"}` : t.settings.scCondition.DATE_RANGE;
       case "HOLIDAY": return t.settings.scCondition.HOLIDAY;
       case "MIN_ORDER": return `${t.settings.scCondition.MIN_ORDER.replace("X", new Intl.NumberFormat().format(d.minOrderValue || 0) + t.common.d)}`;
       case "GUEST_COUNT": return `${t.settings.scCondition.GUEST_COUNT.replace("X", String(d.minGuestCount))}`;

@@ -134,7 +134,7 @@ export const en = {
     "typeSingle": "Single Choice",
     "typeMultiple": "Multiple",
     "typeRequired": "Required",
-    "holidayTitle": "Holidays / Tết",
+    "holidayTitle": "Holidays",
     "holidayDesc": "List of holidays used to trigger holiday surcharges",
     "addHolidayBtn": "Add Holiday",
     "holidayUsageTitle": "📅 Usage:",
@@ -186,7 +186,7 @@ export const en = {
     "noToppingGroups": "No topping groups yet. Go to Toppings to create.",
     "linkedToppingBadge": "Assigned",
     "optionsFor": "Options for:",
-    "extraPrice": "Extra Price (đ, 0 = free)",
+    "extraPrice": "Extra Price ($, 0 = free)",
     "appliesTo": "Applies To",
     "allCategoriesItems": "All Categories",
     "allItemsAssigned": "All items in this category are assigned",
@@ -386,7 +386,7 @@ export const en = {
     "minLabel": "Minimum",
     "discountType": {
       "PERCENTAGE": "% — Percentage",
-      "FIXED": "đ — Fixed Amount",
+      "FIXED": "$ — Fixed Amount",
       "BUY_X_GET_Y": "Buy X Get Y"
     },
     "discountScope": {
@@ -398,8 +398,8 @@ export const en = {
     "scType": {
       "SERVICE_FEE": "Service Fee — %",
       "PERCENTAGE": "% — Percentage",
-      "FIXED": "đ — Fixed Amount",
-      "PER_GUEST": "đ/guest — Per Person"
+      "FIXED": "$ — Fixed Amount",
+      "PER_GUEST": "$/guest — Per Person"
     },
     "scScope": {
       "ALL": "All",
@@ -409,7 +409,7 @@ export const en = {
     "scCondition": {
       "ALL_DAYS": "All Days",
       "DATE_RANGE": "Date Range",
-      "HOLIDAY": "Holidays / Tết",
+      "HOLIDAY": "Holidays",
       "MIN_ORDER": "When Invoice ≥ X",
       "GUEST_COUNT": "When Guests ≥ X"
     },
@@ -420,7 +420,7 @@ export const en = {
       "generalConfig": "General Settings",
       "usersRoles": "Users & Roles",
       "shifts": "Shifts",
-      "holidays": "Holidays / Tết",
+      "holidays": "Holidays",
       "menuItems": "Menu Items",
       "categories": "Categories",
       "products": "Products",
@@ -485,7 +485,7 @@ export const en = {
     "exciseTaxPageDesc": "Configure excise / special consumption tax.",
     "printerPageDesc": "Manage thermal printers for kitchen and cashier counter.",
     "templatePageDesc": "Customize kitchen order and invoice print templates.",
-    "holidayPageDesc": "Manage holidays and Tết for surcharge application.",
+    "holidayPageDesc": "Manage holidays for surcharge application.",
     "karaokePageDesc": "Configure hourly pricing for each Karaoke area.",
     "modulePageDesc": "Enable/disable features as needed. Disabled modules are hidden from the menu.",
     "discountPageDesc": "Discounts by percentage or fixed amount.",
@@ -678,7 +678,7 @@ export const en = {
     "error": "Error!",
     "saving": "Saving...",
     "mm": "mm",
-    "d": "đ",
+    "d": "$",
     "startTime": "Start Time",
     "endTime": "End Time",
     "taxRate": "Tax Rate (%)"

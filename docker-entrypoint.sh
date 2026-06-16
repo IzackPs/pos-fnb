@@ -5,8 +5,8 @@
 
 set -e
 
-echo "▶ Rodando prisma migrate deploy..."
-npx prisma migrate deploy
+echo "▶ Rodando prisma db push..."
+npx prisma db push --accept-data-loss
 
-echo "✅ Migrations concluídas. Iniciando o servidor..."
+echo "✅ Banco de dados sincronizado. Iniciando o servidor..."
 exec node server.js

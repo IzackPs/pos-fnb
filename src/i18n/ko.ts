@@ -474,6 +474,9 @@ export const ko = {
     "toppingPageDesc": "메뉴 옵션 그룹: 사이즈, 당도, 추가 토핑...",
     "areaPageDesc": "구역과 구역별 테이블을 관리합니다.",
     "paymentMethodPageDesc": "현금, 계좌이체, 모모, 카드...",
+    "currenciesPageDesc": "통화 관리 — 기본 통화 및 환율 설정.",
+    "exchangeRate": "환율",
+    "primary": "기본",
     "ingredientPageDesc": "식자재 목록 및 메뉴별 레시피 정량입니다.",
     "productPageDesc": "메뉴 및 음료 목록을 관리합니다.",
     "unitPageDesc": "단위: kg, g, L, 개, 인분...",
@@ -661,6 +664,8 @@ export const ko = {
     "noDesc": "설명 없음."
   },
   "common": {
+    "symbol": "기호",
+    "confirmDelete": "정말 삭제하시겠습니까?",
     "save": "저장",
     "cancel": "취소",
     "add": "추가",

@@ -8,7 +8,7 @@ export default async function CurrenciesPage() {
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.settings.sidebar.currencies}</h2>
-      <p className="text-sm text-muted-foreground mb-6">Manage currencies — set primary currency and exchange rates.</p>
+      <p className="text-sm text-muted-foreground mb-6">{t.settings.currenciesPageDesc}</p>
       <CurrenciesManager currencies={currencies} />
     </div>
   );

@@ -41,7 +41,24 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # =============================================================================
-# Stage 3 — runner (imagem final)
+# Stage 3 — seeder (usado para rodar prisma/seed.ts com todas as dependências)
+# =============================================================================
+FROM node:22-alpine AS seeder
+
+RUN apk add --no-cache libc6-compat openssl
+
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma        ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/package.json  ./package.json
+COPY --from=builder /app/src/generated ./src/generated
+
+CMD ["npx", "tsx", "prisma/seed.ts"]
+
+# =============================================================================
+# Stage 4 — runner (imagem final)
 # Copia apenas o output standalone, tornando a imagem mínima (~200 MB).
 # =============================================================================
 FROM node:22-alpine AS runner

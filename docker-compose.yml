@@ -72,6 +72,26 @@ services:
     depends_on:
       - app
 
+  # ---------------------------------------------------------------------------
+  # Seed — Popula o banco com dados iniciais (roda só quando chamado)
+  # Uso: docker compose --profile seed run --rm seed
+  # ---------------------------------------------------------------------------
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: seeder
+    container_name: pos-fnb-seed
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-posfnb}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-posfnb}?schema=public"
+    profiles:
+      - seed
+
 volumes:
   db_data:
     driver: local

@@ -470,7 +470,7 @@ export const pt = {
     actionDelete: "Deletar",
     generalPageDesc: "Informações do restaurante que aparecem nos relatórios e cupons.",
     userPageDesc: "Contas e permissões dos funcionários.",
-    generalConfigTitle: "Configuração Geral",
+    generalConfig: "Configuração Geral",
     contactPerson: "Responsável",
     categoryPageDesc: "Categorize os pratos: Prato Principal, Bebidas, Entradas...",
     supplierPageDesc: "Fornecedores de insumos e ingredientes.",
@@ -770,6 +770,7 @@ export const pt = {
     passwordPlaceholder: "••••••••",
     version: "Versão 1.0.0",
     systemLabel: "PDV F&B",
-    tagline: "Sistema de Gestão para Restaurantes"
+    tagline: "Sistema de Gestão para Restaurantes",
+    copyright: "POS F&B. Todos os direitos reservados."
   }
 };

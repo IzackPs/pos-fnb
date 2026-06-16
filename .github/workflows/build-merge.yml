@@ -212,3 +212,25 @@ jobs:
           git push origin main
 
           echo "✅ Out-Main merged into main successfully!"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Job 6: Deploy to Production
+# ─────────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    needs: auto-merge
+    if: success() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/Out-Main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /opt/pos-fnb
+            git fetch origin
+            git reset --hard origin/main
+            docker compose up -d --build

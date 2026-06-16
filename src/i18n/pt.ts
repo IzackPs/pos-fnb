@@ -477,6 +477,9 @@ export const pt = {
     toppingPageDesc: "Grupos de opcionais: Tamanho, Ponto da carne, Extras...",
     areaPageDesc: "Áreas de atendimento e mesas disponíveis.",
     paymentMethodPageDesc: "Dinheiro, Cartão, PIX...",
+    currenciesPageDesc: "Gerencie moedas — defina a moeda principal e taxas de câmbio.",
+    exchangeRate: "Taxa de Câmbio",
+    primary: "Principal",
     ingredientPageDesc: "Insumos utilizados e receitas (fichas técnicas) dos pratos.",
     productPageDesc: "Itens vendidos no restaurante.",
     unitPageDesc: "Quilos, gramas, litros, porções...",
@@ -637,6 +640,8 @@ export const pt = {
     noDesc: "Nenhuma descrição disponível."
   },
   common: {
+    symbol: "Símbolo",
+    confirmDelete: "Tem certeza que deseja excluir?",
     save: "Salvar",
     cancel: "Cancelar",
     add: "Adicionar",

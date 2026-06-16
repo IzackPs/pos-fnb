@@ -474,6 +474,9 @@ export const vi = {
     "toppingPageDesc": "Nhóm tùy chọn cho món: Size, Độ ngọt, Thêm topping...",
     "areaPageDesc": "Quản lý khu vực và bàn trong từng khu.",
     "paymentMethodPageDesc": "Tiền mặt, chuyển khoản, Momo, thẻ...",
+    "currenciesPageDesc": "Quản lý tiền tệ — thiết lập tiền tệ chính và tỷ giá.",
+    "exchangeRate": "Tỷ giá",
+    "primary": "Chính",
     "ingredientPageDesc": "Danh sách nguyên liệu và định lượng cho từng món.",
     "productPageDesc": "Quản lý danh sách món ăn, đồ uống.",
     "unitPageDesc": "Đơn vị tính: kg, g, lít, cái, phần...",
@@ -661,6 +664,8 @@ export const vi = {
     "noDesc": "Không có mô tả."
   },
   "common": {
+    "symbol": "Ký hiệu",
+    "confirmDelete": "Bạn có chắc muốn xóa?",
     "cancel": "Huỷ",
     "save": "Lưu",
     "add": "Thêm",

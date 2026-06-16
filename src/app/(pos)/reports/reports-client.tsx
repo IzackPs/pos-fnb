@@ -24,7 +24,7 @@ export function ReportsClientWrapper({ today }: { today: string }) {
 }
 
 export function ReportsClient({ today }: { today: string }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -131,6 +131,7 @@ function exportExcel(type: string, mode: string, date: string, startDate: string
 // ======================== OVERVIEW TAB ========================
 
 function OverviewTab({ today, t }: { today: string; t: any }) {
+  const { locale } = useI18n();
   const [report, setReport] = useState<any>(null);
   const [topProducts, setTopProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,7 +149,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-500">{new Date(today).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "numeric", year: "numeric" })}</p>
+      <p className="text-sm text-gray-500">{new Date(today).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { weekday: "long", day: "numeric", month: "numeric", year: "numeric" })}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
@@ -192,6 +193,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
 // ======================== INVOICE TAB ========================
 
 function InvoiceTab({ today, t }: { today: string; t: any }) {
+  const { locale } = useI18n();
   const [mode, setMode] = useState("day");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -249,7 +251,7 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
                       <td className="p-3 text-right font-mono">{fmt(o.discountAmount)}</td><td className="p-3 text-right font-mono">{fmt(o.serviceCharge)}</td>
                       <td className="p-3 text-right font-mono font-bold">{fmt(o.totalAmount)}</td>
                       <td className="p-3 text-xs text-gray-500 max-w-40 truncate">{o.paymentMethods}</td>
-                      <td className="p-3">{o.closedAt ? new Date(o.closedAt).toLocaleDateString("vi-VN") : ""}</td>
+                      <td className="p-3">{o.closedAt ? new Date(o.closedAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : ""}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -266,6 +268,7 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
 // ======================== SOLD ITEMS TAB ========================
 
 function SoldItemsTab({ today, t }: { today: string; t: any }) {
+  const { locale } = useI18n();
   const [mode, setMode] = useState("day");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -336,6 +339,7 @@ function SoldItemsTab({ today, t }: { today: string; t: any }) {
 // ======================== REVENUE TAB ========================
 
 function RevenueTab({ today, t }: { today: string; t: any }) {
+  const { locale } = useI18n();
   const [mode, setMode] = useState("day");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -407,7 +411,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
                 </tr></thead>
                 <tbody>{data.days.map((d, i) => (
                   <tr key={i} className="border-b border-gray-100 hover:bg-amber-50/30">
-                    <td className="p-3 font-medium">{new Date(d.date).toLocaleDateString("vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
+                    <td className="p-3 font-medium">{new Date(d.date).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
                     <td className="p-3 text-right">{d.orders}</td><td className="p-3 text-right font-mono">{fmt(d.subtotal)}</td>
                     <td className="p-3 text-right font-mono">{fmt(d.vat)}</td><td className="p-3 text-right font-mono">{fmt(d.excise)}</td>
                     <td className="p-3 text-right font-mono">{fmt(d.discount)}</td><td className="p-3 text-right font-mono">{fmt(d.service)}</td>
@@ -426,6 +430,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
 // ======================== INGREDIENT TAB ========================
 
 function IngredientTab({ today, t }: { today: string; t: any }) {
+  const { locale } = useI18n();
   const [mode, setMode] = useState("month");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -497,7 +502,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
                 <tbody>{data.stockIns.slice(0, 100).flatMap(si => si.items.map((item: any, idx: number) => (
                   <tr key={`${si.id}-${idx}`} className="border-b border-gray-100 hover:bg-amber-50/30">
                     <td className="p-3 font-mono text-xs text-amber-700">{idx === 0 ? si.code : ""}</td>
-                    <td className="p-3">{idx === 0 ? new Date(si.createdAt).toLocaleDateString("vi-VN") : ""}</td>
+                    <td className="p-3">{idx === 0 ? new Date(si.createdAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : ""}</td>
                     <td className="p-3">{idx === 0 ? (si.supplier || "—") : ""}</td>
                     <td className="p-3">{item.ingredient.name}</td>
                     <td className="p-3 text-right font-mono">{item.quantity}</td>
@@ -521,7 +526,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
                 </tr></thead>
                 <tbody>{data.stockOuts.map((so: any) => (
                   <tr key={so.id} className="border-b border-gray-100 hover:bg-amber-50/30">
-                    <td className="p-3">{new Date(so.createdAt).toLocaleDateString("vi-VN")}</td>
+                    <td className="p-3">{new Date(so.createdAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</td>
                     <td className="p-3">{so.ingredient?.name || "—"}</td>
                     <td className="p-3 text-right font-mono">{so.quantity}</td>
                     <td className="p-3"><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td>

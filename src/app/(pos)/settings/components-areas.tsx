@@ -29,7 +29,7 @@ type Props = {
 };
 
 export function AreasManager({ areas, createArea, updateArea, deleteArea, createTable, updateTable, deleteTable }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pending, startTransition] = useTransition();
   const [openArea, setOpenArea] = useState(false);
   const [openTable, setOpenTable] = useState(false);

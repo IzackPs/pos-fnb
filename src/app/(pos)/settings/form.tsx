@@ -13,7 +13,7 @@ type Config = { restaurantName: string; address?: string | null; phone?: string 
 type ActionResult = void;
 
 export function GeneralConfigForm({ config, action }: { config: Config | null; action: (data: any) => ActionResult }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     restaurantName: config?.restaurantName ?? "",

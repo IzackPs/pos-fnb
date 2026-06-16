@@ -25,7 +25,7 @@ type Props = {
 };
 
 export function DataTable({ data, columns, onCreate, onUpdate, onDelete }: Props) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<Record<string, string>>({});

@@ -18,7 +18,7 @@ type CashCategory = Awaited<ReturnType<typeof getCashFlowCategories>>[0];
 function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
 
 export function CashClient({ registers, flows, categories, today }: { registers: CashRegister[]; flows: CashFlow[]; categories: CashCategory[]; today: string }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [pending, start] = useTransition();
   const [openReg, setOpenReg] = useState(false);
@@ -64,7 +64,7 @@ export function CashClient({ registers, flows, categories, today }: { registers:
 
         <TabsContent value="flows" className="mt-4">
           <div className="section-amber overflow-hidden"><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4">{t.inventory.date}</th><th className="text-left p-4">{t.settings.type}</th><th className="text-left p-4">{t.cash.category}</th><th className="text-left p-4">{t.cash.description}</th><th className="text-right p-4">{t.order.amount}</th></tr></thead>
-            <tbody>{flows.map(f => (<tr key={f.id} className="border-b border-gray-100"><td className="p-4">{new Date(f.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</td>
+            <tbody>{flows.map(f => (<tr key={f.id} className="border-b border-gray-100"><td className="p-4">{new Date(f.createdAt).toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" })}</td>
               <td className="p-4"><span className={`inline-flex text-xs rounded-full px-2.5 py-1 font-bold ${f.type === "INCOME" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>{f.type === "INCOME" ? t.cash.income.toUpperCase() : t.cash.expense.toUpperCase()}</span></td>
               <td className="p-4">{f.category?.name}</td><td className="p-4 text-gray-500">{f.description || "—"}</td>
               <td className={`p-4 text-right font-mono font-bold ${f.type === "INCOME" ? "text-emerald-600" : "text-red-500"}`}>{f.type === "EXPENSE" ? "-" : "+"}{fmt(f.amount)}{t.common.d}</td></tr>))}</tbody></table>
@@ -72,7 +72,7 @@ export function CashClient({ registers, flows, categories, today }: { registers:
         </TabsContent>
         <TabsContent value="register" className="mt-4">
           <div className="section-amber overflow-hidden"><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className="text-left p-4">{t.inventory.date}</th><th className="text-left p-4">{t.inventory.openedBy}</th><th className="text-right p-4">{t.cash.openingBalance}</th><th className="text-right p-4">{t.cash.closingBalance}</th><th className="text-right p-4">{t.cash.expectedBalance}</th><th className="text-right p-4">{t.cash.discrepancy}</th><th className="text-left p-4">{t.inventory.registerStatus}</th></tr></thead>
-            <tbody>{registers.map(r => (<tr key={r.id} className="border-b border-gray-100"><td className="p-4 font-semibold">{new Date(r.openingAt).toLocaleDateString("en-US")}</td><td className="p-4">{r.user?.name}</td>
+            <tbody>{registers.map(r => (<tr key={r.id} className="border-b border-gray-100"><td className="p-4 font-semibold">{new Date(r.openingAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</td><td className="p-4">{r.user?.name}</td>
               <td className="p-4 text-right font-mono">{fmt(r.openingBalance)}{t.common.d}</td><td className="p-4 text-right font-mono">{r.closingBalance ? fmt(r.closingBalance) + (t.common.d || "") : "—"}</td><td className="p-4 text-right font-mono">{r.expectedBalance ? fmt(r.expectedBalance) + (t.common.d || "") : "—"}</td>
               <td className={`p-4 text-right font-mono font-bold ${(r.discrepancy ?? 0) !== 0 ? "text-red-500" : "text-emerald-600"}`}>{r.discrepancy !== null ? fmt(r.discrepancy) + (t.common.d || "") : "—"}</td>
               <td className="p-4"><span className={`inline-flex text-xs rounded-full px-2 py-1 font-medium ${r.status === "OPEN" ? "bg-amber-50 text-amber-700" : "bg-gray-100 text-gray-500"}`}>{r.status === "OPEN" ? t.cash.open : t.cash.locked}</span></td></tr>))}</tbody></table></div>

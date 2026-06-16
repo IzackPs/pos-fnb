@@ -72,7 +72,7 @@ function unpackConfig(raw: string, type: string): { order: OrderConfig; bill: Bi
 export function PrintTemplatesManager({
   templates, printers, createTemplate, updateTemplate, deleteTemplate
 }: { templates: Tpl[]; printers: Printer[]; createTemplate: ActionFn; updateTemplate: ActionFn; deleteTemplate: ActionFn }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<Tpl | null>(null);
@@ -308,7 +308,7 @@ export function PrintTemplatesManager({
                 {isOrder ? (
                   <OrderPreview config={orderCfg} width={form.width} name={form.name} t={t} />
                 ) : (
-                  <BillPreview config={billCfg} width={form.width} name={form.name} t={t} />
+                  <BillPreview config={billCfg} width={form.width} name={form.name} t={t} locale={locale} />
                 )}
               </ScrollArea>
             </div>
@@ -337,7 +337,7 @@ export function PrintTemplatesManager({
               {previewTemplate.type === "ORDER" ? (
                 <OrderPreview config={unpackConfig(previewTemplate.config, "ORDER").order} width={previewTemplate.width} name={previewTemplate.name} t={t} />
               ) : (
-                <BillPreview config={unpackConfig(previewTemplate.config, "BILL").bill} width={previewTemplate.width} name={previewTemplate.name} t={t} />
+                <BillPreview config={unpackConfig(previewTemplate.config, "BILL").bill} width={previewTemplate.width} name={previewTemplate.name} t={t} locale={locale} />
               )}
             </div>
           </DialogContent>
@@ -379,7 +379,7 @@ function OrderPreview({ config, width, name: _name, t }: { config: OrderConfig; 
 
 // ======================== BILL PREVIEW ========================
 
-function BillPreview({ config, width, name, t }: { config: BillConfig; width: number; name: string; t: any }) {
+function BillPreview({ config, width, name, t, locale }: { config: BillConfig; width: number; name: string; t: any; locale: string }) {
   const maxW = width === 48 ? 180 : width === 58 ? 220 : 300;
   const sampleItems = t.printTemplate.sampleItemsWithPrice;
   const subtotal = sampleItems.reduce((s: number, i: any) => s + i.price * i.qty, 0);
@@ -396,7 +396,7 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
       {config.header.showAddress && <div className="text-center text-[8px] text-gray-600">123 Nguyễn Huệ, Q.1, TP.HCM</div>}
       {config.header.showPhone && <div className="text-center text-[8px] text-gray-600">📞 0909 123 456</div>}
       {config.header.showTaxCode && <div className="text-center text-[8px] text-gray-600">{t.settings.taxCode}: 0312345678</div>}
-      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString("vi-VN")} {new Date().toLocaleTimeString("vi-VN")}</div>}
+      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} {new Date().toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</div>}
       <div className="border-t border-dashed border-gray-300 my-1" />
 
       {config.body.showOrderNumber && <div className="text-[9px] text-gray-500">{t.order.orderNumber}: #0042</div>}

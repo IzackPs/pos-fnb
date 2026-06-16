@@ -14,7 +14,8 @@ import { useI18n } from "@/i18n/context";
 
 type Group = { id: string; name: string; type: string; toppings: Topping[]; _count: { toppings: number } };
 type Topping = { id: string; name: string; price: number; toppingGroupId: string };
-type ActionFn = (...args: any[]) => Promise<any>;
+type ActionFn = (...args: never[]) => Promise<unknown>;
+type LooseFn = (...args: unknown[]) => Promise<unknown>;
 type Cat = { id: string; name: string };
 type ProductInfo = { id: string; name: string; categoryId: string; category?: { name: string } | null; toppingGroups?: { toppingGroup: { id: string } }[] };
 
@@ -36,8 +37,8 @@ export function ToppingsManager({
   const [gForm, setGForm] = useState({ name: "", type: "SINGLE" });
   const [tForm, setTForm] = useState({ name: "", price: "0", toppingGroupId: "" });
 
-  function doAct(fn: ActionFn, ...args: any[]) {
-    start(async () => { try { await fn(...args); toast.success(t.common.success); setOpenGroup(false); setOpenTopping(false); } catch { toast.error(t.common.error); } });
+  function doAct(fn: ActionFn, ...args: unknown[]) {
+    start(async () => { try { await (fn as LooseFn)(...args); toast.success(t.common.success); setOpenGroup(false); setOpenTopping(false); } catch { toast.error(t.common.error); } });
   }
 
   const typeLabel: Record<string, string> = { SINGLE: t.inventory.typeSingle, MULTIPLE: t.inventory.typeMultiple, REQUIRED: t.inventory.typeRequired };
@@ -138,7 +139,7 @@ export function ToppingsManager({
 }
 
 function LinkedProductsSection({
-  groupId, products, categories, onLink, onUnlink, pending, start
+  groupId, products, categories, onLink, onUnlink, start
 }: {
   groupId: string;
   products: ProductInfo[];
@@ -193,7 +194,7 @@ function LinkedProductsSection({
                     {p.name}
                     <button
                       className="ml-0.5 hover:bg-red-100 rounded p-0.5 text-amber-400 hover:text-red-500"
-                      onClick={() => start(async () => { await onUnlink(p.id, groupId); })}
+                      onClick={() => start(async () => { await (onUnlink as LooseFn)(p.id, groupId); })}
                     >
                       <Trash2 className="h-2.5 w-2.5" />
                     </button>
@@ -228,7 +229,7 @@ function LinkedProductsSection({
                 <button
                   key={p.id}
                   className="inline-flex items-center gap-1 text-[11px] bg-white border border-gray-200 hover:border-amber-300 hover:bg-amber-50 rounded-md px-2.5 py-1 text-gray-600 hover:text-amber-700 transition-colors"
-                  onClick={() => start(async () => { await onLink(p.id, groupId); })}
+                  onClick={() => start(async () => { await (onLink as LooseFn)(p.id, groupId); })}
                 >
                   <Plus className="h-2.5 w-2.5" />
                   {p.name}

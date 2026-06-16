@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import {
   openTable, addItem, updateItemQuantity, removeItem, cancelItem,
-  sendOrder, mergeTables, splitItems, splitItemsEvenly, getOrder, printTempBill, checkoutOrder, updateOrderGuest, refreshKaraokeTime,
+  sendOrder, mergeTables, splitItemsEvenly, getOrder, printTempBill, checkoutOrder, updateOrderGuest, refreshKaraokeTime,
 } from "@/server/order/actions";
 import { useBluetoothPrinter } from "@/hooks/use-bluetooth-printer";
 
@@ -37,15 +37,15 @@ function fmt(v: number) { return new Intl.NumberFormat("vi-VN").format(v); }
 // ─── Table Grid View ────────────────────────────────────────────
 export function TableGridView({
   areas, activeAreaId, setActiveAreaId, onOpenTable, onSelectOrder,
-  onMergeTables, onSplitTable,
+  onSplitTable,
 }: {
   areas: Area[]; activeAreaId: string; setActiveAreaId: (id: string) => void;
   onOpenTable: (t: TableInfo) => void; onSelectOrder: (orderId: string) => void;
-  onMergeTables: (orderIds: string[], targetTableId: string) => Promise<any>;
+  onMergeTables: (orderIds: string[], targetTableId: string) => Promise<unknown>;
   onSplitTable: (orderId: string) => void;
 }) {
   const { t } = useI18n();
-  const { isMobile, isTablet, isDesktop } = useDeviceInfo();
+  const { isMobile, isTablet } = useDeviceInfo();
   const [pending, start] = useTransition();
   const [mergeMode, setMergeMode] = useState(false);
   const [splitMode, setSplitMode] = useState(false);
@@ -64,7 +64,7 @@ export function TableGridView({
     setSelectedTables(new Set());
   }
   function toggleTable(tableId: string) {
-    setSelectedTables(p => { const n = new Set(p); n.has(tableId) ? n.delete(tableId) : n.add(tableId); return n; });
+    setSelectedTables(p => { const n = new Set(p); if (n.has(tableId)) n.delete(tableId); else n.add(tableId); return n; });
   }
 
   function confirmMerge() {
@@ -83,8 +83,6 @@ export function TableGridView({
       setMergeMode(false); setSelectedTables(new Set());
     });
   }
-
-  const hasOrders = activeArea.tables.filter(t => t.orders.length > 0 && (t.orders[0].status === "OPEN" || t.orders[0].status === "SENT"));
 
   // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
   const gridCols = isMobile ? "grid-cols-3" : isTablet ? "grid-cols-4" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
@@ -191,7 +189,7 @@ export function TableGridView({
                 onClick={() => {
                   if (mergeMode) { if (hasOrder) toggleTable(table.id); }
                   else if (splitMode) { if (hasOrder && selectedTables.size === 0) { toggleTable(table.id); } }
-                  else { hasOrder ? onSelectOrder(order.id) : onOpenTable(table); }
+                  else { if (hasOrder) onSelectOrder(order.id); else onOpenTable(table); }
                 }}
                 className={`rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
                   disabled ? "opacity-30 cursor-not-allowed" : ""
@@ -277,7 +275,7 @@ function OrderDetailView({
   mobileCheckoutPending: boolean;
 }) {
   const { t } = useI18n();
-  const { isMobile, isTablet, isDesktop } = useDeviceInfo();
+  const { isMobile, isTablet } = useDeviceInfo();
   const [activeCatId, setActiveCatId] = useState(categories[0]?.id ?? "");
   const [orderSheetOpen, setOrderSheetOpen] = useState(false);
   // Mobile checkout states (inline, no popup)
@@ -319,7 +317,7 @@ function OrderDetailView({
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-gray-900 truncate">{item.product.name}</div>
                 {item.toppings?.length > 0 && (
-                  <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((t: any) => t.topping?.name).join(", ")}</div>
+                  <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((t) => t.topping?.name).join(", ")}</div>
                 )}
               </div>
               {item.status === "PENDING" && !item.product.slug?.startsWith("karaoke-") ? (
@@ -619,8 +617,6 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   const [splitTableId, setSplitTableId] = useState("");
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
-  const activeArea = areas.find(a => a.id === activeAreaId);
-
   // Bluetooth printer
   const bt = useBluetoothPrinter();
 
@@ -717,7 +713,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       } else {
         toast.info("Đã gửi in qua server");
       }
-    } catch (e) {
+    } catch {
       // Print via server — no Bluetooth needed
     }
   }
@@ -848,7 +844,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
         <div className="space-y-1 max-h-40 overflow-y-auto mb-4">
           {orderDetail?.items.filter(i => i.status !== "CANCELLED").map(item => (
             <label key={item.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 cursor-pointer has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50">
-              <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => { const n = new Set(p); n.has(item.id) ? n.delete(item.id) : n.add(item.id); return n; })} />
+              <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => { const n = new Set(p); if (n.has(item.id)) n.delete(item.id); else n.add(item.id); return n; })} />
               <span className="text-sm flex-1">{item.product.name} x{item.quantity}</span>
               <span className="text-xs font-mono">{fmt(item.unitPrice * item.quantity)}đ</span></label>
           ))}</div>
@@ -883,17 +879,5 @@ function MobileSheet({ open, onClose, title, children }: { open: boolean; onClos
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-// Reusable modal wrapper (fallback)
-function Dialog({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-0 mx-4" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
-        {children}
-      </div>
-    </div>
   );
 }

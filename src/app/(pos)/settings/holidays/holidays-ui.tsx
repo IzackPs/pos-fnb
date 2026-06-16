@@ -13,12 +13,13 @@ import { toast } from "sonner";
 import { useI18n } from "@/i18n/context";
 
 type Holiday = { id: string; name: string; date: Date; recurring: boolean };
+type HolidayInput = { name: string; date: string; recurring?: boolean };
 
 export function HolidaysUI({ holidays, createHoliday, updateHoliday, deleteHoliday }: {
   holidays: Holiday[];
-  createHoliday: (data: any) => Promise<any>;
-  updateHoliday: (id: string, data: any) => Promise<any>;
-  deleteHoliday: (id: string) => Promise<any>;
+  createHoliday: (data: HolidayInput) => Promise<void>;
+  updateHoliday: (id: string, data: HolidayInput) => Promise<void>;
+  deleteHoliday: (id: string) => Promise<void>;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);

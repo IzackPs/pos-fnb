@@ -22,11 +22,17 @@ type ServiceCharge = {
 type Cat = { id: string; name: string };
 type Area = { id: string; name: string };
 
+type ServiceChargeInput = {
+  name: string; type: string; value: number; scope?: string; applyCondition?: string;
+  areaId?: string; categoryIds?: string; startDate?: string; endDate?: string;
+  minOrderValue?: number; minGuestCount?: number; isActive?: boolean;
+};
+
 export function ServiceChargesUI({ charges, categories, areas, createServiceCharge, updateServiceCharge, deleteServiceCharge }: {
   charges: ServiceCharge[]; categories: Cat[]; areas: Area[];
-  createServiceCharge: (data: any) => Promise<any>;
-  updateServiceCharge: (id: string, data: any) => Promise<any>;
-  deleteServiceCharge: (id: string) => Promise<any>;
+  createServiceCharge: (data: ServiceChargeInput) => Promise<void>;
+  updateServiceCharge: (id: string, data: Record<string, unknown>) => Promise<void>;
+  deleteServiceCharge: (id: string) => Promise<void>;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -70,15 +76,15 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
   function save() {
     start(async () => {
       try {
-        const payload: any = {
+        const payload: ServiceChargeInput = {
           name, type, value: parseFloat(value) || 0, scope,
           applyCondition, isActive,
-          areaId: scope === "AREA" ? areaId || null : null,
-          categoryIds: scope === "CATEGORY" ? JSON.stringify(selectedCats) : null,
-          startDate: applyCondition === "DATE_RANGE" ? startDate || null : null,
-          endDate: applyCondition === "DATE_RANGE" ? endDate || null : null,
-          minOrderValue: applyCondition === "MIN_ORDER" ? (parseFloat(minOrder) || null) : null,
-          minGuestCount: applyCondition === "GUEST_COUNT" ? (parseInt(minGuest) || null) : null,
+          areaId: scope === "AREA" ? areaId || undefined : undefined,
+          categoryIds: scope === "CATEGORY" ? JSON.stringify(selectedCats) : undefined,
+          startDate: applyCondition === "DATE_RANGE" ? startDate || undefined : undefined,
+          endDate: applyCondition === "DATE_RANGE" ? endDate || undefined : undefined,
+          minOrderValue: applyCondition === "MIN_ORDER" ? (parseFloat(minOrder) || undefined) : undefined,
+          minGuestCount: applyCondition === "GUEST_COUNT" ? (parseInt(minGuest) || undefined) : undefined,
         };
         if (editingId) { await updateServiceCharge(editingId, payload); toast.success(t.common.success); }
         else { await createServiceCharge(payload); toast.success(t.common.success); }

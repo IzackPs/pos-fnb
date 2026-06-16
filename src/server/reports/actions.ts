@@ -4,15 +4,9 @@ import { db } from "@/lib/db";
 
 // ======================== HELPERS ========================
 
-function dayRange(date: string) {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(date);
-  end.setHours(23, 59, 59, 999);
-  return { start, end };
-}
+type ReportMode = "day" | "week" | "month" | "year" | "custom";
 
-function dateRangeByMode(mode: "day" | "week" | "month" | "year" | "custom", date?: string, startDate?: string, endDate?: string) {
+function dateRangeByMode(mode: ReportMode, date?: string, startDate?: string, endDate?: string) {
   const now = new Date();
   let start: Date;
   let end: Date;
@@ -60,7 +54,7 @@ function dateRangeByMode(mode: "day" | "week" | "month" | "year" | "custom", dat
 // ======================== 1. BÁO CÁO HÓA ĐƠN ========================
 
 export async function getInvoiceReport(mode: string, date?: string, startDate?: string, endDate?: string) {
-  const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
+  const { start, end } = dateRangeByMode(mode as ReportMode, date, startDate, endDate);
 
   const orders = await db.order.findMany({
     where: {
@@ -115,7 +109,7 @@ export async function getInvoiceReport(mode: string, date?: string, startDate?: 
 // ======================== 2. BÁO CÁO HÀNG ĐÃ BÁN ========================
 
 export async function getSoldItemsReport(mode: string, date?: string, startDate?: string, endDate?: string) {
-  const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
+  const { start, end } = dateRangeByMode(mode as ReportMode, date, startDate, endDate);
 
   const items = await db.orderItem.findMany({
     where: {
@@ -171,7 +165,7 @@ export async function getSoldItemsReport(mode: string, date?: string, startDate?
 // ======================== 3. BÁO CÁO DOANH THU ========================
 
 export async function getRevenueReport(mode: string, date?: string, startDate?: string, endDate?: string) {
-  const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
+  const { start, end } = dateRangeByMode(mode as ReportMode, date, startDate, endDate);
 
   const orders = await db.order.findMany({
     where: {
@@ -272,7 +266,7 @@ export async function getRevenueReport(mode: string, date?: string, startDate?: 
 // ======================== 4. BÁO CÁO NGUYÊN LIỆU ========================
 
 export async function getIngredientReport(mode: string, date?: string, startDate?: string, endDate?: string) {
-  const { start, end } = dateRangeByMode(mode as any, date, startDate, endDate);
+  const { start, end } = dateRangeByMode(mode as ReportMode, date, startDate, endDate);
 
   const [stockIns, stockOuts, ingredients] = await Promise.all([
     db.stockIn.findMany({

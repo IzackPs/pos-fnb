@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import * as net from "net";
 
 function fmt(n: number) {
@@ -349,7 +350,7 @@ export async function createPrintJob(params: {
 // ======================== GET PRINT JOBS ========================
 
 export async function getPrintJobs(date?: string, type?: string) {
-  const where: any = {};
+  const where: Prisma.PrintJobWhereInput = {};
   if (date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);

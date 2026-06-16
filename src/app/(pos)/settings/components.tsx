@@ -153,7 +153,7 @@ export function UsersManager({ users, roles }: { users: User[]; roles: Role[] })
       if (editingUser) {
         await updateUser(editingUser.id, { name: userForm.name, roleId: userForm.roleId, ...(userForm.password ? { password: userForm.password } : {}) });
       } else {
-        await createUser(userForm as any);
+        await createUser(userForm as Parameters<typeof createUser>[0]);
       }
       toast.success(t.common.success);
       setOpenUserSheet(false);

@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 // ============ General Config ============
@@ -55,12 +56,12 @@ export async function updateUser(id: string, data: {
   roleId?: string;
   password?: string;
 }) {
-  const update: any = { ...data };
+  const update: Record<string, unknown> = { ...data };
   if (data.password) {
     const { hash } = await import("bcryptjs");
     update.password = await hash(data.password, 12);
   } else delete update.password;
-  await db.user.update({ where: { id }, data: update });
+  await db.user.update({ where: { id }, data: update as Prisma.UserUpdateInput });
   revalidatePath("/settings/users");
 }
 
@@ -206,14 +207,14 @@ export async function updateTable(id: string, data: {
   isKaraoke?: boolean;
   karaokePricingId?: string | null;
 }) {
-  const clean: Record<string, any> = {};
+  const clean: Record<string, unknown> = {};
   if (data.name !== undefined) clean.name = data.name;
   if (data.capacity !== undefined) clean.capacity = Number(data.capacity);
   if (data.positionX !== undefined) clean.positionX = Number(data.positionX);
   if (data.positionY !== undefined) clean.positionY = Number(data.positionY);
   if (data.isKaraoke !== undefined) clean.isKaraoke = data.isKaraoke;
   if (data.karaokePricingId !== undefined) clean.karaokePricingId = data.karaokePricingId || null;
-  await db.table.update({ where: { id }, data: clean });
+  await db.table.update({ where: { id }, data: clean as Prisma.TableUpdateInput });
   revalidatePath("/settings/areas");
 }
 
@@ -365,8 +366,8 @@ export async function createKaraokePricing(data: {
   revalidatePath("/settings/karaoke");
 }
 
-export async function updateKaraokePricing(id: string, data: any) {
-  await db.karaokePricing.update({ where: { id }, data });
+export async function updateKaraokePricing(id: string, data: Record<string, unknown>) {
+  await db.karaokePricing.update({ where: { id }, data: data as Prisma.KaraokePricingUpdateInput });
   revalidatePath("/settings/karaoke");
 }
 
@@ -402,8 +403,8 @@ export async function createProduct(data: {
   revalidatePath("/settings/products");
 }
 
-export async function updateProduct(id: string, data: any) {
-  await db.product.update({ where: { id }, data });
+export async function updateProduct(id: string, data: Record<string, unknown>) {
+  await db.product.update({ where: { id }, data: data as Prisma.ProductUpdateInput });
   revalidatePath("/settings/products");
 }
 
@@ -461,16 +462,16 @@ export async function createIngredient(data: {
   revalidatePath("/settings/ingredients");
 }
 
-export async function updateIngredient(id: string, data: any) {
+export async function updateIngredient(id: string, data: Record<string, unknown>) {
   if (data.purchasePrice !== undefined || data.conversionFactor !== undefined) {
     const item = await db.ingredient.findUnique({ where: { id } });
     if (item) {
-      const factor = data.conversionFactor ?? item.conversionFactor;
-      const price = data.purchasePrice ?? item.purchasePrice;
+      const factor = (data.conversionFactor ?? item.conversionFactor) as number;
+      const price = (data.purchasePrice ?? item.purchasePrice) as number;
       data.costPerBaseUnit = factor > 0 ? price / factor : 0;
     }
   }
-  await db.ingredient.update({ where: { id }, data });
+  await db.ingredient.update({ where: { id }, data: data as Prisma.IngredientUpdateInput });
   revalidatePath("/settings/ingredients");
 }
 
@@ -555,8 +556,8 @@ export async function createDiscount(data: {
   revalidatePath("/settings/discounts");
 }
 
-export async function updateDiscount(id: string, data: any) {
-  await db.discount.update({ where: { id }, data });
+export async function updateDiscount(id: string, data: Record<string, unknown>) {
+  await db.discount.update({ where: { id }, data: data as Prisma.DiscountUpdateInput });
   revalidatePath("/settings/discounts");
 }
 
@@ -606,8 +607,8 @@ export async function createServiceCharge(data: {
   revalidatePath("/settings/service-charges");
 }
 
-export async function updateServiceCharge(id: string, data: any) {
-  await db.serviceCharge.update({ where: { id }, data });
+export async function updateServiceCharge(id: string, data: Record<string, unknown>) {
+  await db.serviceCharge.update({ where: { id }, data: data as Prisma.ServiceChargeUpdateInput });
   revalidatePath("/settings/service-charges");
 }
 
@@ -641,12 +642,12 @@ export async function createPrintTemplate(data: {
   revalidatePath("/settings/print-templates");
 }
 
-export async function updatePrintTemplate(id: string, data: any) {
+export async function updatePrintTemplate(id: string, data: Record<string, unknown>) {
   if (data.isDefault) {
     const tpl = await db.printTemplate.findUnique({ where: { id } });
     if (tpl) await db.printTemplate.updateMany({ where: { type: tpl.type }, data: { isDefault: false } });
   }
-  await db.printTemplate.update({ where: { id }, data });
+  await db.printTemplate.update({ where: { id }, data: data as Prisma.PrintTemplateUpdateInput });
   revalidatePath("/settings/print-templates");
 }
 

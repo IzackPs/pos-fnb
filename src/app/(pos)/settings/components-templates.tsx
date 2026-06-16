@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/i18n/context";
+import type { Dictionary } from "@/i18n/dictionaries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +20,8 @@ type Tpl = {
   printer?: { id: string; name: string };
 };
 type Printer = { id: string; name: string };
-type ActionFn = (...args: any[]) => Promise<any>;
+type ActionFn = (...args: never[]) => Promise<unknown>;
+type LooseFn = (...args: unknown[]) => Promise<unknown>;
 
 // ===== ORDER TEMPLATE CONFIG =====
 interface OrderConfig {
@@ -56,7 +57,7 @@ function packConfig(type: string, order: OrderConfig, bill: BillConfig): string 
   return JSON.stringify({ _version: 2, type, order, bill } as TemplateData);
 }
 
-function unpackConfig(raw: string, type: string): { order: OrderConfig; bill: BillConfig } {
+function unpackConfig(raw: string): { order: OrderConfig; bill: BillConfig } {
   try {
     const parsed = JSON.parse(raw) as Partial<TemplateData>;
     if (parsed._version === 2) {
@@ -92,7 +93,7 @@ export function PrintTemplatesManager({
   function openEdit(tpl: Tpl) {
     setEditing(tpl);
     setForm({ name: tpl.name, type: tpl.type, printerId: tpl.printer?.id ?? "", width: tpl.width });
-    const { order, bill } = unpackConfig(tpl.config, tpl.type);
+    const { order, bill } = unpackConfig(tpl.config);
     setOrderCfg(order);
     setBillCfg(bill);
     setOpen(true);
@@ -102,8 +103,8 @@ export function PrintTemplatesManager({
     const configStr = packConfig(form.type, orderCfg, billCfg);
     start(async () => {
       try {
-        if (editing) await updateTemplate(editing.id, { ...form, config: configStr });
-        else await createTemplate({ ...form, config: configStr });
+        if (editing) await (updateTemplate as LooseFn)(editing.id, { ...form, config: configStr });
+        else await (createTemplate as LooseFn)({ ...form, config: configStr });
         toast.success(editing ? t.printTemplate.updated : t.printTemplate.created);
         setOpen(false);
       } catch { toast.error(t.common.error); }
@@ -140,7 +141,7 @@ export function PrintTemplatesManager({
               <div className="flex items-center gap-1">
                 <button onClick={() => setPreviewTemplate(tpl)} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600" title={t.printTemplate.preview}><Eye className="h-4 w-4" /></button>
                 <button onClick={() => openEdit(tpl)} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-amber-50 text-gray-400 hover:text-amber-600" title={t.settings.edit}><Pencil className="h-4 w-4" /></button>
-                <button onClick={() => start(async () => { try { await deleteTemplate(tpl.id); toast.success(t.common.success); } catch { toast.error(t.common.error); } })} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500" title={t.settings.delete}><Trash2 className="h-4 w-4" /></button>
+                <button onClick={() => start(async () => { try { await (deleteTemplate as LooseFn)(tpl.id); toast.success(t.common.success); } catch { toast.error(t.common.error); } })} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500" title={t.settings.delete}><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>
           ))}
@@ -335,9 +336,9 @@ export function PrintTemplatesManager({
             </DialogHeader>
             <div className="bg-gray-100 rounded-xl p-6 flex justify-center">
               {previewTemplate.type === "ORDER" ? (
-                <OrderPreview config={unpackConfig(previewTemplate.config, "ORDER").order} width={previewTemplate.width} name={previewTemplate.name} t={t} />
+                <OrderPreview config={unpackConfig(previewTemplate.config).order} width={previewTemplate.width} name={previewTemplate.name} t={t} />
               ) : (
-                <BillPreview config={unpackConfig(previewTemplate.config, "BILL").bill} width={previewTemplate.width} name={previewTemplate.name} t={t} />
+                <BillPreview config={unpackConfig(previewTemplate.config).bill} width={previewTemplate.width} name={previewTemplate.name} t={t} />
               )}
             </div>
           </DialogContent>
@@ -349,7 +350,7 @@ export function PrintTemplatesManager({
 
 // ======================== ORDER PREVIEW ========================
 
-function OrderPreview({ config, width, name: _name, t }: { config: OrderConfig; width: number; name: string; t: any }) {
+function OrderPreview({ config, width, t }: { config: OrderConfig; width: number; name: string; t: Dictionary }) {
   const maxW = width === 48 ? 180 : width === 58 ? 220 : 300;
 
   return (
@@ -359,7 +360,7 @@ function OrderPreview({ config, width, name: _name, t }: { config: OrderConfig; 
       {config.showTime && <div className="text-[10px] text-gray-500 mb-1">14:25</div>}
       <div className="border-t border-dashed border-gray-300 my-1" />
 
-      {t.printTemplate.sampleItems.map((item: any, i: number) => (
+      {t.printTemplate.sampleItems.map((item, i) => (
         <div key={i} className="py-0.5">
           <div>{config.showQuantity ? `${item.qty}x ` : ""}{item.name}</div>
           {config.showTopping && item.toppings && <div className="text-[10px] text-gray-400 ml-2">+ {item.toppings}</div>}
@@ -379,10 +380,10 @@ function OrderPreview({ config, width, name: _name, t }: { config: OrderConfig; 
 
 // ======================== BILL PREVIEW ========================
 
-function BillPreview({ config, width, name, t }: { config: BillConfig; width: number; name: string; t: any }) {
+function BillPreview({ config, width, name, t }: { config: BillConfig; width: number; name: string; t: Dictionary }) {
   const maxW = width === 48 ? 180 : width === 58 ? 220 : 300;
   const sampleItems = t.printTemplate.sampleItemsWithPrice;
-  const subtotal = sampleItems.reduce((s: number, i: any) => s + i.price * i.qty, 0);
+  const subtotal = sampleItems.reduce((s, i) => s + i.price * i.qty, 0);
   const vat = Math.round(subtotal * 0.08);
   const discount = 25000;
   const service = Math.round(subtotal * 0.05);
@@ -414,7 +415,7 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
           </tr>
         </thead>
         <tbody>
-          {sampleItems.map((item: any, i: number) => (
+          {sampleItems.map((item, i) => (
             <tr key={i} className="border-b border-gray-100">
               <td className="py-0.5">
                 <div className="font-medium">{item.name}</div>

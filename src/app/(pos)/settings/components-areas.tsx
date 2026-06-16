@@ -17,15 +17,17 @@ type Area = {
   tables: TableInfo[]; _count: { tables: number };
 };
 type TableInfo = { id: string; name: string; capacity: number; isKaraoke: boolean };
+type ActionFn = (...args: never[]) => Promise<unknown>;
+type LooseFn = (...args: unknown[]) => Promise<unknown>;
 
 type Props = {
   areas: Area[];
-  createArea: Function;
-  updateArea: Function;
-  deleteArea: Function;
-  createTable: Function;
-  updateTable: Function;
-  deleteTable: Function;
+  createArea: ActionFn;
+  updateArea: ActionFn;
+  deleteArea: ActionFn;
+  createTable: ActionFn;
+  updateTable: ActionFn;
+  deleteTable: ActionFn;
 };
 
 export function AreasManager({ areas, createArea, updateArea, deleteArea, createTable, updateTable, deleteTable }: Props) {
@@ -37,7 +39,7 @@ export function AreasManager({ areas, createArea, updateArea, deleteArea, create
   const [editTable, setEditTable] = useState<TableInfo | null>(null);
   const [areaForm, setAreaForm] = useState({ name: "", type: "RESTAURANT", sortOrder: "0" });
   const [tableForm, setTableForm] = useState({ name: "", areaId: "", capacity: "4", isKaraoke: false, positionX: "0", positionY: "0" });
-  const [activeArea, setActiveArea] = useState<string>("");
+  const [, setActiveArea] = useState<string>("");
 
   function openNewArea() { setEditArea(null); setAreaForm({ name: "", type: "RESTAURANT", sortOrder: "0" }); setOpenArea(true); }
   function openEditArea(a: Area) { setEditArea(a); setAreaForm({ name: a.name, type: a.type, sortOrder: a.sortOrder.toString() }); setOpenArea(true); }
@@ -60,8 +62,8 @@ export function AreasManager({ areas, createArea, updateArea, deleteArea, create
     setOpenTable(true);
   }
 
-  function doAction(fn: Function, ...args: any[]) {
-    startTransition(async () => { try { await fn(...args); toast.success(t.common.success); setOpenArea(false); setOpenTable(false); } catch { toast.error(t.common.error); } });
+  function doAction(fn: ActionFn, ...args: unknown[]) {
+    startTransition(async () => { try { await (fn as LooseFn)(...args); toast.success(t.common.success); setOpenArea(false); setOpenTable(false); } catch { toast.error(t.common.error); } });
   }
 
   return (

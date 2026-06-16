@@ -25,7 +25,7 @@ function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); 
 export function InventoryClient({
   ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers
 }: {
-  ingredients: Ingredient[]; stockIns: StockIn[]; stockOuts: any[]; lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>; allIngredients: IngredientBasic[]; suppliers: Supplier[];
+  ingredients: Ingredient[]; stockIns: StockIn[]; stockOuts: Awaited<ReturnType<typeof getStockOuts>>; lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>; allIngredients: IngredientBasic[]; suppliers: Supplier[];
 }) {
   const { t } = useI18n();
   const { isMobile } = useDeviceInfo();
@@ -326,7 +326,6 @@ function StockInPanel({
                   const qty = parseFloat(item.quantity) || 0;
                   const price = parseFloat(item.unitPrice) || 0;
                   const lineTotal = qty * price;
-                  const ing = allIngredients.find(i => i.id === item.ingredientId);
                   return (
                     <tr key={idx} className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
                       <td className="p-2 pl-4 text-gray-400 text-xs font-mono">{idx + 1}</td>

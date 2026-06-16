@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, Trash2, Plus, Tag } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/context";
 
@@ -21,13 +21,17 @@ type Discount = {
 };
 type Cat = { id: string; name: string };
 
-const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+type DiscountInput = {
+  name: string; type: string; value: number; scope?: string;
+  startDate?: string; endDate?: string; happyHourStart?: string; happyHourEnd?: string;
+  minOrderValue?: number; dayOfWeek?: string; categoryIds?: string; isActive?: boolean;
+};
 
 export function DiscountsUI({ discounts, categories, createDiscount, updateDiscount, deleteDiscount }: {
   discounts: Discount[]; categories: Cat[];
-  createDiscount: (data: any) => Promise<any>;
-  updateDiscount: (id: string, data: any) => Promise<any>;
-  deleteDiscount: (id: string) => Promise<any>;
+  createDiscount: (data: DiscountInput) => Promise<void>;
+  updateDiscount: (id: string, data: Record<string, unknown>) => Promise<void>;
+  deleteDiscount: (id: string) => Promise<void>;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -68,12 +72,12 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
   function save() {
     start(async () => {
       try {
-        const payload: any = {
+        const payload: DiscountInput = {
           name, type, value: parseFloat(value) || 0, scope,
-          categoryIds: scope === "CATEGORY" ? JSON.stringify(selectedCats) : null,
-          startDate: startDate || null, endDate: endDate || null,
-          happyHourStart: hhStart || null, happyHourEnd: hhEnd || null,
-          dayOfWeek: dayOfWeek || null, minOrderValue: minOrder ? parseFloat(minOrder) : null,
+          categoryIds: scope === "CATEGORY" ? JSON.stringify(selectedCats) : undefined,
+          startDate: startDate || undefined, endDate: endDate || undefined,
+          happyHourStart: hhStart || undefined, happyHourEnd: hhEnd || undefined,
+          dayOfWeek: dayOfWeek || undefined, minOrderValue: minOrder ? parseFloat(minOrder) : undefined,
           isActive,
         };
         if (editingId) { await updateDiscount(editingId, payload); toast.success(t.common.success); }

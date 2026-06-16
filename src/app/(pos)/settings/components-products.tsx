@@ -197,8 +197,8 @@ export function ProductsManager({
               <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.inventory.typeColumn}</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.settings.price}</th>
               <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.settings.vat}</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">TTĐB</th>
-              <th className="text-left px-4 py-3 font-semibold text-gray-600">ĐVT</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.settings.exciseTax}</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">{t.settings.units}</th>
               <th className="w-32 px-4 py-3 text-right text-gray-400 text-xs font-medium">{t.settings.actions}</th>
             </tr>
           </thead>
@@ -212,7 +212,7 @@ export function ProductsManager({
                   <Coffee className="h-4 w-4 text-gray-400" /> {p.name} {!p.isAvailable && <Badge variant="secondary">{t.settings.inactive}</Badge>}
                 </td>
                 <td className="px-4 py-3"><Badge variant="outline">{p.category?.name}</Badge></td>
-                <td className="px-4 py-3 font-mono text-sm">{fmtPrice(p.price)} ₫</td>
+                <td className="px-4 py-3 font-mono text-sm">{fmtPrice(p.price)}{t.common.d || "₫"}</td>
                 <td className="px-4 py-3">{p.vat?.name} ({(p.vat?.rate ?? 0) * 100}%)</td>
                 <td className="px-4 py-3">{p.exciseTax ? `${p.exciseTax.name} (${p.exciseTax.rate * 100}%)` : "—"}</td>
                 <td className="px-4 py-3">{p.unit?.name}</td>
@@ -459,9 +459,9 @@ function ToppingLinkDialog({
                       {isLinked && <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">{t.inventory.linkedToppingBadge}</Badge>}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1.5">
-                      {g.toppings.map(t => (
-                        <span key={t.id} className="inline-flex text-[11px] bg-white border border-gray-200 rounded-md px-2 py-0.5 text-gray-500">
-                          {t.name}{t.price > 0 ? <span className="text-gray-400 ml-1">+{t.price.toLocaleString()}đ</span> : null}
+                      {g.toppings.map(top => (
+                        <span key={top.id} className="inline-flex text-[11px] bg-white border border-gray-200 rounded-md px-2 py-0.5 text-gray-500">
+                          {top.name}{top.price > 0 ? <span className="text-gray-400 ml-1">+{top.price.toLocaleString()}{t.common.d}</span> : null}
                         </span>
                       ))}
                     </div>

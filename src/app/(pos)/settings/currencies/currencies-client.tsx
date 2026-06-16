@@ -72,13 +72,13 @@ export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
               <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-gray-100"><X className="h-4 w-4 text-gray-400" /></button>
             </div>
             <div className="space-y-3">
-              <div><label className="text-sm font-medium text-gray-700 block mb-1">Mã (code)</label><input className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="VND" /></div>
-              <div><label className="text-sm font-medium text-gray-700 block mb-1">Tên</label><input className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Việt Nam Đồng" /></div>
-              <div><label className="text-sm font-medium text-gray-700 block mb-1">Ký hiệu</label><input className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.symbol} onChange={e => setForm(f => ({ ...f, symbol: e.target.value }))} placeholder="₫" /></div>
-              <div><label className="text-sm font-medium text-gray-700 block mb-1">Tỷ giá (so với tiền tệ chính)</label><input type="number" step="0.000001" className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.rate} onChange={e => setForm(f => ({ ...f, rate: e.target.value }))} /></div>
+              <div><label className="text-sm font-medium text-gray-700 block mb-1">Code</label><input className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="VND" /></div>
+              <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.settings.name || "Name"}</label><input className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="US Dollar" /></div>
+              <div><label className="text-sm font-medium text-gray-700 block mb-1">Symbol</label><input className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.symbol} onChange={e => setForm(f => ({ ...f, symbol: e.target.value }))} placeholder="$" /></div>
+              <div><label className="text-sm font-medium text-gray-700 block mb-1">Exchange Rate (vs primary)</label><input type="number" step="0.000001" className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={form.rate} onChange={e => setForm(f => ({ ...f, rate: e.target.value }))} /></div>
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input type="checkbox" checked={form.isDefault} onChange={e => setForm(f => ({ ...f, isDefault: e.target.checked }))} className="h-4 w-4 accent-amber-500" />
-                Đặt làm tiền tệ chính
+                Set as primary currency
               </label>
             </div>
             <div className="flex gap-3 mt-4">

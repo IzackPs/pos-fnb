@@ -68,12 +68,12 @@ export function ToppingsManager({
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2 mb-2">
-              {g.toppings.map(t => (
-                <div key={t.id} className="flex items-center gap-1 border rounded-md px-3 py-1.5 text-sm">
-                  <span>{t.name}</span>
-                  {t.price > 0 && <span className="text-muted-foreground text-xs">+{t.price.toLocaleString()}đ</span>}
-                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditTopping(t); setTForm({ name: t.name, price: t.price.toString(), toppingGroupId: t.toppingGroupId }); setOpenTopping(true); }}><Pencil className="h-2.5 w-2.5" /></Button>
-                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => doAct(deleteTopping, t.id)}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>
+              {g.toppings.map(top => (
+                <div key={top.id} className="flex items-center gap-1 border rounded-md px-3 py-1.5 text-sm">
+                  <span>{top.name}</span>
+                  {top.price > 0 && <span className="text-muted-foreground text-xs">+{top.price.toLocaleString()}{t.common.d}</span>}
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditTopping(top); setTForm({ name: top.name, price: top.price.toString(), toppingGroupId: top.toppingGroupId }); setOpenTopping(true); }}><Pencil className="h-2.5 w-2.5" /></Button>
+                  <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => doAct(deleteTopping, top.id)}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>
                 </div>
               ))}
             </div>

@@ -2,7 +2,7 @@ name: Build & Auto-Merge dev_lor → main
 
 on:
   push:
-    branches: [dev_lor]
+    branches: [Out_Main]
   workflow_dispatch:
 
 permissions:

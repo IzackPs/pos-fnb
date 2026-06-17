@@ -96,6 +96,18 @@ Object.defineProperty(window, "IntersectionObserver", {
   value: IntersectionObserverMock,
 });
 
+window.confirm = vi.fn(() => true);
+window.alert = vi.fn();
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+if (!window.Element.prototype.getAnimations) {
+  window.Element.prototype.getAnimations = vi.fn(() => []);
+}
+if (!window.HTMLElement.prototype.hasPointerCapture) {
+  window.HTMLElement.prototype.hasPointerCapture = vi.fn(() => false);
+  window.HTMLElement.prototype.setPointerCapture = vi.fn();
+  window.HTMLElement.prototype.releasePointerCapture = vi.fn();
+}
+
 Object.defineProperty(navigator, "bluetooth", {
   configurable: true,
   value: {

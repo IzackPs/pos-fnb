@@ -38,6 +38,8 @@ export function InventoryClient({
   const [loadingItems, setLoadingItems] = useState(false);
 
   // When supplier changes, auto-fill from last stock-in
+  // Auto-fill form from selected supplier — intentional reactive effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!supplierId) { setItems([]); return; }
     const sup = suppliers.find(s => s.id === supplierId);
@@ -59,6 +61,7 @@ export function InventoryClient({
       }
     }).catch(() => setItems([])).finally(() => setLoadingItems(false));
   }, [supplierId, suppliers]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function addEmptyRow() {
     setItems(p => [...p, { ingredientId: "", ingredientName: "", quantity: "", unitPrice: "", purchaseUnit: "", baseUnit: "" }]);
@@ -170,7 +173,7 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
     return sortDir === "asc" ? cmp : -cmp;
   });
 
-  const SortArrow = ({ field }: { field: "name" | "stock" | "unit" }) => {
+  const sortArrow = (field: "name" | "stock" | "unit") => {
     if (sortField !== field) return <span className="ml-1 text-gray-300">↕</span>;
     return <span className="ml-1 text-amber-500">{sortDir === "asc" ? "↑" : "↓"}</span>;
   };
@@ -184,15 +187,15 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
       <thead>
         <tr className="bg-gray-50 border-b border-gray-200">
           <th className="text-left p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("name")}>
-            {t.settings.name}<SortArrow field="name" />
+            {t.settings.name}{sortArrow("name")}
           </th>
           {!isMobile && (
             <th className="text-left p-3 cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("unit")}>
-              {t.inventory.baseUnit}<SortArrow field="unit" />
+              {t.inventory.baseUnit}{sortArrow("unit")}
             </th>
           )}
           <th className={`text-right p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors ${isMobile ? "pr-4" : ""}`} onClick={() => toggleSort("stock")}>
-            {t.inventory.currentStock}<SortArrow field="stock" />
+            {t.inventory.currentStock}{sortArrow("stock")}
           </th>
         </tr>
       </thead>

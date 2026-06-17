@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { LogOut } from "lucide-react";
@@ -20,6 +21,8 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
   const { canAccessModule } = usePermission();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+  // Close user menu on navigation — intentional reactive reset.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setUserMenuOpen(false); }, [pathname]);
 
   const allNavItems: { href: string; label: string; module?: string }[] = [
@@ -39,13 +42,13 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
   const isCompact = isMobile || isTablet;
 
   // ── Desktop Header ──────────────────────────────
-  function DesktopHeader() {
+  function renderDesktopHeader() {
     return (
       <header className="h-12 flex items-center justify-between px-4 shrink-0 bg-white border-b border-[#e5e7eb]">
         <div className="flex items-center gap-4">
           <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
+              <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
             </div>
             <span className="font-bold text-sm text-gray-900">POS F&B</span>
           </Link>
@@ -83,12 +86,12 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
   }
 
   // ── Mobile / Tablet Compact Header ──────────────
-  function CompactHeader() {
+  function renderCompactHeader() {
     return (
       <header className="h-11 flex items-center justify-between px-3 shrink-0 bg-white border-b border-[#e5e7eb]">
         <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
-            <img src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
+            <Image src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
           </div>
           <span className="font-bold text-sm text-gray-900">POS F&B</span>
         </Link>
@@ -127,7 +130,7 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#f9fafb]">
       {/* Header: Desktop full / Mobile compact */}
-      {isDesktop ? <DesktopHeader /> : <CompactHeader />}
+      {isDesktop ? renderDesktopHeader() : renderCompactHeader()}
 
       {/* Main content — pad bottom on mobile for bottom nav */}
       <div className={`flex-1 overflow-hidden ${isCompact ? "pb-14" : ""}`}>

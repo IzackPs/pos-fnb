@@ -24,6 +24,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     const cookieLocale = document.cookie.split("; ").find(r => r.startsWith("pos-locale="))?.split("=")[1];
     if (stored && ["vi", "en", "zh", "ko", "ja"].includes(stored)) {
+      // Hydrate locale from client-only storage on mount — must run in an effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocaleState(stored);
       setT(getDictionary(stored));
       // Set cookie on initial load so server components can pick up the locale

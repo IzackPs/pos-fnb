@@ -86,7 +86,8 @@ export function ProductsManager({
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const pageItems = filtered.slice((page - 1) * perPage, page * perPage);
 
-  // Reset page when filter changes
+  // Reset page when filter changes — intentional reactive reset.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setPage(1); }, [catFilter, search]);
 
   function openNew() { setEditing(null); setForm({ name: "", slug: "", price: "0", costPrice: "0", categoryId: categories[0]?.id ?? "", vatId: vats[0]?.id ?? "", exciseTaxId: "", unitId: units[0]?.id ?? "", sortOrder: "0" }); setOpen(true); }

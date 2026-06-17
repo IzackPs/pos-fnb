@@ -203,6 +203,8 @@ export function TableGridView({
                     <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
                     {hasOrder && order && (
                       <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-0.5">
+                        {/* Live elapsed-minutes display — Date.now() read during render is intentional. */}
+                        {/* eslint-disable-next-line react-hooks/purity */}
                         <Clock className="h-2.5 w-2.5" />{Math.round((Date.now() - new Date(order.openedAt).getTime()) / 60000)}&apos;
                       </span>
                     )}
@@ -289,7 +291,7 @@ function OrderDetailView({
   const sidebarW = isTablet ? "w-[300px]" : "w-[380px]";
 
   // ══════ Shared: Order Panel content ══════
-  function OrderPanelContent({ compact }: { compact?: boolean }) {
+  function renderOrderPanel(compact?: boolean) {
     if (!orderDetail) return null;
     return (
       <div className="flex flex-col h-full bg-white">
@@ -377,7 +379,7 @@ function OrderDetailView({
   // ══════ MOBILE: Full-width products + bottom sheet order ══════
 
   // ══════ Mobile Checkout View (inline, replaces sheet) ══════
-  function MobileCheckoutView() {
+  function renderMobileCheckout() {
     const raw = mPaymentAmount.replace(/[^0-9]/g, "");
     return (
       <div className="flex-1 flex flex-col bg-white">
@@ -442,7 +444,7 @@ function OrderDetailView({
 
         {/* Product Catalog — full width / Checkout View */}
         {mobileCheckout ? (
-          <MobileCheckoutView />
+          renderMobileCheckout()
         ) : (
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Category tabs */}
@@ -498,7 +500,7 @@ function OrderDetailView({
         {/* Order Sheet — slides up from bottom */}
         <Sheet open={orderSheetOpen} onOpenChange={setOrderSheetOpen}>
           <SheetContent side="bottom" className="h-[80vh] p-0 rounded-t-2xl [&>button]:hidden">
-            <OrderPanelContent compact />
+            {renderOrderPanel(true)}
           </SheetContent>
         </Sheet>
       </div>
@@ -588,7 +590,7 @@ function OrderDetailView({
 
         {/* RIGHT — Order Panel */}
         <div className={`${sidebarW} shrink-0 flex flex-col border-l border-gray-200`}>
-          <OrderPanelContent />
+          {renderOrderPanel()}
         </div>
       </div>
     </div>
@@ -625,7 +627,9 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
     setOrderDetail(await getOrder(activeOrderId));
   }, [activeOrderId]);
 
-  useEffect(() => { if (activeOrderId) refreshOrder(); }, [refreshOrder, refreshKey]);
+  // Refetch order detail when active order or refresh key changes — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (activeOrderId) refreshOrder(); }, [refreshOrder, refreshKey, activeOrderId]);
   useEffect(() => { const interval = setInterval(() => router.refresh(), 30000); return () => clearInterval(interval); }, [router]);
   // Auto-refresh karaoke orders every 30s to update time
   useEffect(() => {
@@ -635,6 +639,8 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       setRefreshKey(k => k + 1);
     }, 30000);
     return () => clearInterval(interval);
+    // Re-arm interval only on order identity/type change, not on every orderDetail mutation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderDetail?.id, orderDetail?.type, activeOrderId]);
 
   function handleBack() { setView("tables"); setActiveOrderId(null); setOrderDetail(null); }

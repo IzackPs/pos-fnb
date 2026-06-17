@@ -210,6 +210,8 @@ function InvoiceTab({ today, t }: { today: string; t: Dictionary }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -284,6 +286,8 @@ function SoldItemsTab({ today, t }: { today: string; t: Dictionary }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -354,6 +358,8 @@ function RevenueTab({ today, t }: { today: string; t: Dictionary }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -444,6 +450,8 @@ function IngredientTab({ today, t }: { today: string; t: Dictionary }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (

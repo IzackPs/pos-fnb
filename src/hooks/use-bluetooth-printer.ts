@@ -93,7 +93,7 @@ const [state, setState] = useState<BluetoothPrinterState>({
         setState(s => ({ ...s, connecting: false, error: null }));
       }
     }
-  }, []);
+  }, [t.settings.bluetoothNotSupported]);
 
   const print = useCallback(async (text: string): Promise<boolean> => {
     if (!charRef.current) {
@@ -118,7 +118,7 @@ const [state, setState] = useState<BluetoothPrinterState>({
       setState(s => ({ ...s, error: t.settings.bluetoothPrintError + (e as Error).message }));
       return false;
     }
-  }, []);
+  }, [t.settings.bluetoothNotConnected, t.settings.bluetoothPrintError]);
 
   const disconnect = useCallback(() => {
     if (serverRef.current) {

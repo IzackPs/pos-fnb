@@ -1,9 +1,20 @@
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+
+  interface Window {
+    IS_REACT_ACT_ENVIRONMENT: boolean;
+  }
+}
+
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 import "@testing-library/jest-dom";
 import { TextDecoder, TextEncoder } from "node:util";
 import { afterEach, vi } from "vitest";
-import { cleanup } from "@testing-library/react";
 
 import { prismaMock, resetPrismaMock } from "./prisma-mock";
+
+window.IS_REACT_ACT_ENVIRONMENT = true;
 
 vi.mock("@/lib/db", () => ({
   db: prismaMock,
@@ -116,7 +127,6 @@ Object.defineProperty(navigator, "bluetooth", {
 });
 
 afterEach(() => {
-  cleanup();
   vi.clearAllMocks();
   resetPrismaMock();
 });

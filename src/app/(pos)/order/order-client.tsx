@@ -37,7 +37,7 @@ function fmt(v: number) { return new Intl.NumberFormat("vi-VN").format(v); }
 // ─── Table Grid View ────────────────────────────────────────────
 export function TableGridView({
   areas, activeAreaId, setActiveAreaId, onOpenTable, onSelectOrder,
-  onSplitTable,
+  onMergeTables, onSplitTable,
 }: {
   areas: Area[]; activeAreaId: string; setActiveAreaId: (id: string) => void;
   onOpenTable: (t: TableInfo) => void; onSelectOrder: (orderId: string) => void;
@@ -78,7 +78,7 @@ export function TableGridView({
         const oid = tbl?.orders[0]?.id;
         if (oid) sourceOrderIds.push(oid);
       }
-      await mergeTables(sourceOrderIds, targetTableId);
+      await onMergeTables(sourceOrderIds, targetTableId);
       toast.success(t.order.mergeTables + "!");
       setMergeMode(false); setSelectedTables(new Set());
     });

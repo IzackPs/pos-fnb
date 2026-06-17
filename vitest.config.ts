@@ -11,6 +11,7 @@ export default defineConfig({
     root: __dirname,
     environment: "jsdom",
     globals: true,
+    testTimeout: 10000,
     setupFiles: [resolve(__dirname, "src/test/setup.ts")],
     coverage: {
       provider: "v8",

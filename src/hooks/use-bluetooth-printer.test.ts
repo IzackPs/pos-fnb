@@ -95,6 +95,28 @@ describe("useBluetoothPrinter", () => {
     expect(result.current.error).toBe("boom");
   });
 
+  it("surfaces an error when the selected device has no gatt server", async () => {
+    bluetoothMock().requestDevice.mockResolvedValue({
+      addEventListener: vi.fn(),
+    });
+
+    const { result } = renderHook(() => useBluetoothPrinter());
+    await act(async () => {
+      await result.current.connect();
+    });
+
+    expect(result.current.connected).toBe(false);
+    expect(result.current.connecting).toBe(false);
+    expect(result.current.error).toBeTruthy();
+
+    const device = makeDevice();
+    bluetoothMock().requestDevice.mockResolvedValue(device);
+    await act(async () => {
+      await result.current.connect();
+    });
+    act(() => result.current.disconnect());
+  });
+
   it("prints text in chunks once connected", async () => {
     const char = makeChar();
     const device = makeDevice(char);
@@ -114,6 +136,46 @@ describe("useBluetoothPrinter", () => {
     expect(char.writeValueWithoutResponse).toHaveBeenCalledTimes(3);
 
     act(() => result.current.disconnect());
+  });
+
+  it("reconnects a cached device on mount", async () => {
+    const device = makeDevice();
+    bluetoothMock().requestDevice.mockResolvedValue(device);
+
+    const first = renderHook(() => useBluetoothPrinter());
+    await act(async () => {
+      await first.result.current.connect();
+    });
+    first.unmount();
+
+    const second = renderHook(() => useBluetoothPrinter());
+    await waitFor(() => expect(second.result.current.connected).toBe(true));
+    expect(device.gatt.connect).toHaveBeenCalledTimes(2);
+
+    act(() => second.result.current.disconnect());
+  });
+
+  it("reports cached reconnect failures on mount", async () => {
+    const device = makeDevice();
+    bluetoothMock().requestDevice.mockResolvedValue(device);
+
+    const first = renderHook(() => useBluetoothPrinter());
+    await act(async () => {
+      await first.result.current.connect();
+    });
+    first.unmount();
+
+    device.gatt.connect.mockRejectedValueOnce(new Error("reconnect-fail"));
+
+    const second = renderHook(() => useBluetoothPrinter());
+    await waitFor(() => expect(second.result.current.error).toBe("reconnect-fail"));
+    expect(second.result.current.connected).toBe(false);
+
+    device.gatt.connect.mockResolvedValue(device.__server);
+    await act(async () => {
+      await second.result.current.connect();
+    });
+    act(() => second.result.current.disconnect());
   });
 
   it("fails to print and sets an error when not connected", async () => {
@@ -145,6 +207,26 @@ describe("useBluetoothPrinter", () => {
     });
     expect(ok).toBe(false);
     await waitFor(() => expect(result.current.error).toContain("write-fail"));
+
+    act(() => result.current.disconnect());
+  });
+
+  it("clears connection state when the device disconnects", async () => {
+    const device = makeDevice();
+    bluetoothMock().requestDevice.mockResolvedValue(device);
+
+    const { result } = renderHook(() => useBluetoothPrinter());
+    await act(async () => {
+      await result.current.connect();
+    });
+
+    const disconnectListener = device.addEventListener.mock.calls[0][1];
+    act(() => {
+      disconnectListener();
+    });
+
+    expect(result.current.connected).toBe(false);
+    expect(result.current.device).toBe(device);
 
     act(() => result.current.disconnect());
   });

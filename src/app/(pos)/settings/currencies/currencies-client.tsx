@@ -20,17 +20,28 @@ export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
 
   function save() {
     start(async () => {
-      const data = { code: form.code, name: form.name, symbol: form.symbol, rate: parseFloat(form.rate), isDefault: form.isDefault };
-      if (editId) await updateCurrency(editId, data);
-      else await createCurrency(data);
-      toast.success(t.common.success);
-      setOpen(false);
+      try {
+        const data = { code: form.code, name: form.name, symbol: form.symbol, rate: parseFloat(form.rate), isDefault: form.isDefault };
+        if (editId) await updateCurrency(editId, data);
+        else await createCurrency(data);
+        toast.success(t.common.success);
+        setOpen(false);
+      } catch {
+        toast.error(t.common.error);
+      }
     });
   }
 
   function del(id: string) {
     if (!confirm(t.common.confirmDelete)) return;
-    start(async () => { await deleteCurrency(id); toast.success(t.common.success); });
+    start(async () => {
+      try {
+        await deleteCurrency(id);
+        toast.success(t.common.success);
+      } catch {
+        toast.error(t.common.error);
+      }
+    });
   }
 
   return (

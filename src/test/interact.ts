@@ -1,4 +1,3 @@
-import { act } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 
 /**
@@ -21,10 +20,8 @@ export async function exerciseUi(passes = 4) {
     );
     for (const el of inputs) {
       try {
-        await act(async () => {
-          await user.click(el);
-          await user.keyboard("1");
-        });
+        await user.click(el);
+        await user.keyboard("1");
       } catch {
         /* ignore */
       }
@@ -34,9 +31,7 @@ export async function exerciseUi(passes = 4) {
     for (const btn of buttons) {
       if (btn.disabled) continue;
       try {
-        await act(async () => {
-          await user.click(btn);
-        });
+        await user.click(btn);
       } catch {
         /* ignore */
       }

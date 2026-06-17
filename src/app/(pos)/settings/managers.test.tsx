@@ -12,7 +12,7 @@ import { UsersManager } from "./components";
 import { DataTable } from "./data-table";
 import { GeneralConfigForm } from "./form";
 
-const fn = vi.fn(async () => ({ success: true }));
+const fn = vi.fn(async () => undefined);
 
 function ok(ui: React.ReactElement) {
   const { container } = renderWithProviders(ui);

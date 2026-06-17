@@ -74,7 +74,7 @@ jobs:
         run: npx prisma validate
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: npx tsc -p tsconfig.typecheck.json --noEmit
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 3: Unit Tests (Vitest)

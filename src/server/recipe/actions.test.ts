@@ -20,7 +20,6 @@ const consumeFifoStockMock = vi.mocked(consumeFifoStock);
 
 function mockRecalc(cost = 1) {
   prismaMock.ingredientRecipe.findMany.mockResolvedValue([
-    // @ts-expect-error partial recipe row with ingredient join is enough for recalc
     { quantity: 2, ingredient: { costPerBaseUnit: cost } },
   ]);
   prismaMock.product.update.mockResolvedValue({} as never);

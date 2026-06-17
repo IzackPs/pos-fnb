@@ -47,7 +47,7 @@ describe("report server actions", () => {
           id: "order-1",
           orderNumber: 7,
           table: "T1",
-          paymentMethods: "CASH: 100đ",
+          paymentMethods: "CASH: 100",
           staff: "Admin",
           items: "Coffee x2",
         },
@@ -266,7 +266,7 @@ describe("report server actions", () => {
       },
       [{ name: "Rice", currentStock: 2, minStock: 5, baseUnit: "kg" }],
       [],
-      [{ batchCode: "B1", ingredient: { name: "Rice", baseUnit: "kg" }, remainingQuantity: 2, unitCost: 10 }],
+      [{ batchCode: "B1", ingredient: { name: "Rice", baseUnit: "kg" }, receivedAt: "2026-06-16T10:00:00.000Z", remainingQuantity: 2, unitCost: 10 }],
     );
 
     expect(invoicesBuffer.byteLength).toBeGreaterThan(0);
@@ -317,9 +317,9 @@ describe("report server actions", () => {
 
     const ingredientsBuffer = await exportIngredientsToExcel(
       [{ code: "SI-1", supplier: "Supplier", totalAmount: 100, createdAt: "2026-06-16T10:00:00.000Z", items: [] }],
-      [{ ingredient: { name: "Rice", baseUnit: "kg" }, quantity: 2, totalCost: 20, reason: "WASTE", createdAt: "2026-06-16T10:00:00.000Z" }],
+      [{ ingredient: { name: "Rice" }, quantity: 2, totalCost: 20, reason: "WASTE", createdAt: "2026-06-16T10:00:00.000Z" }],
       { totalStockIns: 1, totalAmount: 100, totalItems: 0, bySupplier: { Supplier: 100 } },
-      { totalStockOuts: 1, totalQuantity: 2, totalCost: 20, byReason: { WASTE: 2 } },
+      { totalStockOuts: 1, totalQuantity: 2, totalCost: 20 },
       [{ name: "Rice", currentStock: 2, baseUnit: "kg", minStock: 5, costPerBaseUnit: 10 }],
       "2026-06-16",
       "2026-06-16",
@@ -431,7 +431,7 @@ describe("report server actions", () => {
         },
       ],
       { totalStockIns: 2, totalAmount: 11, totalItems: 2, bySupplier: {} },
-      { totalStockOuts: 1, totalQuantity: 2, totalCost: 0, byReason: { WASTE: 2 } },
+      { totalStockOuts: 1, totalQuantity: 2, totalCost: 0 },
       [{ name: "Rice", purchaseUnit: "bag", baseUnit: "kg", conversionFactor: 10, currentStock: 2, minStock: 5, costPerBaseUnit: 10, recipes: [] }],
       "2026-06-16",
       "2026-06-16",

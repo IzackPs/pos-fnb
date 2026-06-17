@@ -11,7 +11,7 @@ import { DataTable } from "./data-table";
 import { KaraokePricingManager } from "./karaoke/karaoke-ui";
 import { HolidaysUI } from "./holidays/holidays-ui";
 
-const fn = vi.fn(async () => ({ success: true }));
+const fn = vi.fn(async () => undefined);
 
 async function go(ui: React.ReactElement) {
   const { container } = renderWithProviders(ui);

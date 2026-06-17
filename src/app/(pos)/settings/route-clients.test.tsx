@@ -7,7 +7,7 @@ import { CurrenciesManager } from "./currencies/currencies-client";
 import { HolidaysUI } from "./holidays/holidays-ui";
 import { KaraokePricingManager } from "./karaoke/karaoke-ui";
 
-const fn = vi.fn(async () => ({ success: true }));
+const fn = vi.fn(async () => undefined);
 
 async function exercise(ui: React.ReactElement) {
   const { container } = renderWithProviders(ui);

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/i18n/context";
+import type { Locale } from "@/i18n";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +23,8 @@ type Tpl = {
 type Printer = { id: string; name: string };
 type ActionFn = (...args: never[]) => Promise<unknown>;
 type LooseFn = (...args: unknown[]) => Promise<unknown>;
+
+function dateLocale(locale: Locale) { return locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN"; }
 
 // ===== ORDER TEMPLATE CONFIG =====
 interface OrderConfig {
@@ -338,7 +341,7 @@ export function PrintTemplatesManager({
               {previewTemplate.type === "ORDER" ? (
                 <OrderPreview config={unpackConfig(previewTemplate.config).order} width={previewTemplate.width} name={previewTemplate.name} t={t} />
               ) : (
-                <BillPreview config={unpackConfig(previewTemplate.config).bill} width={previewTemplate.width} name={previewTemplate.name} t={t} />
+                <BillPreview config={unpackConfig(previewTemplate.config).bill} width={previewTemplate.width} name={previewTemplate.name} t={t} locale={locale} />
               )}
             </div>
           </DialogContent>
@@ -380,7 +383,7 @@ function OrderPreview({ config, width, t }: { config: OrderConfig; width: number
 
 // ======================== BILL PREVIEW ========================
 
-function BillPreview({ config, width, name, t }: { config: BillConfig; width: number; name: string; t: Dictionary }) {
+function BillPreview({ config, width, name, t, locale }: { config: BillConfig; width: number; name: string; t: Dictionary; locale: Locale }) {
   const maxW = width === 48 ? 180 : width === 58 ? 220 : 300;
   const sampleItems = t.printTemplate.sampleItemsWithPrice;
   const subtotal = sampleItems.reduce((s, i) => s + i.price * i.qty, 0);
@@ -397,7 +400,7 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
       {config.header.showAddress && <div className="text-center text-[8px] text-gray-600">123 Nguyễn Huệ, Q.1, TP.HCM</div>}
       {config.header.showPhone && <div className="text-center text-[8px] text-gray-600">📞 0909 123 456</div>}
       {config.header.showTaxCode && <div className="text-center text-[8px] text-gray-600">{t.settings.taxCode}: 0312345678</div>}
-      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} {new Date().toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</div>}
+      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString(dateLocale(locale))} {new Date().toLocaleTimeString(dateLocale(locale))}</div>}
       <div className="border-t border-dashed border-gray-300 my-1" />
 
       {config.body.showOrderNumber && <div className="text-[9px] text-gray-500">{t.order.orderNumber}: #0042</div>}

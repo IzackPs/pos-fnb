@@ -155,7 +155,7 @@ describe("print-actions createPrintJob", () => {
     prismaMock.generalConfig.findFirst.mockResolvedValue(null);
     const res = await createPrintJob({ orderId: "order-1", type: "BILL" });
     expect(res.success).toBe(true);
-    expect(res.content).toContain("NHÀ HÀNG");
+    expect(res.content).toContain("RESTAURANT");
   });
 
   it("sends over TCP in SERVER mode and records success", async () => {

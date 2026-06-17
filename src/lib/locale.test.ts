@@ -18,7 +18,7 @@ describe("locale helpers", () => {
   });
 
   it("falls back to Vietnamese for unsupported cookie values", async () => {
-    cookieGetMock.mockReturnValueOnce({ value: "pt" });
+    cookieGetMock.mockReturnValueOnce({ value: "unsupported" });
     const { getLocale, getServerDictionary } = await import("./locale");
 
     await expect(getLocale()).resolves.toBe("vi");

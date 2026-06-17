@@ -47,7 +47,7 @@ describe("dashboard server actions", () => {
     expect(stats.topProduct).toBe("Latte");
     expect(stats.topQty).toBe(12);
     expect(stats.timeline).toHaveLength(3);
-    expect(stats.timeline[0].label).toContain("thanh toán");
+    expect(stats.timeline[0].label).toContain("checkout");
   });
 
   it("falls back when no top product", async () => {

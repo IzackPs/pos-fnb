@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useBluetoothPrinter } from "./use-bluetooth-printer";
 
+type BluetoothMock = { requestDevice: ReturnType<typeof vi.fn> };
+
 function makeChar() {
   return { writeValueWithoutResponse: vi.fn().mockResolvedValue(undefined) };
 }
@@ -29,6 +31,10 @@ function setBluetooth(value: unknown) {
   Object.defineProperty(navigator, "bluetooth", { configurable: true, value });
 }
 
+function bluetoothMock() {
+  return (navigator as Navigator & { bluetooth: BluetoothMock }).bluetooth;
+}
+
 describe("useBluetoothPrinter", () => {
   beforeEach(() => {
     setBluetooth({ requestDevice: vi.fn() });
@@ -51,7 +57,7 @@ describe("useBluetoothPrinter", () => {
 
   it("connects and exposes connected state", async () => {
     const device = makeDevice();
-    (navigator.bluetooth as { requestDevice: ReturnType<typeof vi.fn> }).requestDevice.mockResolvedValue(device);
+    bluetoothMock().requestDevice.mockResolvedValue(device);
 
     const { result } = renderHook(() => useBluetoothPrinter());
     await act(async () => {
@@ -68,7 +74,7 @@ describe("useBluetoothPrinter", () => {
 
   it("treats user cancellation (NotFoundError) as a silent no-op", async () => {
     const err = Object.assign(new Error("cancelled"), { name: "NotFoundError" });
-    (navigator.bluetooth as { requestDevice: ReturnType<typeof vi.fn> }).requestDevice.mockRejectedValue(err);
+    bluetoothMock().requestDevice.mockRejectedValue(err);
 
     const { result } = renderHook(() => useBluetoothPrinter());
     await act(async () => {
@@ -80,7 +86,7 @@ describe("useBluetoothPrinter", () => {
 
   it("surfaces other connection errors", async () => {
     const err = Object.assign(new Error("boom"), { name: "NetworkError" });
-    (navigator.bluetooth as { requestDevice: ReturnType<typeof vi.fn> }).requestDevice.mockRejectedValue(err);
+    bluetoothMock().requestDevice.mockRejectedValue(err);
 
     const { result } = renderHook(() => useBluetoothPrinter());
     await act(async () => {
@@ -92,7 +98,7 @@ describe("useBluetoothPrinter", () => {
   it("prints text in chunks once connected", async () => {
     const char = makeChar();
     const device = makeDevice(char);
-    (navigator.bluetooth as { requestDevice: ReturnType<typeof vi.fn> }).requestDevice.mockResolvedValue(device);
+    bluetoothMock().requestDevice.mockResolvedValue(device);
 
     const { result } = renderHook(() => useBluetoothPrinter());
     await act(async () => {
@@ -126,7 +132,7 @@ describe("useBluetoothPrinter", () => {
     const char = makeChar();
     char.writeValueWithoutResponse.mockRejectedValue(new Error("write-fail"));
     const device = makeDevice(char);
-    (navigator.bluetooth as { requestDevice: ReturnType<typeof vi.fn> }).requestDevice.mockResolvedValue(device);
+    bluetoothMock().requestDevice.mockResolvedValue(device);
 
     const { result } = renderHook(() => useBluetoothPrinter());
     await act(async () => {

@@ -12,11 +12,12 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: ${{ secrets.SSH_USER }} # Agora será deployer
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
           script: |
             cd /opt/pos-fnb
             git fetch origin
             git reset --hard origin/main
-            docker compose up -d --build
+            # Como restringimos a segurança, o docker agora exige sudo
+            sudo docker compose up -d --build
+

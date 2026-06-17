@@ -16,6 +16,14 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Dev-only Playwright screenshot script (CommonJS).
     "screenshot.cjs",
+    // Dev-only one-off i18n/data migration scripts (CommonJS, root level).
+    "add-all-keys.js",
+    "add-keys-asian.js",
+    "add-keys.js",
+    "fix-dates.js",
+    "fix-locale-sub.js",
+    "replace-currency.js",
+    "update-dicts.js",
   ]),
   {
     // React Compiler (eslint-plugin-react-hooks v6) strict rules. They fire on

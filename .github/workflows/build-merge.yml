@@ -48,33 +48,13 @@ jobs:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 2: Type Check (TypeScript)
-# Usa `prisma db push` em vez de `migrate deploy` porque o migration_lock.toml
-# ainda precisa ser resetado localmente para PostgreSQL.
-# Após rodar `prisma migrate dev --name init_postgres` localmente e commitar,
-# este job pode ser trocado por `migrate deploy`.
+# O typecheck só precisa do Prisma Client gerado e do schema válido.
+# Não deve depender de banco ativo nem mascarar drift com `db push`.
 # ─────────────────────────────────────────────────────────────────────────────
   typecheck:
     name: Type Check (TypeScript)
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: "postgresql://posfnb:posfnb@localhost:5432/posfnb?schema=public"
-      AUTH_SECRET: "ci-secret-not-used"
-      AUTH_URL: "http://localhost:3000"
-
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_DB: posfnb
-          POSTGRES_USER: posfnb
-          POSTGRES_PASSWORD: posfnb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+    needs: lint
 
     steps:
       - uses: actions/checkout@v4
@@ -90,10 +70,8 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      # db push aplica o schema diretamente sem checar o migration_lock.toml
-      # Isso resolve o conflito SQLite→PostgreSQL até as migrations serem resetadas
-      - name: Apply schema to DB (db push)
-        run: npx prisma db push --accept-data-loss
+      - name: Validate Prisma schema
+        run: npx prisma validate
 
       - name: Type check
         run: npx tsc --noEmit
@@ -101,9 +79,10 @@ jobs:
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 3: Unit Tests (Vitest)
 # ─────────────────────────────────────────────────────────────────────────────
-  test:
+  unit:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
+    needs: typecheck
     env:
       AUTH_SECRET: "ci-secret-not-used"
       AUTH_URL: "http://localhost:3000"
@@ -137,26 +116,12 @@ jobs:
   build:
     name: Build (Next.js)
     runs-on: ubuntu-latest
+    needs: unit
     env:
       DATABASE_URL: "postgresql://posfnb:posfnb@localhost:5432/posfnb?schema=public"
       AUTH_SECRET: "ci-secret-not-used"
       AUTH_URL: "http://localhost:3000"
       NEXT_TELEMETRY_DISABLED: "1"
-
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_DB: posfnb
-          POSTGRES_USER: posfnb
-          POSTGRES_PASSWORD: posfnb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - uses: actions/checkout@v4
@@ -172,9 +137,6 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Apply schema to DB (db push)
-        run: npx prisma db push --accept-data-loss
-
       - name: Build
         run: npm run build
 
@@ -184,7 +146,7 @@ jobs:
   sonar:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
-    needs: [lint, typecheck, test, build]
+    needs: build
     steps:
       - uses: actions/checkout@v4
         with:
@@ -209,7 +171,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           args: >-
-            -Dsonar.qualitygate.wait=false
+            -Dsonar.qualitygate.wait=true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 6: Auto-merge (só roda se TODOS os jobs anteriores passarem)
@@ -233,7 +195,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout main
-          git merge Out-Main --no-ff -m "🔀 Auto-merge Out-Main → main (lint ✅ | types ✅ | build ✅ | sonar ✅)"
+          git merge Out-Main --no-ff -m "🔀 Auto-merge Out-Main → main (lint ✅ | types ✅ | tests ✅ | build ✅ | sonar gate ✅)"
           git push origin main
 
           echo "✅ Out-Main merged into main successfully!"

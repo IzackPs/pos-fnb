@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import {
   openTable, addItem, updateItemQuantity, removeItem, cancelItem,
-  sendOrder, mergeTables, splitItems, splitItemsEvenly, getOrder, printTempBill, checkoutOrder, updateOrderGuest, refreshKaraokeTime,
+  sendOrder, mergeTables, splitItemsEvenly, getOrder, printTempBill, checkoutOrder, updateOrderGuest, refreshKaraokeTime,
 } from "@/server/order/actions";
 import { useBluetoothPrinter } from "@/hooks/use-bluetooth-printer";
 
@@ -41,7 +41,7 @@ export function TableGridView({
 }: {
   areas: Area[]; activeAreaId: string; setActiveAreaId: (id: string) => void;
   onOpenTable: (t: TableInfo) => void; onSelectOrder: (orderId: string) => void;
-  onMergeTables: (orderIds: string[], targetTableId: string) => Promise<any>;
+  onMergeTables: (orderIds: string[], targetTableId: string) => Promise<unknown>;
   onSplitTable: (orderId: string) => void;
 }) {
   const { t, locale } = useI18n();
@@ -64,7 +64,7 @@ export function TableGridView({
     setSelectedTables(new Set());
   }
   function toggleTable(tableId: string) {
-    setSelectedTables(p => { const n = new Set(p); n.has(tableId) ? n.delete(tableId) : n.add(tableId); return n; });
+    setSelectedTables(p => { const n = new Set(p); if (n.has(tableId)) n.delete(tableId); else n.add(tableId); return n; });
   }
 
   function confirmMerge() {
@@ -78,13 +78,11 @@ export function TableGridView({
         const oid = tbl?.orders[0]?.id;
         if (oid) sourceOrderIds.push(oid);
       }
-      await mergeTables(sourceOrderIds, targetTableId);
+      await onMergeTables(sourceOrderIds, targetTableId);
       toast.success(t.order.mergeTables + "!");
       setMergeMode(false); setSelectedTables(new Set());
     });
   }
-
-  const hasOrders = activeArea.tables.filter(t => t.orders.length > 0 && (t.orders[0].status === "OPEN" || t.orders[0].status === "SENT"));
 
   // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
   const gridCols = isMobile ? "grid-cols-3" : isTablet ? "grid-cols-4" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
@@ -191,7 +189,7 @@ export function TableGridView({
                 onClick={() => {
                   if (mergeMode) { if (hasOrder) toggleTable(table.id); }
                   else if (splitMode) { if (hasOrder && selectedTables.size === 0) { toggleTable(table.id); } }
-                  else { hasOrder ? onSelectOrder(order.id) : onOpenTable(table); }
+                  else { if (hasOrder) onSelectOrder(order.id); else onOpenTable(table); }
                 }}
                 className={`rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
                   disabled ? "opacity-30 cursor-not-allowed" : ""
@@ -205,6 +203,8 @@ export function TableGridView({
                     <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
                     {hasOrder && order && (
                       <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-0.5">
+                        {/* Live elapsed-minutes display — Date.now() read during render is intentional. */}
+                        {/* eslint-disable-next-line react-hooks/purity */}
                         <Clock className="h-2.5 w-2.5" />{Math.round((Date.now() - new Date(order.openedAt).getTime()) / 60000)}&apos;
                       </span>
                     )}
@@ -291,7 +291,7 @@ function OrderDetailView({
   const sidebarW = isTablet ? "w-[300px]" : "w-[380px]";
 
   // ══════ Shared: Order Panel content ══════
-  function OrderPanelContent({ compact }: { compact?: boolean }) {
+  function renderOrderPanel(compact?: boolean) {
     if (!orderDetail) return null;
     return (
       <div className="flex flex-col h-full bg-white">
@@ -319,7 +319,7 @@ function OrderDetailView({
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-gray-900 truncate">{item.product.name}</div>
                 {item.toppings?.length > 0 && (
-                  <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((t: any) => t.topping?.name).join(", ")}</div>
+                  <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((t) => t.topping?.name).join(", ")}</div>
                 )}
               </div>
               {item.status === "PENDING" && !item.product.slug?.startsWith("karaoke-") ? (
@@ -379,7 +379,7 @@ function OrderDetailView({
   // ══════ MOBILE: Full-width products + bottom sheet order ══════
 
   // ══════ Mobile Checkout View (inline, replaces sheet) ══════
-  function MobileCheckoutView() {
+  function renderMobileCheckout() {
     const raw = mPaymentAmount.replace(/[^0-9]/g, "");
     return (
       <div className="flex-1 flex flex-col bg-white">
@@ -444,7 +444,7 @@ function OrderDetailView({
 
         {/* Product Catalog — full width / Checkout View */}
         {mobileCheckout ? (
-          <MobileCheckoutView />
+          renderMobileCheckout()
         ) : (
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Category tabs */}
@@ -500,7 +500,7 @@ function OrderDetailView({
         {/* Order Sheet — slides up from bottom */}
         <Sheet open={orderSheetOpen} onOpenChange={setOrderSheetOpen}>
           <SheetContent side="bottom" className="h-[80vh] p-0 rounded-t-2xl [&>button]:hidden">
-            <OrderPanelContent compact />
+            {renderOrderPanel(true)}
           </SheetContent>
         </Sheet>
       </div>
@@ -590,7 +590,7 @@ function OrderDetailView({
 
         {/* RIGHT — Order Panel */}
         <div className={`${sidebarW} shrink-0 flex flex-col border-l border-gray-200`}>
-          <OrderPanelContent />
+          {renderOrderPanel()}
         </div>
       </div>
     </div>
@@ -619,8 +619,6 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   const [splitTableId, setSplitTableId] = useState("");
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
 
-  const activeArea = areas.find(a => a.id === activeAreaId);
-
   // Bluetooth printer
   const bt = useBluetoothPrinter();
 
@@ -629,7 +627,9 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
     setOrderDetail(await getOrder(activeOrderId));
   }, [activeOrderId]);
 
-  useEffect(() => { if (activeOrderId) refreshOrder(); }, [refreshOrder, refreshKey]);
+  // Refetch order detail when active order or refresh key changes — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { if (activeOrderId) refreshOrder(); }, [refreshOrder, refreshKey, activeOrderId]);
   useEffect(() => { const interval = setInterval(() => router.refresh(), 30000); return () => clearInterval(interval); }, [router]);
   // Auto-refresh karaoke orders every 30s to update time
   useEffect(() => {
@@ -639,6 +639,8 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       setRefreshKey(k => k + 1);
     }, 30000);
     return () => clearInterval(interval);
+    // Re-arm interval only on order identity/type change, not on every orderDetail mutation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderDetail?.id, orderDetail?.type, activeOrderId]);
 
   function handleBack() { setView("tables"); setActiveOrderId(null); setOrderDetail(null); }
@@ -717,7 +719,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       } else {
         toast.info("Sent print request to server");
       }
-    } catch (e) {
+    } catch {
       // Print via server — no Bluetooth needed
     }
   }
@@ -848,7 +850,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
         <div className="space-y-1 max-h-40 overflow-y-auto mb-4">
           {orderDetail?.items.filter(i => i.status !== "CANCELLED").map(item => (
             <label key={item.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 cursor-pointer has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50">
-              <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => { const n = new Set(p); n.has(item.id) ? n.delete(item.id) : n.add(item.id); return n; })} />
+              <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => { const n = new Set(p); if (n.has(item.id)) n.delete(item.id); else n.add(item.id); return n; })} />
               <span className="text-sm flex-1">{item.product.name} x{item.quantity}</span>
               <span className="text-xs font-mono">{fmt(item.unitPrice * item.quantity)}{t.common.d}</span></label>
           ))}</div>
@@ -883,17 +885,5 @@ function MobileSheet({ open, onClose, title, children }: { open: boolean; onClos
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-// Reusable modal wrapper (fallback)
-function Dialog({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-0 mx-4" onClick={e => e.stopPropagation()}>
-        <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
-        {children}
-      </div>
-    </div>
   );
 }

@@ -15,12 +15,14 @@ import { toast } from "sonner";
 type KP = { id: string; name: string; areaId: string; startTime: string; endTime: string; pricePerHour: number; minHours: number; dayType: string; timeUnit?: string; area?: { id: string; name: string } };
 type Area = { id: string; name: string; type: string };
 
+type KPInput = { name: string; areaId: string; startTime: string; endTime: string; pricePerHour: number; minHours?: number; dayType?: string; timeUnit?: string };
+
 type Props = {
   pricings: KP[];
   areas: Area[];
-  createKP: (data: any) => Promise<any>;
-  updateKP: (id: string, data: any) => Promise<any>;
-  deleteKP: (id: string) => Promise<any>;
+  createKP: (data: KPInput) => Promise<void>;
+  updateKP: (id: string, data: Record<string, unknown>) => Promise<void>;
+  deleteKP: (id: string) => Promise<void>;
 };
 
 const fmt = (v: number) => new Intl.NumberFormat("vi-VN").format(v);

@@ -77,9 +77,66 @@ function colWidths(ws: ExcelJS.Worksheet, widths: number[]) {
   });
 }
 
+// ======================== ROW / SUMMARY TYPES ========================
+// Structural subsets of the report query results — callers may pass richer objects.
+
+type Dateish = string | Date;
+type Money = Record<string, number>;
+
+interface InvoiceRow {
+  orderNumber: string | number; orderNumberSuffix?: string | number | null;
+  table: string; guestCount: number; type: string; staff: string;
+  subtotal: number; vatAmount: number; exciseTaxAmount: number; discountAmount: number;
+  serviceCharge: number; totalAmount: number; paymentMethods: string; items: string;
+  closedAt?: Dateish | null;
+}
+interface InvoiceSummary {
+  totalOrders: number; totalRevenue: number; totalSubtotal: number; totalVat: number;
+  totalExciseTax: number; totalDiscount: number; totalServiceCharge: number;
+}
+interface SoldItemRow {
+  productName: string; category: string; quantity: number; unitPrice: number;
+  toppings?: string | null; totalAmount: number; orderNumber: string | number; table: string; closedAt?: Dateish | null;
+}
+interface SoldByProduct { name: string; category: string; quantity: number; revenue: number; }
+interface SoldSummary { totalItems: number; totalQuantity: number; totalRevenue: number; }
+interface RevenueDay {
+  date: Dateish; orders: number; subtotal: number; vat: number; excise: number;
+  discount: number; service: number; revenue: number; normalCount?: number; compCount?: number;
+  [key: string]: unknown;
+}
+interface RevenueSummary extends InvoiceSummary {
+  totalOtherIncome: number; totalExpenses: number; profit: number; byPaymentMethod: Money;
+}
+interface StockInItem { ingredient: { name: string }; quantity: number; unitPrice: number; totalPrice: number; }
+interface StockInRow { code: string; createdAt: Dateish; supplier?: string | null; user?: { name?: string | null } | null; items: StockInItem[]; [key: string]: unknown; }
+interface StockOutBatch { quantity: number; unitCost: number; batch?: { batchCode?: string | null } | null; }
+interface StockOutRow {
+  createdAt: Dateish; ingredient?: { name?: string | null } | null; quantity: number; reason: string;
+  totalCost?: number | null; batches?: StockOutBatch[]; user?: { name?: string | null } | null; note?: string | null;
+}
+interface IngredientRow {
+  name: string; purchaseUnit?: string; baseUnit: string; conversionFactor?: number;
+  currentStock: number; minStock: number; costPerBaseUnit: number;
+  recipes?: { product: { name: string } }[]; supplier?: string | null;
+  [key: string]: unknown;
+}
+interface StockInSummary { totalStockIns: number; totalItems: number; totalAmount: number; [key: string]: unknown; }
+interface StockOutSummary { totalStockOuts: number; totalQuantity: number; totalCost?: number; }
+interface WarehouseSummary {
+  totalIngredients: number; totalStockValue: number; totalProducts: number; totalCategories: number;
+  totalSuppliers: number; lowStockCount: number; outOfStockCount: number;
+}
+interface LowStockRow { name: string; currentStock: number; minStock: number; baseUnit: string; supplier?: string | null; }
+interface BatchRow {
+  ingredient?: { name?: string | null; baseUnit?: string | null } | null;
+  batchCode?: string | null; stockInItem?: { stockIn?: { code?: string | null; supplier?: string | null } | null } | null;
+  receivedAt: Dateish; remainingQuantity: number; unitCost: number;
+}
+
 // ======================== EXPORT FUNCTIONS ========================
 
-export async function exportInvoicesToExcel(invoices: any[], summary: any, dateFrom: string, dateTo: string) {
+export async function exportInvoicesToExcel(invoices: InvoiceRow[], summary: InvoiceSummary, dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Invoices");
 
@@ -140,7 +197,7 @@ export async function exportInvoicesToExcel(invoices: any[], summary: any, dateF
   return buf;
 }
 
-export async function exportSoldItemsToExcel(items: any[], byProduct: any[], summary: any, dateFrom: string, dateTo: string) {
+export async function exportSoldItemsToExcel(items: SoldItemRow[], byProduct: SoldByProduct[], summary: SoldSummary, dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Sold Items");
 
@@ -188,7 +245,7 @@ export async function exportSoldItemsToExcel(items: any[], byProduct: any[], sum
   return buf;
 }
 
-export async function exportRevenueToExcel(days: any[], summary: any, expensesByCategory: any, incomeByCategory: any, dateFrom: string, dateTo: string) {
+export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueSummary, expensesByCategory: Money, incomeByCategory: Money, dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Revenue");
 
@@ -234,7 +291,7 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
   days.forEach((d) => {
     addDataRow(ws, [
       new Date(d.date).toLocaleDateString("vi-VN"), d.orders, d.subtotal, d.vat, d.excise,
-      d.discount, d.service, d.revenue, d.normalCount, d.compCount,
+      d.discount, d.service, d.revenue, d.normalCount ?? 0, d.compCount ?? 0,
     ], row);
     row++;
   });
@@ -258,7 +315,7 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
   return buf;
 }
 
-export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[], stockInSummary: any, stockOutSummary: any, ingredients: any[], dateFrom: string, dateTo: string) {
+export async function exportIngredientsToExcel(stockIns: StockInRow[], stockOuts: StockOutRow[], stockInSummary: StockInSummary, stockOutSummary: StockOutSummary, ingredients: IngredientRow[], dateFrom: string, dateTo: string) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Ingredients");
 
@@ -291,7 +348,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   const inHeaders = ["Ref #", "Date In", "Supplier", "Ingredient", "Qty", "Unit Price", "Total", "Staff"];
   addHeaderRow(ws, inHeaders, row); row++;
   stockIns.forEach((si) => {
-    si.items.forEach((item: any, idx: number) => {
+    si.items.forEach((item, idx) => {
       const date = new Date(si.createdAt).toLocaleDateString("vi-VN");
       addDataRow(ws, [
         idx === 0 ? si.code : "",
@@ -317,7 +374,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   const outHeaders = ["Date Out", "Ingredient", "Quantity", "Reason", "FIFO Cost", "Batch Layers", "Staff", "Note"];
   addHeaderRow(ws, outHeaders, row); row++;
   stockOuts.forEach((so) => {
-    const layers = so.batches?.map((b: any) => `${b.quantity} @ ${fmt(b.unitCost)} (${b.batch?.batchCode || "batch"})`).join("; ") || "";
+    const layers = so.batches?.map((b) => `${b.quantity} @ ${fmt(b.unitCost)} (${b.batch?.batchCode || "batch"})`).join("; ") || "";
     addDataRow(ws, [
       new Date(so.createdAt).toLocaleDateString("vi-VN"),
       so.ingredient?.name || "—",
@@ -339,14 +396,14 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   ingredients.forEach((ing) => {
     addDataRow(ws, [
       ing.name,
-      ing.purchaseUnit,
+      ing.purchaseUnit ?? "",
       ing.baseUnit,
-      ing.conversionFactor,
+      ing.conversionFactor ?? 0,
       ing.currentStock,
       ing.minStock,
       ing.costPerBaseUnit,
       ing.currentStock * ing.costPerBaseUnit,
-      ing.recipes?.map((r: any) => r.product.name).join(", ") || "—",
+      ing.recipes?.map((r) => r.product.name).join(", ") || "—",
     ], row);
     row++;
   });
@@ -357,7 +414,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   return buf;
 }
 
-export async function exportWarehouseToExcel(ingredients: any[], summary: any, lowStock: any[], outOfStock: any[], batches: any[] = []) {
+export async function exportWarehouseToExcel(ingredients: IngredientRow[], summary: WarehouseSummary, lowStock: LowStockRow[], outOfStock: LowStockRow[], batches: BatchRow[] = []) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Warehouse");
 
@@ -429,14 +486,14 @@ export async function exportWarehouseToExcel(ingredients: any[], summary: any, l
   ingredients.forEach((ing) => {
     addDataRow(ws, [
       ing.name,
-      ing.purchaseUnit,
+      ing.purchaseUnit ?? "",
       ing.baseUnit,
-      ing.conversionFactor,
+      ing.conversionFactor ?? 0,
       ing.currentStock,
       ing.minStock,
       ing.costPerBaseUnit,
       ing.currentStock * ing.costPerBaseUnit,
-      ing.recipes?.map((r: any) => r.product.name).join(", ") || "—",
+      ing.recipes?.map((r) => r.product.name).join(", ") || "—",
       ing.supplier || "—",
     ], row);
     row++;

@@ -19,6 +19,7 @@ prisma/dev.db-journal
 
 # next.js (all locations)
 .next/
+src/.next/
 out/
 
 # production

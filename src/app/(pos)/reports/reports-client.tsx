@@ -8,16 +8,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getDailyReport, getTopProducts } from "@/server/inventory/actions";
 import { getInvoiceReport, getSoldItemsReport, getRevenueReport, getIngredientReport, getWarehouseReport } from "@/server/reports/actions";
 import { useI18n } from "@/i18n/context";
+import type { Locale } from "@/i18n";
+import type { Dictionary } from "@/i18n/dictionaries";
 import { useDeviceInfo } from "@/components/shared/device-provider";
-import { Download, DollarSign, FileText, ShoppingBag, TrendingUp, Package, ClipboardList, AlertTriangle } from "lucide-react";
+import { Download, DollarSign, FileText, ShoppingBag, TrendingUp, Package, AlertTriangle } from "lucide-react";
 
 function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
+function dateLocale(locale: Locale) { return locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN"; }
 
 type InvoiceReport = Awaited<ReturnType<typeof getInvoiceReport>>;
 type SoldItemsReport = Awaited<ReturnType<typeof getSoldItemsReport>>;
 type RevenueReport = Awaited<ReturnType<typeof getRevenueReport>>;
 type IngredientReport = Awaited<ReturnType<typeof getIngredientReport>>;
 type WarehouseReport = Awaited<ReturnType<typeof getWarehouseReport>>;
+type DailyReport = Awaited<ReturnType<typeof getDailyReport>>;
+type TopProducts = Awaited<ReturnType<typeof getTopProducts>>;
 
 export function ReportsClientWrapper({ today }: { today: string }) {
   return <ReportsClient today={today} />;
@@ -45,11 +50,11 @@ export function ReportsClient({ today }: { today: string }) {
           <TabsTrigger value="warehouse" className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium">{t.reports.warehouse}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-6"><OverviewTab today={today} t={t} /></TabsContent>
-        <TabsContent value="invoices" className="mt-6"><InvoiceTab today={today} t={t} /></TabsContent>
+        <TabsContent value="overview" className="mt-6"><OverviewTab today={today} t={t} locale={locale} /></TabsContent>
+        <TabsContent value="invoices" className="mt-6"><InvoiceTab today={today} t={t} locale={locale} /></TabsContent>
         <TabsContent value="sold" className="mt-6"><SoldItemsTab today={today} t={t} /></TabsContent>
-        <TabsContent value="revenue" className="mt-6"><RevenueTab today={today} t={t} /></TabsContent>
-        <TabsContent value="ingredients" className="mt-6"><IngredientTab today={today} t={t} /></TabsContent>
+        <TabsContent value="revenue" className="mt-6"><RevenueTab today={today} t={t} locale={locale} /></TabsContent>
+        <TabsContent value="ingredients" className="mt-6"><IngredientTab today={today} t={t} locale={locale} /></TabsContent>
         <TabsContent value="warehouse" className="mt-6"><WarehouseTab today={today} t={t} /></TabsContent>
       </Tabs>
     </div>
@@ -64,7 +69,7 @@ function ModeSelector({ mode, setMode, date, setDate, startDate, setStartDate, e
   startDate: string; setStartDate: (v: string) => void;
   endDate: string; setEndDate: (v: string) => void;
   onExport: () => void; exporting: boolean; label: string;
-  t: any;
+  t: Dictionary;
 }) {
   return (
     <div className="section-amber space-y-4">
@@ -130,10 +135,9 @@ function exportExcel(type: string, mode: string, date: string, startDate: string
 
 // ======================== OVERVIEW TAB ========================
 
-function OverviewTab({ today, t }: { today: string; t: any }) {
-  const { locale } = useI18n();
-  const [report, setReport] = useState<any>(null);
-  const [topProducts, setTopProducts] = useState<any[]>([]);
+function OverviewTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
+  const [report, setReport] = useState<DailyReport | null>(null);
+  const [topProducts, setTopProducts] = useState<TopProducts>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -149,7 +153,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-500">{new Date(today).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { weekday: "long", day: "numeric", month: "numeric", year: "numeric" })}</p>
+      <p className="text-sm text-gray-500">{new Date(today).toLocaleDateString(dateLocale(locale), { weekday: "long", day: "numeric", month: "numeric", year: "numeric" })}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
@@ -192,8 +196,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
 
 // ======================== INVOICE TAB ========================
 
-function InvoiceTab({ today, t }: { today: string; t: any }) {
-  const { locale } = useI18n();
+function InvoiceTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
   const [mode, setMode] = useState("day");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -209,6 +212,8 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -251,7 +256,7 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
                       <td className="p-3 text-right font-mono">{fmt(o.discountAmount)}</td><td className="p-3 text-right font-mono">{fmt(o.serviceCharge)}</td>
                       <td className="p-3 text-right font-mono font-bold">{fmt(o.totalAmount)}</td>
                       <td className="p-3 text-xs text-gray-500 max-w-40 truncate">{o.paymentMethods}</td>
-                      <td className="p-3">{o.closedAt ? new Date(o.closedAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : ""}</td>
+                      <td className="p-3">{o.closedAt ? new Date(o.closedAt).toLocaleDateString(dateLocale(locale)) : ""}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -267,8 +272,7 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
 
 // ======================== SOLD ITEMS TAB ========================
 
-function SoldItemsTab({ today, t }: { today: string; t: any }) {
-  const { locale } = useI18n();
+function SoldItemsTab({ today, t }: { today: string; t: Dictionary }) {
   const [mode, setMode] = useState("day");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -284,6 +288,8 @@ function SoldItemsTab({ today, t }: { today: string; t: any }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -338,8 +344,7 @@ function SoldItemsTab({ today, t }: { today: string; t: any }) {
 
 // ======================== REVENUE TAB ========================
 
-function RevenueTab({ today, t }: { today: string; t: any }) {
-  const { locale } = useI18n();
+function RevenueTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
   const [mode, setMode] = useState("day");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -355,6 +360,8 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -411,7 +418,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
                 </tr></thead>
                 <tbody>{data.days.map((d, i) => (
                   <tr key={i} className="border-b border-gray-100 hover:bg-amber-50/30">
-                    <td className="p-3 font-medium">{new Date(d.date).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
+                    <td className="p-3 font-medium">{new Date(d.date).toLocaleDateString(dateLocale(locale), { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
                     <td className="p-3 text-right">{d.orders}</td><td className="p-3 text-right font-mono">{fmt(d.subtotal)}</td>
                     <td className="p-3 text-right font-mono">{fmt(d.vat)}</td><td className="p-3 text-right font-mono">{fmt(d.excise)}</td>
                     <td className="p-3 text-right font-mono">{fmt(d.discount)}</td><td className="p-3 text-right font-mono">{fmt(d.service)}</td>
@@ -429,8 +436,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
 
 // ======================== INGREDIENT TAB ========================
 
-function IngredientTab({ today, t }: { today: string; t: any }) {
-  const { locale } = useI18n();
+function IngredientTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
   const [mode, setMode] = useState("month");
   const [date, setDate] = useState(today);
   const [startDate, setStartDate] = useState(today);
@@ -446,6 +452,8 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
     setLoading(false);
   }, [mode, date, startDate, endDate]);
 
+  // Data-fetch effect: load() sets loading/data state — intentional reactive fetch.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   return (
@@ -499,10 +507,10 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
                   <th className="text-left p-3">{t.settings.ingredients}</th><th className="text-right p-3">{t.inventory.quantity}</th><th className="text-right p-3">{t.inventory.unitPrice}</th>
                   <th className="text-right p-3">{t.inventory.totalPrice}</th>
                 </tr></thead>
-                <tbody>{data.stockIns.slice(0, 100).flatMap(si => si.items.map((item: any, idx: number) => (
+                <tbody>{data.stockIns.slice(0, 100).flatMap(si => si.items.map((item, idx) => (
                   <tr key={`${si.id}-${idx}`} className="border-b border-gray-100 hover:bg-amber-50/30">
                     <td className="p-3 font-mono text-xs text-amber-700">{idx === 0 ? si.code : ""}</td>
-                    <td className="p-3">{idx === 0 ? new Date(si.createdAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : ""}</td>
+                    <td className="p-3">{idx === 0 ? new Date(si.createdAt).toLocaleDateString(dateLocale(locale)) : ""}</td>
                     <td className="p-3">{idx === 0 ? (si.supplier || "—") : ""}</td>
                     <td className="p-3">{item.ingredient.name}</td>
                     <td className="p-3 text-right font-mono">{item.quantity}</td>
@@ -524,9 +532,9 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
                   <th className="text-left p-3 font-semibold">{t.inventory.date}</th><th className="text-left p-3">{t.settings.ingredients}</th><th className="text-right p-3">{t.inventory.quantity}</th>
                   <th className="text-left p-3">{t.inventory.reason}</th><th className="text-left p-3">{t.inventory.staff}</th><th className="text-left p-3">{t.inventory.note}</th>
                 </tr></thead>
-                <tbody>{data.stockOuts.map((so: any) => (
+                <tbody>{data.stockOuts.map((so) => (
                   <tr key={so.id} className="border-b border-gray-100 hover:bg-amber-50/30">
-                    <td className="p-3">{new Date(so.createdAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</td>
+                    <td className="p-3">{new Date(so.createdAt).toLocaleDateString(dateLocale(locale))}</td>
                     <td className="p-3">{so.ingredient?.name || "—"}</td>
                     <td className="p-3 text-right font-mono">{so.quantity}</td>
                     <td className="p-3"><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td>
@@ -560,7 +568,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
                     <td className={`p-3 text-right font-mono font-bold ${ing.currentStock <= ing.minStock && ing.minStock > 0 ? "text-amber-600" : ""}`}>{fmt(ing.currentStock)}</td>
                     <td className="p-3 text-right text-gray-500">{fmt(ing.minStock)}</td>
                     <td className="p-3 text-right font-mono">{fmt(ing.costPerBaseUnit)}</td>
-                    <td className="p-3 text-xs text-gray-500">{ing.recipes?.map((r: any) => r.product.name).join(", ") || "—"}</td>
+                    <td className="p-3 text-xs text-gray-500">{ing.recipes?.map((r) => r.product.name).join(", ") || "—"}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -574,7 +582,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
 
 // ======================== WAREHOUSE TAB ========================
 
-function WarehouseTab({ today: _today, t }: { today: string; t: any }) {
+function WarehouseTab({ t }: { today: string; t: Dictionary }) {
   const [data, setData] = useState<WarehouseReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -651,7 +659,7 @@ function WarehouseTab({ today: _today, t }: { today: string; t: any }) {
                     <td className={`p-3 text-right font-mono font-bold ${ing.currentStock <= 0 && ing.minStock > 0 ? "text-red-600" : ing.currentStock <= ing.minStock ? "text-amber-600" : ""}`}>{fmt(ing.currentStock)}</td>
                     <td className="p-3 text-right text-gray-500">{fmt(ing.minStock)}</td><td className="p-3 text-right font-mono">{fmt(ing.costPerBaseUnit)}</td>
                     <td className="p-3 text-right font-mono font-bold">{fmt(ing.currentStock * ing.costPerBaseUnit)}</td>
-                    <td className="p-3 text-xs text-gray-500">{ing.recipes?.map((r: any) => r.product.name).join(", ") || "—"}</td>
+                    <td className="p-3 text-xs text-gray-500">{ing.recipes?.map((r) => r.product.name).join(", ") || "—"}</td>
                     <td className="p-3 text-xs">{ing.supplier || "—"}</td>
                   </tr>
                 ))}</tbody>

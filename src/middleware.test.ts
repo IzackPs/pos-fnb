@@ -25,35 +25,39 @@ function locationOf(response: Response) {
   return response.headers.get("location");
 }
 
+function runMiddleware(pathname: string, user?: { permissions?: string; scopes?: string }) {
+  return middleware(request(pathname, user) as never, {} as never) as Response;
+}
+
 describe("middleware", () => {
   it("allows public routes without authentication", () => {
-    const response = middleware(request("/login") as never);
+    const response = runMiddleware("/login");
 
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
   it("redirects unauthenticated users to login", () => {
-    const response = middleware(request("/order") as never);
+    const response = runMiddleware("/order");
 
     expect(locationOf(response)).toBe("https://pos.test/login");
   });
 
   it("allows wildcard permissions", () => {
-    const response = middleware(request("/settings", { permissions: "[\"*\"]", scopes: "[]" }) as never);
+    const response = runMiddleware("/settings", { permissions: "[\"*\"]", scopes: "[]" });
 
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
   it("allows module scopes and redirects blocked modules to the first allowed scope", () => {
-    const allowed = middleware(request("/inventory/items", { permissions: "[]", scopes: "[\"inventory\"]" }) as never);
-    const blocked = middleware(request("/reports", { permissions: "[]", scopes: "[\"inventory\"]" }) as never);
+    const allowed = runMiddleware("/inventory/items", { permissions: "[]", scopes: "[\"inventory\"]" });
+    const blocked = runMiddleware("/reports", { permissions: "[]", scopes: "[\"inventory\"]" });
 
     expect(allowed.headers.get("x-middleware-next")).toBe("1");
     expect(locationOf(blocked)).toBe("https://pos.test/inventory");
   });
 
   it("falls back to order when the authenticated user has no module scopes", () => {
-    const response = middleware(request("/cash", { permissions: "not-json", scopes: "not-json" }) as never);
+    const response = runMiddleware("/cash", { permissions: "not-json", scopes: "not-json" });
 
     expect(locationOf(response)).toBe("https://pos.test/order");
   });

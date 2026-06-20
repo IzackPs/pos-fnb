@@ -2,9 +2,6 @@ name: Sonar — Branch Scan
 
 on:
   push:
-    branches-ignore:
-      - main
-      - Out-Main
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

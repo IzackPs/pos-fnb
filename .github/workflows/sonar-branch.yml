@@ -43,6 +43,7 @@ jobs:
   unit:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
+    needs: lint
     env:
       AUTH_SECRET: "ci-secret-not-used"
       AUTH_URL: "http://localhost:3000"

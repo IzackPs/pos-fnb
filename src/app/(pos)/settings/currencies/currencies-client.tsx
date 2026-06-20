@@ -9,7 +9,7 @@ import { toast } from "sonner";
 type Currency = { id: string; code: string; name: string; symbol: string; rate: number; isDefault: boolean; sortOrder: number };
 
 export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);

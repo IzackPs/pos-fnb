@@ -95,7 +95,7 @@ function serializeScopes(modules: string[]): string {
 }
 
 export function UsersManager({ users, roles }: { users: User[]; roles: Role[] }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState("users");
   const [openUserSheet, setOpenUserSheet] = useState(false);
   const [openRoleSheet, setOpenRoleSheet] = useState(false);

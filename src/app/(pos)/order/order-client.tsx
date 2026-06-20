@@ -44,14 +44,25 @@ export function TableGridView({
   onMergeTables: (orderIds: string[], targetTableId: string) => Promise<unknown>;
   onSplitTable: (orderId: string) => void;
 }) {
-  const { t, locale } = useI18n();
-  const { isMobile, isTablet, isDesktop } = useDeviceInfo();
+  const { t } = useI18n();
+  const { isMobile, isTablet } = useDeviceInfo();
   const [pending, start] = useTransition();
   const [mergeMode, setMergeMode] = useState(false);
   const [splitMode, setSplitMode] = useState(false);
   const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
-  const activeArea = areas.find(a => a.id === activeAreaId)!;
+  const activeArea = areas.find(a => a.id === activeAreaId) ?? areas[0];
+
+  if (!activeArea) {
+    return null;
+  }
+
   const occupied = activeArea.tables.filter(t => t.orders.length > 0).length;
+
+  function resetSelectionMode() {
+    setMergeMode(false);
+    setSplitMode(false);
+    setSelectedTables(new Set());
+  }
 
   function toggleMerge() {
     setMergeMode(!mergeMode);
@@ -67,6 +78,21 @@ export function TableGridView({
     setSelectedTables(p => { const n = new Set(p); if (n.has(tableId)) n.delete(tableId); else n.add(tableId); return n; });
   }
 
+  function confirmSplitSelection() {
+    if (selectedTables.size !== 1) {
+      toast.error(t.order.splitTablePrompt);
+      return;
+    }
+
+    const selectedTableId = Array.from(selectedTables)[0];
+    const table = activeArea.tables.find(tb => tb.id === selectedTableId);
+    const orderId = table?.orders[0]?.id;
+
+    if (orderId) {
+      onSplitTable(orderId);
+    }
+  }
+
   function confirmMerge() {
     const tableIds = Array.from(selectedTables);
     if (tableIds.length < 2) { toast.error(t.order.mergeTablePrompt); return; }
@@ -80,8 +106,68 @@ export function TableGridView({
       }
       await onMergeTables(sourceOrderIds, targetTableId);
       toast.success(t.order.mergeTables + "!");
-      setMergeMode(false); setSelectedTables(new Set());
+      resetSelectionMode();
     });
+  }
+
+  function getElapsedMinutes(openedAt: Date) {
+    // Live elapsed-minutes display — Date.now() read during render is intentional.
+    // eslint-disable-next-line react-hooks/purity
+    return Math.round((Date.now() - new Date(openedAt).getTime()) / 60000);
+  }
+
+  function getTableDisabled(hasOrder: boolean, isSelected: boolean) {
+    const inMode = mergeMode || splitMode;
+
+    if (!inMode) {
+      return false;
+    }
+
+    if (mergeMode) {
+      return !hasOrder;
+    }
+
+    return !hasOrder || (selectedTables.size === 1 && !isSelected);
+  }
+
+  function handleTableCardClick(table: TableInfo, hasOrder: boolean, order?: TableInfo["orders"][number]) {
+    if (mergeMode) {
+      if (hasOrder) {
+        toggleTable(table.id);
+      }
+      return;
+    }
+
+    if (splitMode) {
+      if (hasOrder && selectedTables.size === 0) {
+        toggleTable(table.id);
+      }
+      return;
+    }
+
+    if (hasOrder && order) {
+      onSelectOrder(order.id);
+      return;
+    }
+
+    onOpenTable(table);
+  }
+
+  function getTableCardClassName(hasOrder: boolean, isSelected: boolean, disabled: boolean) {
+    const inMode = mergeMode || splitMode;
+    let stateClassName = "bg-emerald-50 border-emerald-200";
+
+    if (inMode && isSelected) {
+      stateClassName = "bg-blue-100 border-blue-500 ring-2 ring-blue-300";
+    } else if (inMode && hasOrder) {
+      stateClassName = "bg-amber-50 border-amber-300 hover:border-blue-400";
+    } else if (hasOrder) {
+      stateClassName = "bg-amber-50 border-amber-300";
+    }
+
+    return `rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
+      disabled ? "opacity-30 cursor-not-allowed" : ""
+    } ${stateClassName}`;
   }
 
   // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
@@ -94,7 +180,7 @@ export function TableGridView({
       {/* Area tabs + buttons */}
       <div className={`${isMobile ? "px-3 py-2 gap-1.5" : "px-6 py-3 gap-2"} flex items-center overflow-x-auto shrink-0 border-b border-gray-200 bg-white`}>
         {areas.map(a => (
-          <button key={a.id} onClick={() => { setActiveAreaId(a.id); setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
+          <button key={a.id} onClick={() => { setActiveAreaId(a.id); resetSelectionMode(); }}
             className={`${isMobile ? "px-3 py-1.5 text-xs" : "px-5 py-2 text-sm"} rounded-full font-semibold whitespace-nowrap transition-all active:scale-95 ${
               activeAreaId === a.id ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}>
@@ -121,16 +207,9 @@ export function TableGridView({
           <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
-          <button onClick={() => { setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
+          <button onClick={resetSelectionMode}
             className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100 touch-manipulation">{t.order.cancel}</button>
-          <button onClick={() => {
-            if (mergeMode) confirmMerge();
-            else if (selectedTables.size === 1) {
-              const tbl = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
-              const orderId = tbl?.orders[0]?.id;
-              if (orderId) onSplitTable(orderId);
-            } else toast.error(t.order.splitTablePrompt);
-          }}
+          <button onClick={() => { if (mergeMode) confirmMerge(); else confirmSplitSelection(); }}
             disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 touch-manipulation ${
               mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
@@ -146,16 +225,9 @@ export function TableGridView({
           <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
-          <button onClick={() => { setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
+          <button onClick={resetSelectionMode}
             className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100">{t.order.cancel}</button>
-          <button onClick={() => {
-            if (mergeMode) confirmMerge();
-            else if (selectedTables.size === 1) {
-              const tbl = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
-              const orderId = tbl?.orders[0]?.id;
-              if (orderId) onSplitTable(orderId);
-            } else toast.error(t.order.splitTablePrompt);
-          }}
+          <button onClick={() => { if (mergeMode) confirmMerge(); else confirmSplitSelection(); }}
             disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 ${
               mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
@@ -182,30 +254,18 @@ export function TableGridView({
             const order = table.orders[0];
             const isSelected = selectedTables.has(table.id);
             const inMode = mergeMode || splitMode;
-            const disabled = inMode && mergeMode ? !hasOrder : inMode && splitMode ? (!hasOrder || (selectedTables.size === 1 && !isSelected)) : false;
+            const disabled = getTableDisabled(hasOrder, isSelected);
 
             return (
               <button key={table.id} disabled={disabled}
-                onClick={() => {
-                  if (mergeMode) { if (hasOrder) toggleTable(table.id); }
-                  else if (splitMode) { if (hasOrder && selectedTables.size === 0) { toggleTable(table.id); } }
-                  else { if (hasOrder) onSelectOrder(order.id); else onOpenTable(table); }
-                }}
-                className={`rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
-                  disabled ? "opacity-30 cursor-not-allowed" : ""
-                } ${
-                  inMode && isSelected ? "bg-blue-100 border-blue-500 ring-2 ring-blue-300" :
-                  inMode && hasOrder && !isSelected ? "bg-amber-50 border-amber-300 hover:border-blue-400" :
-                  hasOrder ? "bg-amber-50 border-amber-300" : "bg-emerald-50 border-emerald-200"
-                }`}>
+                onClick={() => handleTableCardClick(table, hasOrder, order)}
+                className={getTableCardClassName(hasOrder, isSelected, disabled)}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
                     {hasOrder && order && (
                       <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-0.5">
-                        {/* Live elapsed-minutes display — Date.now() read during render is intentional. */}
-                        {/* eslint-disable-next-line react-hooks/purity */}
-                        <Clock className="h-2.5 w-2.5" />{Math.round((Date.now() - new Date(order.openedAt).getTime()) / 60000)}&apos;
+                        <Clock className="h-2.5 w-2.5" />{getElapsedMinutes(order.openedAt)}&apos;
                       </span>
                     )}
                   </div>
@@ -277,7 +337,7 @@ function OrderDetailView({
   mobileCheckoutPending: boolean;
 }) {
   const { t, locale } = useI18n();
-  const { isMobile, isTablet, isDesktop } = useDeviceInfo();
+  const { isMobile, isTablet } = useDeviceInfo();
   const [activeCatId, setActiveCatId] = useState(categories[0]?.id ?? "");
   const [orderSheetOpen, setOrderSheetOpen] = useState(false);
   // Mobile checkout states (inline, no popup)
@@ -599,7 +659,7 @@ function OrderDetailView({
 
 // ─── MAIN ────────────────────────────────────────────────────────
 export function OrderClient({ areas, categories }: { areas: Area[]; categories: Category[] }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [view, setView] = useState<"tables" | "order">("tables");

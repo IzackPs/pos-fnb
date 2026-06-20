@@ -152,7 +152,7 @@ export function InventoryClient({
 
 // ===== SORTABLE STOCK STATUS TABLE =====
 function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient[]; isMobile: boolean }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [sortField, setSortField] = useState<"name" | "stock" | "unit">("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
@@ -232,7 +232,7 @@ function StockInPanel({
   onSubmit: () => void;
   addEmptyRow: () => void;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { isMobile } = useDeviceInfo();
   const total = items.reduce((s, i) => s + (parseFloat(i.quantity) || 0) * (parseFloat(i.unitPrice) || 0), 0);
 

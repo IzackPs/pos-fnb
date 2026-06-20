@@ -28,7 +28,7 @@ export function ToppingsManager({
   categories: Cat[]; products: ProductInfo[];
   linkToppingGroup: ActionFn; unlinkToppingGroup: ActionFn;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [pending, start] = useTransition();
   const [openGroup, setOpenGroup] = useState(false);
   const [openTopping, setOpenTopping] = useState(false);
@@ -149,7 +149,7 @@ function LinkedProductsSection({
   pending: boolean;
   start: (fn: () => Promise<void>) => void;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [showPicker, setShowPicker] = useState(false);
   const [catFilter, setCatFilter] = useState("");
 

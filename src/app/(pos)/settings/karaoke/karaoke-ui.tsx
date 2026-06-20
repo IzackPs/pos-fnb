@@ -28,7 +28,7 @@ type Props = {
 const fmt = (v: number) => new Intl.NumberFormat("vi-VN").format(v);
 
 export function KaraokePricingManager({ pricings, areas, createKP, updateKP, deleteKP }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<KP | null>(null);

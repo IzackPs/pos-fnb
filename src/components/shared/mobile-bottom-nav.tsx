@@ -25,7 +25,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function MobileBottomNav({ enabledModules }: { enabledModules: Set<string> }) {
   const pathname = usePathname();
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { canAccessModule } = usePermission();
 
   // Check visibility per item (module enabled + user has permission)

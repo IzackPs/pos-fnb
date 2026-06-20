@@ -8,7 +8,7 @@ import { useI18n } from "@/i18n/context";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 
 export default function LoginPage() {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [pending, start] = useTransition();
   const [form, setForm] = useState({ username: "", password: "" });
 

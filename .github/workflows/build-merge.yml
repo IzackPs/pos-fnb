@@ -1,12 +1,6 @@
 name: CI Quality Gate — Out-Main → main
 
 on:
-  push:
-    branches:
-      - Out-Main
-      - main
-      - "feature/**"
-      - "fix/**"
   pull_request:
   workflow_dispatch:
 
@@ -239,10 +233,15 @@ jobs:
   auto-merge:
     name: Auto-Merge Out-Main → main
     needs: sonar
-    if: success() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/Out-Main'
+    if: >
+      success() &&
+      github.event_name == 'pull_request' &&
+      github.base_ref == 'main' &&
+      github.head_ref == 'Out-Main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:

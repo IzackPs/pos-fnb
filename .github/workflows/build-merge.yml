@@ -178,7 +178,7 @@ jobs:
             -Dsonar.qualitygate.wait=true
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Job 6: Auto-merge (só roda se TODOS os jobs anteriores passarem)
+# Job 6: Auto-merge (só roda se os jobs anteriores passarem)
 # ─────────────────────────────────────────────────────────────────────────────
   auto-merge:
     name: Auto-Merge Out-Main → main

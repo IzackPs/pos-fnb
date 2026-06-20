@@ -359,9 +359,9 @@ export function CashClient({
     },
   ];
 
-  function handleAction(
-    action: (...args: unknown[]) => Promise<unknown>,
-    ...args: unknown[]
+  function handleAction<TArgs extends unknown[]>(
+    action: (...args: TArgs) => Promise<unknown>,
+    ...args: TArgs
   ) {
     start(async () => {
       try {

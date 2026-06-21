@@ -25,7 +25,7 @@ function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); 
 export function InventoryClient({
   ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers
 }: {
-  ingredients: Ingredient[]; stockIns: StockIn[]; stockOuts: any[]; lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>; allIngredients: IngredientBasic[]; suppliers: Supplier[];
+  ingredients: Ingredient[]; stockIns: StockIn[]; stockOuts: Awaited<ReturnType<typeof getStockOuts>>; lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>; allIngredients: IngredientBasic[]; suppliers: Supplier[];
 }) {
   const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
@@ -38,6 +38,8 @@ export function InventoryClient({
   const [loadingItems, setLoadingItems] = useState(false);
 
   // When supplier changes, auto-fill from last stock-in
+  // Auto-fill form from selected supplier — intentional reactive effect.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!supplierId) { setItems([]); return; }
     const sup = suppliers.find(s => s.id === supplierId);
@@ -59,6 +61,7 @@ export function InventoryClient({
       }
     }).catch(() => setItems([])).finally(() => setLoadingItems(false));
   }, [supplierId, suppliers]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function addEmptyRow() {
     setItems(p => [...p, { ingredientId: "", ingredientName: "", quantity: "", unitPrice: "", purchaseUnit: "", baseUnit: "" }]);
@@ -149,7 +152,7 @@ export function InventoryClient({
 
 // ===== SORTABLE STOCK STATUS TABLE =====
 function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient[]; isMobile: boolean }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [sortField, setSortField] = useState<"name" | "stock" | "unit">("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
@@ -170,7 +173,7 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
     return sortDir === "asc" ? cmp : -cmp;
   });
 
-  const SortArrow = ({ field }: { field: "name" | "stock" | "unit" }) => {
+  const sortArrow = (field: "name" | "stock" | "unit") => {
     if (sortField !== field) return <span className="ml-1 text-gray-300">↕</span>;
     return <span className="ml-1 text-amber-500">{sortDir === "asc" ? "↑" : "↓"}</span>;
   };
@@ -184,15 +187,15 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
       <thead>
         <tr className="bg-gray-50 border-b border-gray-200">
           <th className="text-left p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("name")}>
-            {t.settings.name}<SortArrow field="name" />
+            {t.settings.name}{sortArrow("name")}
           </th>
           {!isMobile && (
             <th className="text-left p-3 cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("unit")}>
-              {t.inventory.baseUnit}<SortArrow field="unit" />
+              {t.inventory.baseUnit}{sortArrow("unit")}
             </th>
           )}
           <th className={`text-right p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors ${isMobile ? "pr-4" : ""}`} onClick={() => toggleSort("stock")}>
-            {t.inventory.currentStock}<SortArrow field="stock" />
+            {t.inventory.currentStock}{sortArrow("stock")}
           </th>
         </tr>
       </thead>
@@ -229,7 +232,7 @@ function StockInPanel({
   onSubmit: () => void;
   addEmptyRow: () => void;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const { isMobile } = useDeviceInfo();
   const total = items.reduce((s, i) => s + (parseFloat(i.quantity) || 0) * (parseFloat(i.unitPrice) || 0), 0);
 
@@ -326,7 +329,6 @@ function StockInPanel({
                   const qty = parseFloat(item.quantity) || 0;
                   const price = parseFloat(item.unitPrice) || 0;
                   const lineTotal = qty * price;
-                  const ing = allIngredients.find(i => i.id === item.ingredientId);
                   return (
                     <tr key={idx} className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
                       <td className="p-2 pl-4 text-gray-400 text-xs font-mono">{idx + 1}</td>

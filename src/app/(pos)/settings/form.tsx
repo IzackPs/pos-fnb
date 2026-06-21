@@ -12,8 +12,10 @@ import { useI18n } from "@/i18n/context";
 type Config = { restaurantName: string; address?: string | null; phone?: string | null; email?: string | null; taxCode?: string | null; taxMode?: string | null };
 type ActionResult = void;
 
-export function GeneralConfigForm({ config, action }: { config: Config | null; action: (data: any) => ActionResult }) {
-  const { t, locale } = useI18n();
+type ConfigInput = { restaurantName: string; address: string; phone: string; email: string; taxCode: string; taxMode: string };
+
+export function GeneralConfigForm({ config, action }: { config: Config | null; action: (data: ConfigInput) => ActionResult }) {
+  const { t } = useI18n();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     restaurantName: config?.restaurantName ?? "",

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import * as net from "net";
 
 function fmt(n: number) {
@@ -9,12 +9,6 @@ function fmt(n: number) {
 }
 
 // ======================== PARSE TEMPLATE CONFIG ========================
-
-interface TplConfig {
-  header: { showLogo: boolean; showAddress: boolean; showPhone: boolean; showTaxCode: boolean; showDateTime: boolean };
-  body: { showTable: boolean; showGuestCount: boolean; showQuantity: boolean; showUnitPrice: boolean; showAmount: boolean; showTopping: boolean; showNote: boolean; showOrderNumber: boolean };
-  footer: { showSubtotal: boolean; showVat: boolean; showDiscount: boolean; showServiceCharge: boolean; showTotal: boolean; showPaymentMethod: boolean; showCashier: boolean; thankYou: string };
-}
 
 // ORDER config
 interface OrderCfg {
@@ -356,7 +350,7 @@ export async function createPrintJob(params: {
 // ======================== GET PRINT JOBS ========================
 
 export async function getPrintJobs(date?: string, type?: string) {
-  const where: any = {};
+  const where: Prisma.PrintJobWhereInput = {};
   if (date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);

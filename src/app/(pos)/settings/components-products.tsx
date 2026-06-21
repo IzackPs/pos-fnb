@@ -26,7 +26,8 @@ type Cat = { id: string; name: string };
 type Vat = { id: string; name: string; rate: number };
 type Excise = { id: string; name: string; rate: number };
 type Unit = { id: string; name: string };
-type ActionFn = (...args: any[]) => Promise<any>;
+type ActionFn = (...args: never[]) => Promise<unknown>;
+type LooseFn = (...args: unknown[]) => Promise<unknown>;
 type IngredientBasic = { id: string; name: string; baseUnit: string; currentStock: number };
 type ToppingGroupType = { id: string; name: string; type: string; toppings: { id: string; name: string; price: number }[]; _count: { toppings: number } };
 
@@ -48,7 +49,7 @@ export function ProductsManager({
   linkToppingGroup: ActionFn;
   unlinkToppingGroup: ActionFn;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [pending, start] = useTransition();
@@ -85,7 +86,8 @@ export function ProductsManager({
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const pageItems = filtered.slice((page - 1) * perPage, page * perPage);
 
-  // Reset page when filter changes
+  // Reset page when filter changes — intentional reactive reset.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setPage(1); }, [catFilter, search]);
 
   function openNew() { setEditing(null); setForm({ name: "", slug: "", price: "0", costPrice: "0", categoryId: categories[0]?.id ?? "", vatId: vats[0]?.id ?? "", exciseTaxId: "", unitId: units[0]?.id ?? "", sortOrder: "0" }); setOpen(true); }
@@ -135,15 +137,15 @@ export function ProductsManager({
     start(async () => {
       try {
         const data = { name: form.name, slug: form.slug, price: parseFloat(form.price), costPrice: parseFloat(form.costPrice ?? "0"), categoryId: form.categoryId, vatId: form.vatId, exciseTaxId: form.exciseTaxId || undefined, unitId: form.unitId, sortOrder: parseInt(form.sortOrder) };
-        if (editing) await updateProduct(editing.id, data);
-        else await createProduct(data);
+        if (editing) await (updateProduct as LooseFn)(editing.id, data);
+        else await (createProduct as LooseFn)(data);
         toast.success(editing ? t.settings.updated : t.settings.added);
         setOpen(false);
       } catch { toast.error(t.common.error); }
     });
   }
 
-  function handleDelete(id: string) { start(async () => { await deleteProduct(id); toast.success(t.common.success); }); }
+  function handleDelete(id: string) { start(async () => { await (deleteProduct as LooseFn)(id); toast.success(t.common.success); }); }
 
   function fmtPrice(v: number) { return new Intl.NumberFormat("vi-VN").format(v || 0); }
 
@@ -185,7 +187,7 @@ export function ProductsManager({
       <p className="text-xs text-gray-400 mb-3">
         {t.inventory.showing} {filtered.length > 0 ? (page - 1) * perPage + 1 : 0}–{Math.min(page * perPage, filtered.length)} / {t.inventory.totalItems_products} {filtered.length}
         {catFilter && <span className="ml-2">· {t.inventory.filterBy} {categories.find(c => c.id === catFilter)?.name}</span>}
-        {search.trim() && <span className="ml-2">· {t.inventory.searchFor} "{search.trim()}"</span>}
+        {search.trim() && <span className="ml-2">· {t.inventory.searchFor} &quot;{search.trim()}&quot;</span>}
       </p>
 
       {/* Table */}
@@ -381,13 +383,13 @@ export function ProductsManager({
           selectedGroupIds={new Set(products.find(p => p.id === toppingProductId)?.toppingGroups?.map(tg => tg.toppingGroup.id) ?? [])}
           onLink={async (groupId) => {
             start(async () => {
-              await linkToppingGroup(toppingProductId, groupId);
+              await (linkToppingGroup as LooseFn)(toppingProductId, groupId);
               toast.success(t.settings.recipeAssigned);
             });
           }}
           onUnlink={async (groupId) => {
             start(async () => {
-              await unlinkToppingGroup(toppingProductId, groupId);
+              await (unlinkToppingGroup as LooseFn)(toppingProductId, groupId);
               toast.success(t.settings.recipeUnassigned);
             });
           }}
@@ -409,9 +411,9 @@ function ToppingLinkDialog({
   onUnlink: (groupId: string) => Promise<void>;
   onClose: () => void;
 }) {
-  const [pending, start] = useTransition();
+  const [, start] = useTransition();
   const [localSelected, setLocalSelected] = useState(new Set(selectedGroupIds));
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
 
   if (!productId) return null;
 

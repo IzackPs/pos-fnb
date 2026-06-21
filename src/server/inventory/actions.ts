@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { consumeFifoStock, createBatchForStockInItem } from "./fifo";
 
@@ -255,7 +256,7 @@ export async function createPettyTransaction(data: {
 // ============ CASH FLOW ============
 
 export async function getCashFlow(date?: string) {
-  const where: any = {};
+  const where: Prisma.CashFlowWhereInput = {};
   if (date) {
     const start = new Date(date);
     start.setHours(0, 0, 0, 0);

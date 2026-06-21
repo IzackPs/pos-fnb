@@ -34,7 +34,7 @@ async function main() {
   console.log("✅ Config");
 
   // ========== VAT ==========
-  const vat5 = await db.vat.upsert({ where: { code: "VAT5" }, update: {}, create: { code: "VAT5", name: "VAT 5%", rate: 0.05 } });
+  await db.vat.upsert({ where: { code: "VAT5" }, update: {}, create: { code: "VAT5", name: "VAT 5%", rate: 0.05 } });
   const vat8 = await db.vat.upsert({ where: { code: "VAT8" }, update: {}, create: { code: "VAT8", name: "VAT 8%", rate: 0.08 } });
   const vat10 = await db.vat.upsert({ where: { code: "VAT10" }, update: {}, create: { code: "VAT10", name: "VAT 10%", rate: 0.10 } });
   console.log("✅ VAT (5%, 8%, 10%)");
@@ -54,10 +54,10 @@ async function main() {
   const uBowl = await db.unit.upsert({ where: { name: "Bowl" }, update: {}, create: { name: "Bowl" } });
   const uPiece = await db.unit.upsert({ where: { name: "Piece" }, update: {}, create: { name: "Piece" } });
   // Ingredient units
-  const uKg = await db.unit.upsert({ where: { name: "Kg" }, update: {}, create: { name: "Kg" } });
+  await db.unit.upsert({ where: { name: "Kg" }, update: {}, create: { name: "Kg" } });
   const uGram = await db.unit.upsert({ where: { name: "Gram" }, update: {}, create: { name: "Gram" } });
   const uMl = await db.unit.upsert({ where: { name: "Ml" }, update: {}, create: { name: "Ml" } });
-  const uLiter = await db.unit.upsert({ where: { name: "Liter" }, update: {}, create: { name: "Liter" } });
+  await db.unit.upsert({ where: { name: "Liter" }, update: {}, create: { name: "Liter" } });
   console.log("✅ Units");
 
   // ========== CATEGORIES ==========

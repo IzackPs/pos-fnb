@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,19 @@ const DATE_LOCALE_BY_APP_LOCALE: Record<Locale, string> = {
 };
 
 function dateLocale(locale: Locale) { return DATE_LOCALE_BY_APP_LOCALE[locale]; }
+
+// Scaffold compartilhado das tabelas de relatório. DOM idêntico aos blocos inline:
+// <table.w-full.text-sm><thead><tr.bg-gray-50...>{head}</tr></thead><tbody>{children}</tbody>.
+function ReportTable({ head, children }: Readonly<{ head: ReactNode; children: ReactNode }>) {
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="bg-gray-50 border-b border-gray-200">{head}</tr>
+      </thead>
+      <tbody>{children}</tbody>
+    </table>
+  );
+}
 
 type InvoiceReport = Awaited<ReturnType<typeof getInvoiceReport>>;
 type SoldItemsReport = Awaited<ReturnType<typeof getSoldItemsReport>>;
@@ -257,9 +270,9 @@ function InvoiceOrdersTable({ data, t, locale }: Readonly<{ data: InvoiceReport;
   return (
     <div className="section-amber overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+        <ReportTable
+          head={
+            <>
               <th className="text-left p-3 font-semibold">{t.order.orderNumber}</th>
               <th className="text-left p-3">{t.settings.tables}</th>
               <th className="text-center p-3">{t.order.guestCount}</th>
@@ -272,9 +285,9 @@ function InvoiceOrdersTable({ data, t, locale }: Readonly<{ data: InvoiceReport;
               <th className="text-right p-3">{t.order.total}</th>
               <th className="text-left p-3">{t.reports.paymentMethods}</th>
               <th className="text-left p-3">{t.inventory.date}</th>
-            </tr>
-          </thead>
-          <tbody>
+            </>
+          }
+        >
             {data.orders.map((order, index) => (
               <tr key={`${order.orderNumber}-${index}`} className="border-b border-gray-100 hover:bg-amber-50/30">
                 <td className="p-3 font-mono text-xs text-amber-700 font-semibold">{order.orderNumber}{order.orderNumberSuffix ? `-${order.orderNumberSuffix}` : ""}</td>
@@ -291,8 +304,7 @@ function InvoiceOrdersTable({ data, t, locale }: Readonly<{ data: InvoiceReport;
                 <td className="p-3">{order.closedAt ? new Date(order.closedAt).toLocaleDateString(dateLocale(locale)) : ""}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </ReportTable>
       </div>
       {data.orders.length === 0 ? <EmptyState text={t.reports.noData} className="text-center text-gray-400 py-12" /> : null}
     </div>
@@ -303,17 +315,17 @@ function SoldByProductTable({ data, t }: Readonly<{ data: SoldItemsReport; t: Di
   return (
     <div className="section-amber">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byProduct}</h3>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
+      <ReportTable
+        head={
+          <>
             <th className="text-left p-3 text-xs text-gray-400">#</th>
             <th className="text-left p-3 font-semibold">{t.settings.products}</th>
             <th className="text-left p-3">{t.settings.categories}</th>
             <th className="text-right p-3">{t.inventory.quantity}</th>
             <th className="text-right p-3">{t.reports.revenue}</th>
-          </tr>
-        </thead>
-        <tbody>
+          </>
+        }
+      >
           {data.byProduct.map((product, index) => (
             <tr key={`${product.name}-${index}`} className="border-b border-gray-100">
               <td className="p-3 text-gray-400">{index + 1}</td>
@@ -323,8 +335,7 @@ function SoldByProductTable({ data, t }: Readonly<{ data: SoldItemsReport; t: Di
               <td className="p-3 text-right font-mono font-bold">{fmt(product.revenue)}</td>
             </tr>
           ))}
-        </tbody>
-      </table>
+      </ReportTable>
     </div>
   );
 }
@@ -334,18 +345,18 @@ function SoldDetailTable({ data, t }: Readonly<{ data: SoldItemsReport; t: Dicti
     <div className="section-amber">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.detail}</h3>
       <div className="max-h-96 overflow-y-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+        <ReportTable
+          head={
+            <>
               <th className="text-left p-3 font-semibold">{t.inventory.dish}</th>
               <th className="text-right p-3">{t.inventory.quantity}</th>
               <th className="text-right p-3">{t.inventory.unitPrice}</th>
               <th className="text-right p-3">{t.inventory.totalPrice}</th>
               <th className="text-left p-3">{t.order.orderNumber}</th>
               <th className="text-left p-3">{t.settings.tables}</th>
-            </tr>
-          </thead>
-          <tbody>
+            </>
+          }
+        >
             {data.items.slice(0, 50).map((item, index) => (
               <tr key={`${item.orderNumber}-${index}`} className="border-b border-gray-100">
                 <td className="p-3 text-xs">{item.productName} {item.toppings ? `(+${item.toppings})` : ""}</td>
@@ -356,8 +367,7 @@ function SoldDetailTable({ data, t }: Readonly<{ data: SoldItemsReport; t: Dicti
                 <td className="p-3 text-xs">{item.table}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </ReportTable>
       </div>
     </div>
   );
@@ -368,9 +378,9 @@ function RevenueDailyBreakdown({ data, t, locale }: Readonly<{ data: RevenueRepo
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byDay}</h3>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+        <ReportTable
+          head={
+            <>
               <th className="text-left p-3 font-semibold">{t.inventory.date}</th>
               <th className="text-right p-3">{t.order.orderNumber}</th>
               <th className="text-right p-3">{t.reports.subtotalLabel}</th>
@@ -379,9 +389,9 @@ function RevenueDailyBreakdown({ data, t, locale }: Readonly<{ data: RevenueRepo
               <th className="text-right p-3">{t.order.discount}</th>
               <th className="text-right p-3">{t.settings.serviceCharges}</th>
               <th className="text-right p-3 font-semibold">{t.reports.revenue}</th>
-            </tr>
-          </thead>
-          <tbody>
+            </>
+          }
+        >
             {data.days.map((day, index) => (
               <tr key={`${day.date}-${index}`} className="border-b border-gray-100 hover:bg-amber-50/30">
                 <td className="p-3 font-medium">{new Date(day.date).toLocaleDateString(dateLocale(locale), { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
@@ -394,8 +404,7 @@ function RevenueDailyBreakdown({ data, t, locale }: Readonly<{ data: RevenueRepo
                 <td className="p-3 text-right font-mono font-bold">{fmt(day.revenue)}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </ReportTable>
       </div>
     </div>
   );
@@ -406,9 +415,9 @@ function IngredientStockInTable({ data, t, locale }: Readonly<{ data: Ingredient
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.detail} {t.reports.stockInNote.toLowerCase()}</h3>
       <div className="overflow-x-auto max-h-96">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+        <ReportTable
+          head={
+            <>
               <th className="text-left p-3 font-semibold">{t.inventory.code}</th>
               <th className="text-left p-3">{t.inventory.date}</th>
               <th className="text-left p-3">{t.settings.suppliers}</th>
@@ -416,9 +425,9 @@ function IngredientStockInTable({ data, t, locale }: Readonly<{ data: Ingredient
               <th className="text-right p-3">{t.inventory.quantity}</th>
               <th className="text-right p-3">{t.inventory.unitPrice}</th>
               <th className="text-right p-3">{t.inventory.totalPrice}</th>
-            </tr>
-          </thead>
-          <tbody>
+            </>
+          }
+        >
             {data.stockIns.slice(0, 100).flatMap((stockIn) => (
               stockIn.items.map((item, index) => (
                 <tr key={`${stockIn.id}-${index}`} className="border-b border-gray-100 hover:bg-amber-50/30">
@@ -432,8 +441,7 @@ function IngredientStockInTable({ data, t, locale }: Readonly<{ data: Ingredient
                 </tr>
               ))
             ))}
-          </tbody>
-        </table>
+        </ReportTable>
       </div>
       {data.stockIns.length === 0 ? <EmptyState text={t.reports.noData} className="text-center text-gray-400 py-8" /> : null}
     </div>
@@ -445,18 +453,18 @@ function IngredientStockOutTable({ data, t, locale }: Readonly<{ data: Ingredien
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.detail} {t.reports.stockOutNote.toLowerCase()}</h3>
       <div className="overflow-x-auto max-h-72">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+        <ReportTable
+          head={
+            <>
               <th className="text-left p-3 font-semibold">{t.inventory.date}</th>
               <th className="text-left p-3">{t.settings.ingredients}</th>
               <th className="text-right p-3">{t.inventory.quantity}</th>
               <th className="text-left p-3">{t.inventory.reason}</th>
               <th className="text-left p-3">{t.inventory.staff}</th>
               <th className="text-left p-3">{t.inventory.note}</th>
-            </tr>
-          </thead>
-          <tbody>
+            </>
+          }
+        >
             {data.stockOuts.map((stockOut) => (
               <tr key={stockOut.id} className="border-b border-gray-100 hover:bg-amber-50/30">
                 <td className="p-3">{new Date(stockOut.createdAt).toLocaleDateString(dateLocale(locale))}</td>
@@ -467,8 +475,7 @@ function IngredientStockOutTable({ data, t, locale }: Readonly<{ data: Ingredien
                 <td className="p-3 text-xs text-gray-500">{stockOut.note || ""}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </ReportTable>
       </div>
       {data.stockOuts.length === 0 ? <EmptyState text={t.reports.noData} className="text-center text-gray-400 py-8" /> : null}
     </div>
@@ -480,9 +487,9 @@ function IngredientCurrentStockTable({ data, t }: Readonly<{ data: IngredientRep
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.inventory.currentStock} ({t.settings.ingredients.toLowerCase()})</h3>
       <div className="overflow-x-auto max-h-80">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+        <ReportTable
+          head={
+            <>
               <th className="text-left p-3 font-semibold">{t.settings.name}</th>
               <th className="text-left p-3">{t.inventory.purchaseUnit}</th>
               <th className="text-left p-3">{t.inventory.baseUnit}</th>
@@ -491,9 +498,9 @@ function IngredientCurrentStockTable({ data, t }: Readonly<{ data: IngredientRep
               <th className="text-right p-3">{t.inventory.minStock}</th>
               <th className="text-right p-3">{t.inventory.costPrice}</th>
               <th className="text-left p-3">{t.inventory.usedIn}</th>
-            </tr>
-          </thead>
-          <tbody>
+            </>
+          }
+        >
             {data.ingredients.map((ingredient) => (
               <tr key={ingredient.id} className={`border-b border-gray-100 hover:bg-amber-50/30 ${ingredient.currentStock <= ingredient.minStock && ingredient.minStock > 0 ? "bg-amber-50" : ""}`}>
                 <td className="p-3 font-medium flex items-center gap-1.5">
@@ -509,8 +516,7 @@ function IngredientCurrentStockTable({ data, t }: Readonly<{ data: IngredientRep
                 <td className="p-3 text-xs text-gray-500">{ingredient.recipes?.map((recipe) => recipe.product.name).join(", ") || "—"}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </ReportTable>
       </div>
     </div>
   );
@@ -554,9 +560,9 @@ function WarehouseIngredientsTable({ data, t }: Readonly<{ data: WarehouseReport
   return (
     <div className="section-amber overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
+        <ReportTable
+          head={
+            <>
               <th className="text-left p-3 font-semibold">{t.settings.name}</th>
               <th className="text-left p-3">{t.inventory.purchaseUnit}</th>
               <th className="text-left p-3">{t.inventory.baseUnit}</th>
@@ -567,9 +573,9 @@ function WarehouseIngredientsTable({ data, t }: Readonly<{ data: WarehouseReport
               <th className="text-right p-3">{t.inventory.stockValue}</th>
               <th className="text-left p-3">{t.inventory.usedIn}</th>
               <th className="text-left p-3">{t.settings.suppliers}</th>
-            </tr>
-          </thead>
-          <tbody>
+            </>
+          }
+        >
             {data.ingredients.map((ingredient) => (
               <tr key={ingredient.id} className={`border-b border-gray-100 hover:bg-amber-50/30 ${ingredient.currentStock <= ingredient.minStock && ingredient.minStock > 0 ? "bg-amber-50" : ingredient.currentStock <= 0 ? "bg-red-50" : ""}`}>
                 <td className="p-3 font-medium">{ingredient.name}</td>
@@ -584,8 +590,7 @@ function WarehouseIngredientsTable({ data, t }: Readonly<{ data: WarehouseReport
                 <td className="p-3 text-xs">{ingredient.supplier || "—"}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+        </ReportTable>
       </div>
       {data.ingredients.length === 0 ? <EmptyState text={t.reports.noData} className="text-center text-gray-400 py-12" /> : null}
     </div>

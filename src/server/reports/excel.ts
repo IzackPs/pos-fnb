@@ -71,6 +71,24 @@ function addDataRow(ws: ExcelJS.Worksheet, values: (string | number)[], row: num
   });
 }
 
+// Escreve pares "rótulo: valor" em duas colunas (col 1 rótulo em negrito, col 2 valor).
+// Retorna o próximo `row` livre. Mantém o mesmo estilo dos blocos inline anteriores.
+function addSummaryRows(
+  ws: ExcelJS.Worksheet,
+  rows: ReadonlyArray<ReadonlyArray<string | number>>,
+  startRow: number,
+): number {
+  let row = startRow;
+  rows.forEach(([k, v]) => {
+    ws.getCell(row, 1).value = k;
+    ws.getCell(row, 1).font = { bold: true, size: 10 };
+    ws.getCell(row, 2).value = v;
+    ws.getCell(row, 2).font = AMOUNT_FONT;
+    row++;
+  });
+  return row;
+}
+
 function colWidths(ws: ExcelJS.Worksheet, widths: number[]) {
   widths.forEach((w, i) => {
     ws.getColumn(i + 1).width = w;
@@ -157,13 +175,7 @@ export async function exportInvoicesToExcel(invoices: InvoiceRow[], summary: Inv
     ["Total Discount:", `${fmt(summary.totalDiscount)}`],
     ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}`],
   ];
-  summaryData.forEach(([k, v]) => {
-    ws.getCell(row, 1).value = k;
-    ws.getCell(row, 1).font = { bold: true, size: 10 };
-    ws.getCell(row, 2).value = v;
-    ws.getCell(row, 2).font = AMOUNT_FONT;
-    row++;
-  });
+  row = addSummaryRows(ws, summaryData, row);
   row++;
 
   // Table
@@ -268,19 +280,19 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
     ["Total Expenses:", `${fmt(summary.totalExpenses)}`],
     ["Profit:", `${fmt(summary.profit)}`],
   ];
-  summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
+  row = addSummaryRows(ws, summaryData, row);
   row++;
 
   // Payment methods
   if (Object.keys(summary.byPaymentMethod).length > 0) {
     addSection(ws, "💳 BY PAYMENT METHOD", row, 1); row++;
-    Object.entries(summary.byPaymentMethod).forEach(([method, amount]) => {
-      ws.getCell(row, 1).value = method;
-      ws.getCell(row, 1).font = { bold: true, size: 10 };
-      ws.getCell(row, 2).value = `${fmt(amount as number)}`;
-      ws.getCell(row, 2).font = AMOUNT_FONT;
-      row++;
-    });
+    row = addSummaryRows(
+      ws,
+      Object.entries(summary.byPaymentMethod).map(
+        ([method, amount]) => [method, `${fmt(amount as number)}`] as const,
+      ),
+      row,
+    );
     row++;
   }
 
@@ -300,13 +312,13 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
   // Expenses
   if (Object.keys(expensesByCategory).length > 0) {
     addSection(ws, "📉 EXPENSE BY CATEGORY", row, 1); row++;
-    Object.entries(expensesByCategory).forEach(([cat, amount]) => {
-      ws.getCell(row, 1).value = cat;
-      ws.getCell(row, 1).font = { bold: true, size: 10 };
-      ws.getCell(row, 2).value = `${fmt(amount as number)}`;
-      ws.getCell(row, 2).font = AMOUNT_FONT;
-      row++;
-    });
+    row = addSummaryRows(
+      ws,
+      Object.entries(expensesByCategory).map(
+        ([cat, amount]) => [cat, `${fmt(amount as number)}`] as const,
+      ),
+      row,
+    );
   }
 
   colWidths(ws, [14, 10, 14, 14, 14, 14, 14, 16, 8, 8]);
@@ -331,7 +343,7 @@ export async function exportIngredientsToExcel(stockIns: StockInRow[], stockOuts
     ["Total Items In:", stockInSummary.totalItems],
     ["Total Stock In Value:", `${fmt(stockInSummary.totalAmount)}`],
   ];
-  inSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
+  row = addSummaryRows(ws, inSummary, row);
   row++;
 
   addSection(ws, "📊 STOCK OUT OVERVIEW", row, 1); row++;
@@ -340,7 +352,7 @@ export async function exportIngredientsToExcel(stockIns: StockInRow[], stockOuts
     ["Total Qty Out:", stockOutSummary.totalQuantity],
     ["FIFO Cost Out:", `${fmt(stockOutSummary.totalCost || 0)}`],
   ];
-  outSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
+  row = addSummaryRows(ws, outSummary, row);
   row++;
 
   // Stock In table
@@ -432,7 +444,7 @@ export async function exportWarehouseToExcel(ingredients: IngredientRow[], summa
     ["Below Min Stock:", summary.lowStockCount],
     ["Out of Stock:", summary.outOfStockCount],
   ];
-  summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
+  row = addSummaryRows(ws, summaryData, row);
   row++;
 
   // Low stock alerts

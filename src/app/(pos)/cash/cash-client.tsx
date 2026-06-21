@@ -100,7 +100,7 @@ function getPettyCategoryLabel(
   return categoryLabels[category];
 }
 
-function SummaryCards({ cards }: { cards: SummaryCard[] }) {
+function SummaryCards({ cards }: Readonly<{ cards: SummaryCard[] }>) {
   return (
     <>
       {cards.map((card) => (
@@ -118,12 +118,12 @@ function FlowsTable({
   locale,
   t,
   moneySuffix,
-}: {
+}: Readonly<{
   flows: CashFlow[];
   locale: string;
   t: ReturnType<typeof useI18n>["t"];
   moneySuffix: string;
-}) {
+}>) {
   const dateLocale = getDateLocale(locale);
 
   return (
@@ -191,12 +191,12 @@ function RegistersTable({
   locale,
   t,
   moneySuffix,
-}: {
+}: Readonly<{
   registers: CashRegister[];
   locale: string;
   t: ReturnType<typeof useI18n>["t"];
   moneySuffix: string;
-}) {
+}>) {
   const dateLocale = getDateLocale(locale);
 
   return (
@@ -270,11 +270,11 @@ function CashDialog({
   children,
   onClose,
   title,
-}: {
+}: Readonly<{
   children: ReactNode;
   onClose: () => void;
   title: string;
-}) {
+}>) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
@@ -296,12 +296,12 @@ export function CashClient({
   flows,
   categories,
   today,
-}: {
+}: Readonly<{
   registers: CashRegister[];
   flows: CashFlow[];
   categories: CashCategory[];
   today: string;
-}) {
+}>) {
   const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [pending, start] = useTransition();
@@ -512,7 +512,7 @@ export function CashClient({
             <button
               onClick={() =>
                 handleAction(openCashRegister, {
-                  openingBalance: parseFloat(openingBalance) || 0,
+                  openingBalance: Number.parseFloat(openingBalance) || 0,
                   userId: "admin",
                 })
               }
@@ -549,7 +549,7 @@ export function CashClient({
             <button
               onClick={() =>
                 handleAction(closeCashRegister, activeRegisterId, {
-                  closingBalance: parseFloat(closingBalance) || 0,
+                  closingBalance: Number.parseFloat(closingBalance) || 0,
                   closedBy: "admin",
                 })
               }
@@ -664,7 +664,7 @@ export function CashClient({
               onClick={() =>
                 handleAction(createCashFlow, {
                   ...flowForm,
-                  amount: parseFloat(flowForm.amount),
+                  amount: Number.parseFloat(flowForm.amount),
                   userId: "admin",
                 })
               }
@@ -754,7 +754,7 @@ export function CashClient({
                 handleAction(createPettyTransaction, {
                   cashRegisterId: activeRegisterId,
                   ...pettyForm,
-                  amount: parseFloat(pettyForm.amount),
+                  amount: Number.parseFloat(pettyForm.amount),
                   userId: "admin",
                 })
               }

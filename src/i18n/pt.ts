@@ -163,6 +163,7 @@ export const pt = {
     noStockIns: "Nenhum comprovante de entrada ainda",
     noStockOuts: "Nenhum comprovante de saída ainda",
     manualAddRow: "Ou adicione linhas manualmente",
+    ingredientList: "Lista de ingredientes",
     totalItems: "Quantidade total:",
     all: "Todos",
     showing: "Mostrando",

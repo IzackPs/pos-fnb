@@ -163,6 +163,7 @@ export const vi = {
     "noStockIns": "Chưa có phiếu nhập kho nào",
     "noStockOuts": "Chưa có phiếu xuất kho nào",
     "manualAddRow": "Hoặc thêm dòng thủ công",
+    "ingredientList": "Danh sách nguyên liệu",
     "totalItems": "Tổng số lượng:",
     "all": "Tất cả",
     "showing": "Hiển thị",

@@ -163,6 +163,7 @@ export const en = {
     "noStockIns": "No stock-in vouchers yet",
     "noStockOuts": "No stock-out vouchers yet",
     "manualAddRow": "Or add rows manually",
+    "ingredientList": "Ingredient List",
     "totalItems": "Total quantity:",
     "all": "All",
     "showing": "Showing",

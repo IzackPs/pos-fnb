@@ -163,6 +163,7 @@ export const ja = {
     "noStockIns": "入庫伝票はまだありません",
     "noStockOuts": "出庫伝票はまだありません",
     "manualAddRow": "または手動で行を追加",
+    "ingredientList": "原材料リスト",
     "totalItems": "合計数量：",
     "all": "すべて",
     "showing": "表示中",

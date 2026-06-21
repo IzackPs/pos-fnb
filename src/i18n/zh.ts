@@ -163,6 +163,7 @@ export const zh = {
     "noStockIns": "暂无入库单",
     "noStockOuts": "暂无出库单",
     "manualAddRow": "或手动添加行",
+    "ingredientList": "原料列表",
     "totalItems": "总数量：",
     "all": "全部",
     "showing": "显示",

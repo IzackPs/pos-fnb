@@ -163,6 +163,7 @@ export const ko = {
     "noStockIns": "입고 전표가 없습니다",
     "noStockOuts": "출고 전표가 없습니다",
     "manualAddRow": "또는 수동으로 행 추가",
+    "ingredientList": "식자재 목록",
     "totalItems": "총 수량:",
     "all": "전체",
     "showing": "표시",

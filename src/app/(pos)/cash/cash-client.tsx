@@ -242,7 +242,7 @@ function RegistersTable({
                     hasDiscrepancy ? "text-red-500" : "text-emerald-600"
                   }`}
                 >
-                  {register.discrepancy !== null
+                  {register.discrepancy != null
                     ? formatMoney(register.discrepancy, moneySuffix || "")
                     : "—"}
                 </td>
@@ -279,8 +279,12 @@ function CashDialog({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onClick={onClose}
+      role="presentation"
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
         onClick={(event) => event.stopPropagation()}
       >
@@ -384,7 +388,7 @@ export function CashClient({
           <p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.cash}</p>
         </div>
         <div className="flex gap-2">
-          {!activeRegister ? (
+          {activeRegister === undefined ? (
             <button
               onClick={() => setOpenReg(true)}
               className={`${isMobile ? "btn-pos-secondary text-sm" : "btn-pos-primary"}`}

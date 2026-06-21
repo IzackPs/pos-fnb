@@ -55,12 +55,12 @@ function getElapsedMinutes(openedAt: Date) {
 export function TableGridView({
   areas, activeAreaId, setActiveAreaId, onOpenTable, onSelectOrder,
   onMergeTables, onSplitTable,
-}: {
+}: Readonly<{
   areas: Area[]; activeAreaId: string; setActiveAreaId: (id: string) => void;
   onOpenTable: (t: TableInfo) => void; onSelectOrder: (orderId: string) => void;
   onMergeTables: (orderIds: string[], targetTableId: string) => Promise<unknown>;
   onSplitTable: (orderId: string) => void;
-}) {
+}>) {
   const { t } = useI18n();
   const { isMobile, isTablet } = useDeviceInfo();
   const [pending, start] = useTransition();
@@ -340,7 +340,7 @@ function OrderDetailView({
   pending, onGuestChange,
   btState, onBtConnect, onBtDisconnect,
   onMobileCheckout, mobileCheckoutPending,
-}: {
+}: Readonly<{
   orderDetail: OrderDetail; categories: Category[]; onBack: () => void;
   onSend: () => void; onTempBill: () => void; onCheckout: () => void; onMerge: () => void; onSplit: () => void;
   onAddItem: (product: ProductInfo) => void;
@@ -354,7 +354,7 @@ function OrderDetailView({
   onBtDisconnect: () => void;
   onMobileCheckout: (method: string, amount: string) => void;
   mobileCheckoutPending: boolean;
-}) {
+}>) {
   const { t, locale } = useI18n();
   const { isMobile, isTablet } = useDeviceInfo();
   const [activeCatId, setActiveCatId] = useState(categories[0]?.id ?? "");
@@ -368,6 +368,12 @@ function OrderDetailView({
   const pendingItems = orderDetail.items.filter(i => i.status === "PENDING");
   const canSend = pendingItems.length > 0;
   const sidebarW = isTablet ? "w-[300px]" : "w-[380px]";
+
+  function btIcon() {
+    if (btState.connecting) return <Bluetooth className="h-4 w-4 animate-pulse" />;
+    if (btState.connected) return <BluetoothConnected className="h-4 w-4" />;
+    return <BluetoothOff className="h-4 w-4" />;
+  }
 
   // ══════ Shared: Order Panel content ══════
   function renderOrderPanel(compact?: boolean) {
@@ -398,7 +404,7 @@ function OrderDetailView({
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-gray-900 truncate">{item.product.name}</div>
                 {item.toppings?.length > 0 && (
-                  <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((t) => t.topping?.name).join(", ")}</div>
+                  <div className="text-[10px] text-gray-400 truncate">+ {item.toppings.map((tp) => tp.topping?.name).join(", ")}</div>
                 )}
               </div>
               {item.status === "PENDING" && !item.product.slug?.startsWith("karaoke-") ? (
@@ -517,7 +523,7 @@ function OrderDetailView({
             disabled={btState.connecting}
             className={`p-1.5 rounded-lg transition-all touch-manipulation ${btState.connected ? "bg-white/20 text-white" : "bg-white/20 text-white/60"}`}
           >
-            {btState.connecting ? <Bluetooth className="h-4 w-4 animate-pulse" /> : btState.connected ? <BluetoothConnected className="h-4 w-4" /> : <BluetoothOff className="h-4 w-4" />}
+            {btIcon()}
           </button>
         </div>
 
@@ -618,13 +624,7 @@ function OrderDetailView({
           className={`p-1.5 rounded-lg transition-all ${btState.connected ? "bg-white/20 text-white hover:bg-white/30" : "bg-white/20 text-white/60 hover:bg-white/30"}`}
           title={btState.connected ? t.order.bluetoothConnected : btState.connecting ? t.order.bluetoothConnecting : t.order.bluetoothConnect}
         >
-          {btState.connecting ? (
-            <Bluetooth className="h-4 w-4 animate-pulse" />
-          ) : btState.connected ? (
-            <BluetoothConnected className="h-4 w-4" />
-          ) : (
-            <BluetoothOff className="h-4 w-4" />
-          )}
+          {btIcon()}
         </button>
       </div>
 
@@ -677,7 +677,7 @@ function OrderDetailView({
 }
 
 // ─── MAIN ────────────────────────────────────────────────────────
-export function OrderClient({ areas, categories }: { areas: Area[]; categories: Category[] }) {
+export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; categories: Category[] }>) {
   const { t } = useI18n();
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -767,7 +767,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
     const groups = product.toppingGroups?.filter(g => g.toppingGroup.toppings.length > 0);
     if (groups && groups.length > 0) {
       const sel: Record<string, boolean> = {};
-      groups.forEach(g => g.toppingGroup.toppings.forEach(t => { sel[t.id] = false; }));
+      groups.forEach(g => g.toppingGroup.toppings.forEach(tp => { sel[tp.id] = false; }));
       setToppingSelections(sel); setToppingProduct(product);
     } else {
       if (!activeOrderId) return;
@@ -794,7 +794,8 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       const data = await res.json();
       if (data.content) {
         const ok = await bt.print(data.content);
-        if (ok) toast.success(t.order.printSuccess.replace("{type}", type === "ORDER" ? t.order.kitchen : type === "BILL" ? t.order.bill : t.order.prebill));
+        const typeLabel = ({ ORDER: t.order.kitchen, BILL: t.order.bill } as Record<string, string>)[type] ?? t.order.prebill;
+        if (ok) toast.success(t.order.printSuccess.replace("{type}", typeLabel));
         else toast.error(t.order.printFailed);
       } else {
         toast.info("Sent print request to server");
@@ -953,12 +954,14 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
 }
 
 // Adaptive: Sheet on mobile, Dialog on desktop
-function MobileSheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+function MobileSheet({ open, onClose, title, children }: Readonly<{ open: boolean; onClose: () => void; title: string; children: React.ReactNode }>) {
   const { isMobile } = useDeviceInfo();
+  const { t } = useI18n();
   if (!isMobile) {
     return open ? (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4" onClick={e => e.stopPropagation()}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <button type="button" aria-label={t.order.cancel} onClick={onClose} className="absolute inset-0 bg-black/40 cursor-default" />
+        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4">
           <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
           {children}
         </div>

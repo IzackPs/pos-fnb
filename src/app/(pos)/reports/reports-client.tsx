@@ -118,19 +118,19 @@ async function loadIngredientData(mode: string, date: string, startDate: string,
   return getIngredientReport(mode, date, startDate, endDate);
 }
 
-function LoadingState({ text }: { text: string }) {
+function LoadingState({ text }: Readonly<{ text: string }>) {
   return <p className="text-center text-gray-400 py-16">{text}</p>;
 }
 
-function EmptyState({ text, className = "text-center text-gray-400 py-16" }: { text: string; className?: string }) {
+function EmptyState({ text, className = "text-center text-gray-400 py-16" }: Readonly<{ text: string; className?: string }>) {
   return <p className={className}>{text}</p>;
 }
 
-function SummaryCardsGrid({ columnsClassName, cards, ringClassName = "ring-2 ring-amber-200" }: {
+function SummaryCardsGrid({ columnsClassName, cards, ringClassName = "ring-2 ring-amber-200" }: Readonly<{
   columnsClassName: string;
   cards: SummaryCard[];
   ringClassName?: string;
-}) {
+}>) {
   return (
     <div className={columnsClassName}>
       {cards.map((card, index) => (
@@ -151,7 +151,7 @@ function SummaryCardsGrid({ columnsClassName, cards, ringClassName = "ring-2 rin
   );
 }
 
-function KeyValueSummary({ title, emptyText, entries }: KeyValueSummaryProps) {
+function KeyValueSummary({ title, emptyText, entries }: Readonly<KeyValueSummaryProps>) {
   return (
     <div className="section-amber">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{title}</h3>
@@ -225,7 +225,7 @@ function getWarehouseCards(data: WarehouseReport, t: Dictionary): SummaryCard[] 
   ];
 }
 
-function OverviewTopProducts({ products, t }: { products: TopProducts; t: Dictionary }) {
+function OverviewTopProducts({ products, t }: Readonly<{ products: TopProducts; t: Dictionary }>) {
   return (
     <div className="section-amber">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.dashboard.topProduct}</h3>
@@ -253,7 +253,7 @@ function OverviewTopProducts({ products, t }: { products: TopProducts; t: Dictio
   );
 }
 
-function InvoiceOrdersTable({ data, t, locale }: { data: InvoiceReport; t: Dictionary; locale: Locale }) {
+function InvoiceOrdersTable({ data, t, locale }: Readonly<{ data: InvoiceReport; t: Dictionary; locale: Locale }>) {
   return (
     <div className="section-amber overflow-hidden">
       <div className="overflow-x-auto">
@@ -299,7 +299,7 @@ function InvoiceOrdersTable({ data, t, locale }: { data: InvoiceReport; t: Dicti
   );
 }
 
-function SoldByProductTable({ data, t }: { data: SoldItemsReport; t: Dictionary }) {
+function SoldByProductTable({ data, t }: Readonly<{ data: SoldItemsReport; t: Dictionary }>) {
   return (
     <div className="section-amber">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byProduct}</h3>
@@ -329,7 +329,7 @@ function SoldByProductTable({ data, t }: { data: SoldItemsReport; t: Dictionary 
   );
 }
 
-function SoldDetailTable({ data, t }: { data: SoldItemsReport; t: Dictionary }) {
+function SoldDetailTable({ data, t }: Readonly<{ data: SoldItemsReport; t: Dictionary }>) {
   return (
     <div className="section-amber">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.detail}</h3>
@@ -363,7 +363,7 @@ function SoldDetailTable({ data, t }: { data: SoldItemsReport; t: Dictionary }) 
   );
 }
 
-function RevenueDailyBreakdown({ data, t, locale }: { data: RevenueReport; t: Dictionary; locale: Locale }) {
+function RevenueDailyBreakdown({ data, t, locale }: Readonly<{ data: RevenueReport; t: Dictionary; locale: Locale }>) {
   return (
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byDay}</h3>
@@ -401,7 +401,7 @@ function RevenueDailyBreakdown({ data, t, locale }: { data: RevenueReport; t: Di
   );
 }
 
-function IngredientStockInTable({ data, t, locale }: { data: IngredientReport; t: Dictionary; locale: Locale }) {
+function IngredientStockInTable({ data, t, locale }: Readonly<{ data: IngredientReport; t: Dictionary; locale: Locale }>) {
   return (
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.detail} {t.reports.stockInNote.toLowerCase()}</h3>
@@ -440,7 +440,7 @@ function IngredientStockInTable({ data, t, locale }: { data: IngredientReport; t
   );
 }
 
-function IngredientStockOutTable({ data, t, locale }: { data: IngredientReport; t: Dictionary; locale: Locale }) {
+function IngredientStockOutTable({ data, t, locale }: Readonly<{ data: IngredientReport; t: Dictionary; locale: Locale }>) {
   return (
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.detail} {t.reports.stockOutNote.toLowerCase()}</h3>
@@ -475,7 +475,7 @@ function IngredientStockOutTable({ data, t, locale }: { data: IngredientReport; 
   );
 }
 
-function IngredientCurrentStockTable({ data, t }: { data: IngredientReport; t: Dictionary }) {
+function IngredientCurrentStockTable({ data, t }: Readonly<{ data: IngredientReport; t: Dictionary }>) {
   return (
     <div className="section-amber overflow-hidden">
       <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.inventory.currentStock} ({t.settings.ingredients.toLowerCase()})</h3>
@@ -516,7 +516,7 @@ function IngredientCurrentStockTable({ data, t }: { data: IngredientReport; t: D
   );
 }
 
-function WarehouseAlerts({ data, t }: { data: WarehouseReport; t: Dictionary }) {
+function WarehouseAlerts({ data, t }: Readonly<{ data: WarehouseReport; t: Dictionary }>) {
   return (
     <>
       {data.lowStock.length > 0 ? (
@@ -550,7 +550,7 @@ function WarehouseAlerts({ data, t }: { data: WarehouseReport; t: Dictionary }) 
   );
 }
 
-function WarehouseIngredientsTable({ data, t }: { data: WarehouseReport; t: Dictionary }) {
+function WarehouseIngredientsTable({ data, t }: Readonly<{ data: WarehouseReport; t: Dictionary }>) {
   return (
     <div className="section-amber overflow-hidden">
       <div className="overflow-x-auto">
@@ -592,11 +592,11 @@ function WarehouseIngredientsTable({ data, t }: { data: WarehouseReport; t: Dict
   );
 }
 
-export function ReportsClientWrapper({ today }: { today: string }) {
+export function ReportsClientWrapper({ today }: Readonly<{ today: string }>) {
   return <ReportsClient today={today} />;
 }
 
-export function ReportsClient({ today }: { today: string }) {
+export function ReportsClient({ today }: Readonly<{ today: string }>) {
   const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [activeTab, setActiveTab] = useState("overview");
@@ -629,7 +629,7 @@ export function ReportsClient({ today }: { today: string }) {
   );
 }
 
-function ModeSelector({ mode, setMode, date, setDate, startDate, setStartDate, endDate, setEndDate, onExport, exporting, label, t }: {
+function ModeSelector({ mode, setMode, date, setDate, startDate, setStartDate, endDate, setEndDate, onExport, exporting, label, t }: Readonly<{
   mode: string;
   setMode: (value: string) => void;
   date: string;
@@ -642,7 +642,7 @@ function ModeSelector({ mode, setMode, date, setDate, startDate, setStartDate, e
   exporting: boolean;
   label: string;
   t: Dictionary;
-}) {
+}>) {
   const shouldShowCustomRange = mode === "custom";
 
   return (
@@ -691,7 +691,7 @@ function ModeSelector({ mode, setMode, date, setDate, startDate, setStartDate, e
   );
 }
 
-function OverviewTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
+function OverviewTab({ today, t, locale }: Readonly<{ today: string; t: Dictionary; locale: Locale }>) {
   const [report, setReport] = useState<DailyReport | null>(null);
   const [topProducts, setTopProducts] = useState<TopProducts>([]);
   const [loading, setLoading] = useState(true);
@@ -731,7 +731,7 @@ function OverviewTab({ today, t, locale }: { today: string; t: Dictionary; local
   );
 }
 
-function InvoiceTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
+function InvoiceTab({ today, t, locale }: Readonly<{ today: string; t: Dictionary; locale: Locale }>) {
   const period = useReportPeriod(today);
   const [data, setData] = useState<InvoiceReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -766,7 +766,7 @@ function InvoiceTab({ today, t, locale }: { today: string; t: Dictionary; locale
   );
 }
 
-function SoldItemsTab({ today, t }: { today: string; t: Dictionary }) {
+function SoldItemsTab({ today, t }: Readonly<{ today: string; t: Dictionary }>) {
   const period = useReportPeriod(today);
   const [data, setData] = useState<SoldItemsReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -804,7 +804,7 @@ function SoldItemsTab({ today, t }: { today: string; t: Dictionary }) {
   );
 }
 
-function RevenueTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
+function RevenueTab({ today, t, locale }: Readonly<{ today: string; t: Dictionary; locale: Locale }>) {
   const period = useReportPeriod(today);
   const [data, setData] = useState<RevenueReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -860,7 +860,7 @@ function RevenueTab({ today, t, locale }: { today: string; t: Dictionary; locale
   );
 }
 
-function IngredientTab({ today, t, locale }: { today: string; t: Dictionary; locale: Locale }) {
+function IngredientTab({ today, t, locale }: Readonly<{ today: string; t: Dictionary; locale: Locale }>) {
   const period = useReportPeriod(today, "month");
   const [data, setData] = useState<IngredientReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -917,7 +917,7 @@ function IngredientTab({ today, t, locale }: { today: string; t: Dictionary; loc
   );
 }
 
-function WarehouseTab({ t }: { t: Dictionary }) {
+function WarehouseTab({ t }: Readonly<{ t: Dictionary }>) {
   const [data, setData] = useState<WarehouseReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);

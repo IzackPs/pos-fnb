@@ -34,6 +34,23 @@ type OrderDetail = Awaited<ReturnType<typeof getOrder>>;
 
 function fmt(v: number) { return new Intl.NumberFormat("vi-VN").format(v); }
 
+function getDateLocale(locale: string) {
+  if (locale === "pt") {
+    return "pt-BR";
+  }
+
+  if (locale === "en") {
+    return "en-US";
+  }
+
+  return "vi-VN";
+}
+
+function getElapsedMinutes(openedAt: Date) {
+  // Live elapsed-minutes display — Date.now() read during render is intentional.
+  return Math.round((Date.now() - new Date(openedAt).getTime()) / 60000);
+}
+
 // ─── Table Grid View ────────────────────────────────────────────
 export function TableGridView({
   areas, activeAreaId, setActiveAreaId, onOpenTable, onSelectOrder,
@@ -75,7 +92,15 @@ export function TableGridView({
     setSelectedTables(new Set());
   }
   function toggleTable(tableId: string) {
-    setSelectedTables(p => { const n = new Set(p); if (n.has(tableId)) n.delete(tableId); else n.add(tableId); return n; });
+    setSelectedTables(p => {
+      const n = new Set(p);
+      if (n.has(tableId)) {
+        n.delete(tableId);
+      } else {
+        n.add(tableId);
+      }
+      return n;
+    });
   }
 
   function confirmSplitSelection() {
@@ -108,12 +133,6 @@ export function TableGridView({
       toast.success(t.order.mergeTables + "!");
       resetSelectionMode();
     });
-  }
-
-  function getElapsedMinutes(openedAt: Date) {
-    // Live elapsed-minutes display — Date.now() read during render is intentional.
-    // eslint-disable-next-line react-hooks/purity
-    return Math.round((Date.now() - new Date(openedAt).getTime()) / 60000);
   }
 
   function getTableDisabled(hasOrder: boolean, isSelected: boolean) {
@@ -581,8 +600,8 @@ function OrderDetailView({
           <span className="text-xs opacity-70 flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {orderDetail.closedAt
-              ? `${t.order.closedAt} · ${new Date(orderDetail.closedAt).toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" })}`
-              : `${t.order.openedAt} ${new Date(orderDetail.openedAt).toLocaleTimeString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { hour: "2-digit", minute: "2-digit" })}`
+              ? `${t.order.closedAt} · ${new Date(orderDetail.closedAt).toLocaleTimeString(getDateLocale(locale), { hour: "2-digit", minute: "2-digit" })}`
+              : `${t.order.openedAt} ${new Date(orderDetail.openedAt).toLocaleTimeString(getDateLocale(locale), { hour: "2-digit", minute: "2-digit" })}`
             }
           </span>
           <span className="text-xs opacity-70 flex items-center gap-1">
@@ -751,17 +770,18 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       groups.forEach(g => g.toppingGroup.toppings.forEach(t => { sel[t.id] = false; }));
       setToppingSelections(sel); setToppingProduct(product);
     } else {
-      start(async () => { await addItem(activeOrderId!, product.id, 1); setRefreshKey(k => k + 1); });
+      if (!activeOrderId) return;
+      start(async () => { await addItem(activeOrderId, product.id, 1); setRefreshKey(k => k + 1); });
     }
   }
   function confirmTopping() {
-    if (!toppingProduct) return;
+    if (!toppingProduct || !activeOrderId) return;
     start(async () => {
       const selected = Object.entries(toppingSelections).filter(([, v]) => v).map(([id]) => {
         const tp = toppingProduct.toppingGroups.flatMap(g => g.toppingGroup.toppings).find(tp => tp.id === id);
         return { toppingId: id, price: tp?.price ?? 0 };
       });
-      await addItem(activeOrderId!, toppingProduct.id, 1, selected.length > 0 ? selected : undefined);
+      await addItem(activeOrderId, toppingProduct.id, 1, selected.length > 0 ? selected : undefined);
       setRefreshKey(k => k + 1); setToppingProduct(null);
     });
   }
@@ -803,11 +823,12 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   }
   function handleCheckout() { if (!orderDetail) return; setPaymentAmount(orderDetail.totalAmount.toString()); setCheckoutDialog(true); }
   function confirmCheckout() {
+    if (!activeOrderId) return;
     start(async () => {
-      await checkoutOrder(activeOrderId!, [{ method: paymentMethod, amount: parseFloat(paymentAmount) }]);
+      await checkoutOrder(activeOrderId, [{ method: paymentMethod, amount: Number.parseFloat(paymentAmount) }]);
       toast.success(t.order.checkoutSuccess);
       setCheckoutDialog(false);
-      if (bt.connected) await handlePrintBluetooth(activeOrderId!, "BILL");
+      if (bt.connected) await handlePrintBluetooth(activeOrderId, "BILL");
       handleBack();
       router.refresh();
     });
@@ -910,7 +931,15 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
         <div className="space-y-1 max-h-40 overflow-y-auto mb-4">
           {orderDetail?.items.filter(i => i.status !== "CANCELLED").map(item => (
             <label key={item.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 cursor-pointer has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50">
-              <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => { const n = new Set(p); if (n.has(item.id)) n.delete(item.id); else n.add(item.id); return n; })} />
+              <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => {
+                const n = new Set(p);
+                if (n.has(item.id)) {
+                  n.delete(item.id);
+                } else {
+                  n.add(item.id);
+                }
+                return n;
+              })} />
               <span className="text-sm flex-1">{item.product.name} x{item.quantity}</span>
               <span className="text-xs font-mono">{fmt(item.unitPrice * item.quantity)}{t.common.d}</span></label>
           ))}</div>

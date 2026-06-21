@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Table2 } from "lucide-react";
-import { toast } from "sonner";
+import { runAction } from "@/lib/run-action";
 
 type Area = {
   id: string; name: string; type: string; sortOrder: number;
@@ -63,7 +63,13 @@ export function AreasManager({ areas, createArea, updateArea, deleteArea, create
   }
 
   function doAction(fn: ActionFn, ...args: unknown[]) {
-    startTransition(async () => { try { await (fn as LooseFn)(...args); toast.success(t.common.success); setOpenArea(false); setOpenTable(false); } catch { toast.error(t.common.error); } });
+    startTransition(async () => {
+      await runAction(
+        () => (fn as LooseFn)(...args),
+        { success: t.common.success, error: t.common.error },
+        () => { setOpenArea(false); setOpenTable(false); },
+      );
+    });
   }
 
   return (

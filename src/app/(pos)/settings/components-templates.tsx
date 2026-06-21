@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Pencil, Trash2, FileText, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { runAction } from "@/lib/run-action";
 
 type Tpl = {
   id: string; name: string; type: string; width: number; config: string; isDefault: boolean;
@@ -151,7 +152,7 @@ export function PrintTemplatesManager({
               <div className="flex items-center gap-1">
                 <button onClick={() => setPreviewTemplate(tpl)} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600" title={t.printTemplate.preview}><Eye className="h-4 w-4" /></button>
                 <button onClick={() => openEdit(tpl)} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-amber-50 text-gray-400 hover:text-amber-600" title={t.settings.edit}><Pencil className="h-4 w-4" /></button>
-                <button onClick={() => start(async () => { try { await (deleteTemplate as LooseFn)(tpl.id); toast.success(t.common.success); } catch { toast.error(t.common.error); } })} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500" title={t.settings.delete}><Trash2 className="h-4 w-4" /></button>
+                <button onClick={() => start(() => runAction(() => (deleteTemplate as LooseFn)(tpl.id), { success: t.common.success, error: t.common.error }))} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500" title={t.settings.delete}><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>
           ))}

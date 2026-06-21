@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { runAction } from "@/lib/run-action";
 import { useI18n } from "@/i18n/context";
 
 type Discount = {
@@ -88,7 +89,9 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
   }
 
   function del(id: string) {
-    start(async () => { try { await deleteDiscount(id); toast.success(t.common.success); } catch { toast.error(t.common.error); } });
+    start(async () => {
+      await runAction(() => deleteDiscount(id), { success: t.common.success, error: t.common.error });
+    });
   }
 
   return (

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, Layers } from "lucide-react";
-import { toast } from "sonner";
+import { runAction } from "@/lib/run-action";
 import { useI18n } from "@/i18n/context";
 
 type Group = { id: string; name: string; type: string; toppings: Topping[]; _count: { toppings: number } };
@@ -38,7 +38,13 @@ export function ToppingsManager({
   const [tForm, setTForm] = useState({ name: "", price: "0", toppingGroupId: "" });
 
   function doAct(fn: ActionFn, ...args: unknown[]) {
-    start(async () => { try { await (fn as LooseFn)(...args); toast.success(t.common.success); setOpenGroup(false); setOpenTopping(false); } catch { toast.error(t.common.error); } });
+    start(async () => {
+      await runAction(
+        () => (fn as LooseFn)(...args),
+        { success: t.common.success, error: t.common.error },
+        () => { setOpenGroup(false); setOpenTopping(false); },
+      );
+    });
   }
 
   const typeLabel: Record<string, string> = { SINGLE: t.inventory.typeSingle, MULTIPLE: t.inventory.typeMultiple, REQUIRED: t.inventory.typeRequired };

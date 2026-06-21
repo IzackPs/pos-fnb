@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { runAction } from "@/lib/run-action";
 
 type ServiceCharge = {
   id: string; name: string; type: string; value: number; scope: string;
@@ -94,7 +95,9 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
   }
 
   function del(id: string) {
-    start(async () => { try { await deleteServiceCharge(id); toast.success(t.common.success); } catch { toast.error(t.common.error); } });
+    start(async () => {
+      await runAction(() => deleteServiceCharge(id), { success: t.common.success, error: t.common.error });
+    });
   }
 
   const scTypeMap = {

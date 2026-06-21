@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Pencil, Trash2, Printer, Wifi, Server, Smartphone } from "lucide-react";
-import { toast } from "sonner";
+import { runAction } from "@/lib/run-action";
 
 type PrinterArea = { areaId: string; area?: { name?: string | null } | null };
 type P = { id: string; name: string; type: string; ipAddress: string; port: number; paperWidth: number; printMode: string; isActive: boolean; areas: PrinterArea[]; printTemplates: Record<string, unknown>[] };
@@ -40,7 +40,11 @@ export function PrintersManager({
 
   function doAct(fn: ActionFn, ...args: unknown[]) {
     start(async () => {
-      try { await (fn as LooseFn)(...args); toast.success(t.common.success); setOpen(false); } catch { toast.error(t.common.error); }
+      await runAction(
+        () => (fn as LooseFn)(...args),
+        { success: t.common.success, error: t.common.error },
+        () => setOpen(false),
+      );
     });
   }
 

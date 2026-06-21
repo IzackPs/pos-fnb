@@ -32,14 +32,16 @@ const defaultBillCfg: BillCfg = {
 
 function parseTplConfig(raw: string): { order: OrderCfg; bill: BillCfg } {
   try {
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(raw) as Partial<{ _version: number; order: OrderCfg; bill: BillCfg }>;
     if (parsed._version === 2) {
       return {
         order: { ...defaultOrderCfg, ...parsed.order },
         bill: { ...defaultBillCfg, ...(parsed.bill || {}), header: { ...defaultBillCfg.header, ...parsed.bill?.header }, body: { ...defaultBillCfg.body, ...parsed.bill?.body }, footer: { ...defaultBillCfg.footer, ...parsed.bill?.footer } },
       };
     }
-  } catch {}
+  } catch {
+    // Malformed config JSON — fall through to defaults
+  }
   return { order: defaultOrderCfg, bill: defaultBillCfg };
 }
 

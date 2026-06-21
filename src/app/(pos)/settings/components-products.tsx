@@ -41,14 +41,14 @@ type RecipeItem = {
 export function ProductsManager({
   products, categories, vats, exciseTaxes, units, createProduct, updateProduct, deleteProduct,
   allIngredients, toppingGroups, linkToppingGroup, unlinkToppingGroup,
-}: {
+}: Readonly<{
   products: Product[]; categories: Cat[]; vats: Vat[]; exciseTaxes: Excise[]; units: Unit[];
   createProduct: ActionFn; updateProduct: ActionFn; deleteProduct: ActionFn;
   allIngredients: IngredientBasic[];
   toppingGroups: ToppingGroupType[];
   linkToppingGroup: ActionFn;
   unlinkToppingGroup: ActionFn;
-}) {
+}>) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -136,7 +136,7 @@ export function ProductsManager({
   function save() {
     start(async () => {
       try {
-        const data = { name: form.name, slug: form.slug, price: parseFloat(form.price), costPrice: parseFloat(form.costPrice ?? "0"), categoryId: form.categoryId, vatId: form.vatId, exciseTaxId: form.exciseTaxId || undefined, unitId: form.unitId, sortOrder: parseInt(form.sortOrder) };
+        const data = { name: form.name, slug: form.slug, price: parseFloat(form.price), costPrice: parseFloat(form.costPrice ?? "0"), categoryId: form.categoryId, vatId: form.vatId, exciseTaxId: form.exciseTaxId || undefined, unitId: form.unitId, sortOrder: parseInt(form.sortOrder, 10) };
         if (editing) await (updateProduct as LooseFn)(editing.id, data);
         else await (createProduct as LooseFn)(data);
         toast.success(editing ? t.settings.updated : t.settings.added);
@@ -402,7 +402,7 @@ export function ProductsManager({
 
 function ToppingLinkDialog({
   productId, productName, toppingGroups, selectedGroupIds, onLink, onUnlink, onClose
-}: {
+}: Readonly<{
   productId: string;
   productName: string;
   toppingGroups: ToppingGroupType[];
@@ -410,7 +410,7 @@ function ToppingLinkDialog({
   onLink: (groupId: string) => Promise<void>;
   onUnlink: (groupId: string) => Promise<void>;
   onClose: () => void;
-}) {
+}>) {
   const [, start] = useTransition();
   const [localSelected, setLocalSelected] = useState(new Set(selectedGroupIds));
   const { t } = useI18n();
@@ -445,9 +445,10 @@ function ToppingLinkDialog({
             toppingGroups.map(g => {
               const isLinked = localSelected.has(g.id);
               return (
-                <div
+                <button
+                  type="button"
                   key={g.id}
-                  className={`flex items-center justify-between border rounded-xl p-4 cursor-pointer transition-all ${
+                  className={`w-full text-left flex items-center justify-between border rounded-xl p-4 cursor-pointer transition-all ${
                     isLinked ? "border-amber-300 bg-amber-50 shadow-sm" : "border-gray-200 hover:border-gray-300"
                   }`}
                   onClick={() => toggle(g.id)}
@@ -473,7 +474,7 @@ function ToppingLinkDialog({
                   }`}>
                     {isLinked && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                   </div>
-                </div>
+                </button>
               );
             })
           )}

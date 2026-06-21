@@ -21,7 +21,7 @@ type LooseFn = (...args: unknown[]) => Promise<unknown>;
 
 export function PrintersManager({
   printers, areas, createPrinter, updatePrinter, deletePrinter
-}: { printers: P[]; areas: A[]; createPrinter: ActionFn; updatePrinter: ActionFn; deletePrinter: ActionFn }) {
+}: Readonly<{ printers: P[]; areas: A[]; createPrinter: ActionFn; updatePrinter: ActionFn; deletePrinter: ActionFn }>) {
   const { t } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
@@ -45,7 +45,7 @@ export function PrintersManager({
   }
 
   function save() {
-    const data = { ...form, port: parseInt(form.port), paperWidth: parseInt(form.paperWidth) };
+    const data = { ...form, port: parseInt(form.port, 10), paperWidth: parseInt(form.paperWidth, 10) };
     if (editing) doAct(updatePrinter, editing.id, data);
     else doAct(createPrinter, data);
   }
@@ -135,9 +135,10 @@ export function PrintersManager({
             <div className="space-y-2 p-3 rounded-lg border border-gray-100 bg-gray-50">
               <Label className="text-xs uppercase tracking-wider text-gray-500">{t.inventory.printModeLabel}</Label>
               <div className="grid grid-cols-2 gap-3">
-                <label
+                <button
+                  type="button"
                   onClick={() => setForm(f => ({ ...f, printMode: "SERVER" }))}
-                  className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                  className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                     form.printMode === "SERVER" ? "border-amber-400 bg-amber-50" : "border-gray-200 bg-white hover:border-gray-300"
                   }`}
                 >
@@ -146,10 +147,11 @@ export function PrintersManager({
                     <div className="text-sm font-medium">Server</div>
                     <div className="text-[10px] text-gray-400">{t.inventory.serverModeDesc}</div>
                   </div>
-                </label>
-                <label
+                </button>
+                <button
+                  type="button"
                   onClick={() => setForm(f => ({ ...f, printMode: "CLIENT" }))}
-                  className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                  className={`flex items-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all text-left ${
                     form.printMode === "CLIENT" ? "border-blue-400 bg-blue-50" : "border-gray-200 bg-white hover:border-gray-300"
                   }`}
                 >
@@ -158,7 +160,7 @@ export function PrintersManager({
                     <div className="text-sm font-medium">{t.inventory.deviceLabel}</div>
                     <div className="text-[10px] text-gray-400">{t.inventory.clientModeDesc}</div>
                   </div>
-                </label>
+                </button>
               </div>
               {form.printMode === "CLIENT" && (
                 <p className="text-[11px] text-blue-700 bg-blue-50 rounded-lg p-2 mt-2">

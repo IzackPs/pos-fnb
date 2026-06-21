@@ -22,12 +22,12 @@ type ProductInfo = { id: string; name: string; categoryId: string; category?: { 
 export function ToppingsManager({
   groups, createGroup, updateGroup, deleteGroup, createTopping, updateTopping, deleteTopping,
   categories, products, linkToppingGroup, unlinkToppingGroup,
-}: {
+}: Readonly<{
   groups: Group[]; createGroup: ActionFn; updateGroup: ActionFn; deleteGroup: ActionFn;
   createTopping: ActionFn; updateTopping: ActionFn; deleteTopping: ActionFn;
   categories: Cat[]; products: ProductInfo[];
   linkToppingGroup: ActionFn; unlinkToppingGroup: ActionFn;
-}) {
+}>) {
   const { t } = useI18n();
   const [pending, start] = useTransition();
   const [openGroup, setOpenGroup] = useState(false);
@@ -103,7 +103,7 @@ export function ToppingsManager({
             <div className="space-y-1"><Label>{t.settings.name}</Label><Input value={gForm.name} onChange={e => setGForm(f => ({ ...f, name: e.target.value }))} /></div>
             <div className="space-y-1"><Label>{t.settings.type}</Label>
               <Select value={gForm.type} onValueChange={v => setGForm(f => ({ ...f, type: v ?? "" }))}>
-                <SelectTrigger><SelectValue placeholder={t.settings.type}>{gForm.type === "SINGLE" ? t.inventory.typeSingle : gForm.type === "MULTIPLE" ? t.inventory.typeMultiple : gForm.type === "REQUIRED" ? t.inventory.typeRequired : ""}</SelectValue></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t.settings.type}>{typeLabel[gForm.type] ?? ""}</SelectValue></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="SINGLE">{t.inventory.typeSingle} (Single)</SelectItem>
                   <SelectItem value="MULTIPLE">{t.inventory.typeMultiple} (Multiple)</SelectItem>
@@ -113,7 +113,7 @@ export function ToppingsManager({
             </div>
           </div>
           <DialogFooter>
-            <Button disabled={pending} onClick={() => doAct(editGroup ? updateGroup : createGroup, editGroup?.id, editGroup ? gForm : gForm)}>{pending ? t.common.saving : t.common.save}</Button>
+            <Button disabled={pending} onClick={() => doAct(editGroup ? updateGroup : createGroup, editGroup?.id, gForm)}>{pending ? t.common.saving : t.common.save}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -140,7 +140,7 @@ export function ToppingsManager({
 
 function LinkedProductsSection({
   groupId, products, categories, onLink, onUnlink, start
-}: {
+}: Readonly<{
   groupId: string;
   products: ProductInfo[];
   categories: Cat[];
@@ -148,7 +148,7 @@ function LinkedProductsSection({
   onUnlink: ActionFn;
   pending: boolean;
   start: (fn: () => Promise<void>) => void;
-}) {
+}>) {
   const { t } = useI18n();
   const [showPicker, setShowPicker] = useState(false);
   const [catFilter, setCatFilter] = useState("");

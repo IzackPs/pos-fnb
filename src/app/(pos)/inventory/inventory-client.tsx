@@ -18,9 +18,12 @@ type StockIn = Awaited<ReturnType<typeof getStockIns>>[0];
 type IngredientBasic = Awaited<ReturnType<typeof getIngredients>>[0];
 type Supplier = { id: string; name: string; contact: string | null; phone: string | null; email: string | null; address: string | null; note: string | null };
 
-type StockInItem = { ingredientId: string; ingredientName: string; quantity: string; unitPrice: string; purchaseUnit: string; baseUnit: string };
+type StockInItem = { uid: string; ingredientId: string; ingredientName: string; quantity: string; unitPrice: string; purchaseUnit: string; baseUnit: string };
 
 function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
+
+const DATE_LOCALES: Record<string, string> = { pt: "pt-BR", en: "en-US" };
+function dateLocale(locale: string) { return DATE_LOCALES[locale] ?? "vi-VN"; }
 
 export function InventoryClient({
   ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers
@@ -49,6 +52,7 @@ export function InventoryClient({
     getLastStockInBySupplier(supplierId).then(data => {
       if (data.length > 0) {
         setItems(data.map(d => ({
+          uid: crypto.randomUUID(),
           ingredientId: d.ingredientId,
           ingredientName: d.ingredientName,
           quantity: "",
@@ -63,7 +67,7 @@ export function InventoryClient({
   }, [supplierId, suppliers]);
 
   function addEmptyRow() {
-    setItems(p => [...p, { ingredientId: "", ingredientName: "", quantity: "", unitPrice: "", purchaseUnit: "", baseUnit: "" }]);
+    setItems(p => [...p, { uid: crypto.randomUUID(), ingredientId: "", ingredientName: "", quantity: "", unitPrice: "", purchaseUnit: "", baseUnit: "" }]);
   }
 
   async function submit() {
@@ -119,13 +123,13 @@ export function InventoryClient({
           </div></div>
         </TabsContent>
         <TabsContent value="in" className="mt-4">
-          <div className={`section-amber overflow-hidden ${secPad}`}><table className={`w-full text-sm ${isMobile ? "" : "text-sm"}`}><thead><tr className="bg-gray-50 border-b border-gray-200"><th className={`${cellPad} text-left`}>{t.inventory.code}</th><th className={`${cellPad} text-left`}>{t.inventory.date}</th><th className={`${cellPad} text-left`}>{t.inventory.supplier}</th><th className={`${cellPad} text-center`}>{t.inventory.items}</th><th className={`${cellPad} text-right`}>{t.inventory.totalAmount}</th><th className={`${cellPad} text-left`}>{t.inventory.staff}</th></tr></thead>
-            <tbody>{stockIns.map(si => (<tr key={si.id} className="border-b border-gray-100 hover:bg-amber-50/30"><td className={`${cellPad} font-mono text-xs text-amber-700 font-semibold`}>{si.code}</td><td className={`${cellPad} font-semibold text-xs`}>{new Date(si.createdAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</td><td className={`${cellPad} text-xs`}>{si.supplier || "—"}</td><td className={`${cellPad} text-center text-xs`}>{si.items.length}</td><td className={`${cellPad} text-right font-mono font-bold text-xs`}>{fmt(si.totalAmount)}{t.common.d}</td><td className={`${cellPad} text-xs`}>{si.user.name}</td></tr>))}</tbody></table>
+          <div className={`section-amber overflow-hidden ${secPad}`}><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className={`${cellPad} text-left`}>{t.inventory.code}</th><th className={`${cellPad} text-left`}>{t.inventory.date}</th><th className={`${cellPad} text-left`}>{t.inventory.supplier}</th><th className={`${cellPad} text-center`}>{t.inventory.items}</th><th className={`${cellPad} text-right`}>{t.inventory.totalAmount}</th><th className={`${cellPad} text-left`}>{t.inventory.staff}</th></tr></thead>
+            <tbody>{stockIns.map(si => (<tr key={si.id} className="border-b border-gray-100 hover:bg-amber-50/30"><td className={`${cellPad} font-mono text-xs text-amber-700 font-semibold`}>{si.code}</td><td className={`${cellPad} font-semibold text-xs`}>{new Date(si.createdAt).toLocaleDateString(dateLocale(locale))}</td><td className={`${cellPad} text-xs`}>{si.supplier || "—"}</td><td className={`${cellPad} text-center text-xs`}>{si.items.length}</td><td className={`${cellPad} text-right font-mono font-bold text-xs`}>{fmt(si.totalAmount)}{t.common.d}</td><td className={`${cellPad} text-xs`}>{si.user.name}</td></tr>))}</tbody></table>
             {stockIns.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} {t.inventory.noStockIns}</p>}</div>
         </TabsContent>
         <TabsContent value="out" className="mt-4">
           <div className={`section-amber overflow-hidden ${secPad}`}><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className={`${cellPad} text-left`}>{t.inventory.date}</th><th className={`${cellPad} text-left`}>{t.inventory.ingredient}</th><th className={`${cellPad} text-right`}>SL</th><th className={`${cellPad} text-left`}>{t.inventory.reason}</th><th className={`${cellPad} text-left`}>{t.inventory.staff}</th></tr></thead>
-            <tbody>{stockOuts.map(so => (<tr key={so.id} className="border-b border-gray-100"><td className={`${cellPad} font-semibold text-xs`}>{new Date(so.createdAt).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")}</td><td className={`${cellPad} text-xs`}>{so.ingredient?.name}</td><td className={`${cellPad} text-right font-mono text-xs`}>{so.quantity}</td><td className={`${cellPad} text-xs`}><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td><td className={`${cellPad} text-xs`}>{so.user?.name}</td></tr>))}</tbody></table>
+            <tbody>{stockOuts.map(so => (<tr key={so.id} className="border-b border-gray-100"><td className={`${cellPad} font-semibold text-xs`}>{new Date(so.createdAt).toLocaleDateString(dateLocale(locale))}</td><td className={`${cellPad} text-xs`}>{so.ingredient?.name}</td><td className={`${cellPad} text-right font-mono text-xs`}>{so.quantity}</td><td className={`${cellPad} text-xs`}><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td><td className={`${cellPad} text-xs`}>{so.user?.name}</td></tr>))}</tbody></table>
             {stockOuts.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} {t.inventory.noStockOuts}</p>}</div>
         </TabsContent>
       </Tabs>
@@ -160,7 +164,7 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
       setSortDir(d => d === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDir(field === "stock" ? "asc" : "asc");
+      setSortDir("asc");
     }
   }
 
@@ -244,8 +248,8 @@ function StockInPanel({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50" />
+    <div className="fixed inset-0 z-50 flex">
+      <button type="button" aria-label={t.inventory.cancel} onClick={onClose} className="absolute inset-0 bg-black/50 cursor-default" />
       <div
         className={`relative ml-auto ${isMobile ? "w-full" : "w-full max-w-6xl"} bg-white h-full overflow-hidden flex flex-col shadow-2xl`}
         onClick={e => e.stopPropagation()}
@@ -320,7 +324,7 @@ function StockInPanel({
                   <th className="text-left p-3 w-36 font-semibold text-gray-600">{t.inventory.quantity}</th>
                   <th className="text-left p-3 w-40 font-semibold text-gray-600">{t.inventory.unitPrice} ({t.common.d})</th>
                   <th className="text-right p-3 w-36 font-semibold text-gray-600">{t.inventory.totalPrice}</th>
-                  <th className="text-center p-3 pr-4 w-16"></th>
+                  <th className="text-center p-3 pr-4 w-16"><span className="sr-only">{t.inventory.cancel}</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -329,7 +333,7 @@ function StockInPanel({
                   const price = parseFloat(item.unitPrice) || 0;
                   const lineTotal = qty * price;
                   return (
-                    <tr key={idx} className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
+                    <tr key={item.uid} className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
                       <td className="p-2 pl-4 text-gray-400 text-xs font-mono">{idx + 1}</td>
                       <td className="p-2">
                         <Select

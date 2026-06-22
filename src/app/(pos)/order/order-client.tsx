@@ -585,7 +585,7 @@ function OrderDetailView({
             <input type="text" inputMode="numeric" style={{ textAlign: "right" }} className="w-full h-12 px-4 rounded-lg border border-gray-200 text-xl font-mono font-bold" value={mPaymentAmount ? Number(mPaymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = mPaymentAmount || ""} onBlur={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} placeholder="0" /></div>
           <div className="flex gap-3 pt-2">
             <button onClick={() => setMobileCheckout(false)} className="flex-1 h-12 rounded-xl border border-gray-200 font-medium text-sm text-gray-600 touch-manipulation">{t.order.cancel}</button>
-            <button onClick={() => { if (!mobileCheckoutPending) onMobileCheckout(mPaymentMethod, raw); }} disabled={mobileCheckoutPending || !raw || parseFloat(raw) <= 0} className="flex-1 h-12 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
+            <button onClick={() => { if (!mobileCheckoutPending) onMobileCheckout(mPaymentMethod, raw); }} disabled={mobileCheckoutPending || !raw || Number.parseFloat(raw) <= 0} className="flex-1 h-12 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
               {mobileCheckoutPending ? (<><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> {t.common.loading}</>) : (t.order.confirm + " — " + fmt(orderDetail!.totalAmount) + (t.common.d || ""))}
             </button>
           </div>
@@ -930,7 +930,7 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
     setMobileCheckoutPending(true);
     start(async () => {
       try {
-        await checkoutOrder(activeOrderId!, [{ method, amount: parseFloat(amount) }]);
+        await checkoutOrder(activeOrderId!, [{ method, amount: Number.parseFloat(amount) }]);
         toast.success(t.order.checkoutSuccess);
         if (bt.connected) await handlePrintBluetooth(activeOrderId!, "BILL");
         handleBack();

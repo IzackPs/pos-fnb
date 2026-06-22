@@ -27,7 +27,7 @@ export async function createStockIn(data: {
 }) {
   // Generate stock-in code: PN-YYYYMMDD-XXX
   const today = new Date();
-  const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
+  const dateStr = today.toISOString().slice(0, 10).replaceAll(/-/g, "");
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const todayCount = await db.stockIn.count({
     where: { createdAt: { gte: todayStart } },

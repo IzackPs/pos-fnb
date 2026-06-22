@@ -4,6 +4,7 @@ import { useState, useTransition, type Dispatch, type ReactNode, type SetStateAc
 import { Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
+import { DismissibleBackdrop } from "@/components/shared/dismissible-backdrop";
 import { useDeviceInfo } from "@/components/shared/device-provider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -278,20 +279,9 @@ function CashDialog({
   title: string;
 }>) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onClose}
-      onKeyDown={(event) => {
-        if (
-          event.target === event.currentTarget &&
-          (event.key === "Enter" || event.key === " " || event.key === "Escape")
-        ) {
-          event.preventDefault();
-          onClose();
-        }
-      }}
-      role="presentation"
-      tabIndex={0}
+    <DismissibleBackdrop
+      className="z-50 flex items-center justify-center bg-black/40"
+      onDismiss={onClose}
     >
       <div
         role="dialog"
@@ -303,7 +293,7 @@ function CashDialog({
         <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
         {children}
       </div>
-    </div>
+    </DismissibleBackdrop>
   );
 }
 

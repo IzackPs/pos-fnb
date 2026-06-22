@@ -1,5 +1,6 @@
 "use client";
 
+import { DismissibleBackdrop } from "@/components/shared/dismissible-backdrop";
 import { useDevice } from "@/hooks/use-device";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
@@ -20,7 +21,10 @@ export function MobileSheet({
 
   if (!isMobile) {
     return open ? (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <DismissibleBackdrop
+        className="z-50 flex items-center justify-center bg-black/40"
+        onDismiss={onClose}
+      >
         <div
           className={`bg-white rounded-2xl shadow-xl w-full ${maxWidth} p-6 mx-4`}
           onClick={(e) => e.stopPropagation()}
@@ -28,7 +32,7 @@ export function MobileSheet({
           <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
           {children}
         </div>
-      </div>
+      </DismissibleBackdrop>
     ) : null;
   }
 

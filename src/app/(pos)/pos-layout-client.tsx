@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DismissibleBackdrop } from "@/components/shared/dismissible-backdrop";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { useI18n } from "@/i18n/context";
 import { useDeviceInfo } from "@/components/shared/device-provider";
@@ -106,7 +107,7 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
             </button>
             {userMenuOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
+                <DismissibleBackdrop className="z-10" onDismiss={() => setUserMenuOpen(false)} />
                 <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-lg border border-gray-200 min-w-[160px] py-1">
                   <div className="px-4 py-2 text-sm font-medium text-gray-700 border-b border-gray-100">
                     {session?.user?.name}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { DismissibleBackdrop } from "@/components/shared/dismissible-backdrop";
 import { useI18n } from "@/i18n/context";
 import { createCurrency, updateCurrency, deleteCurrency } from "@/server/settings/actions";
 import { Plus, Trash2, Star, X } from "lucide-react";
@@ -76,7 +77,10 @@ export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setOpen(false)}>
+        <DismissibleBackdrop
+          className="z-50 flex items-center justify-center bg-black/40"
+          onDismiss={() => setOpen(false)}
+        >
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">{editId ? t.common.edit + " " + t.settings.sidebar.currencies : t.common.add + " " + t.settings.sidebar.currencies}</h3>
@@ -97,7 +101,7 @@ export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
               <button onClick={save} disabled={pending || !form.code || !form.name} className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm disabled:opacity-40">{t.common.save}</button>
             </div>
           </div>
-        </div>
+        </DismissibleBackdrop>
       )}
     </div>
   );

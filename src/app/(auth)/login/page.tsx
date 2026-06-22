@@ -66,7 +66,7 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-gray-700">{t.login.password}</label>
-                <a href="#" className="text-xs font-medium text-amber-600 hover:text-amber-700">{t.login.forgotPassword}</a>
+                <button type="button" className="text-xs font-medium text-amber-600 hover:text-amber-700">{t.login.forgotPassword}</button>
               </div>
               <input
                 name="password"

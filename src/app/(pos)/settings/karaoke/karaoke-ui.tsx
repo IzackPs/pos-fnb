@@ -34,7 +34,7 @@ export function KaraokePricingManager({ pricings, areas, createKP, updateKP, del
   const [editing, setEditing] = useState<KP | null>(null);
   const [form, setForm] = useState({ name: "", areaId: "", startTime: "10:00", endTime: "18:00", pricePerHour: "100000", minHours: "1", dayType: "ALL", timeUnit: "HOUR" });
 
-  function openNew() { setEditing(null); const karaAreas = areas.filter(a => a.type === "KARAOKE"); setForm({ name: "", areaId: karaAreas[0]?.id ?? "", startTime: "10:00", endTime: "18:00", pricePerHour: "100000", minHours: "1", dayType: "ALL", timeUnit: "HOUR" }); setOpen(true); }
+  function openNew() { setEditing(null); const firstKara = areas.find(a => a.type === "KARAOKE"); setForm({ name: "", areaId: firstKara?.id ?? "", startTime: "10:00", endTime: "18:00", pricePerHour: "100000", minHours: "1", dayType: "ALL", timeUnit: "HOUR" }); setOpen(true); }
   function openEdit(kp: KP) {
     setEditing(kp);
     setForm({ name: kp.name, areaId: kp.areaId, startTime: kp.startTime, endTime: kp.endTime, pricePerHour: kp.pricePerHour.toString(), minHours: kp.minHours.toString(), dayType: kp.dayType, timeUnit: kp.timeUnit || "HOUR" });

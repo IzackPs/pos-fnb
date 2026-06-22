@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import * as net from "net";
+import * as net from "node:net";
 
 function fmt(n: number) {
   return new Intl.NumberFormat("vi-VN").format(n || 0);
@@ -70,11 +70,7 @@ async function buildOrderContent(orderId: string, orderCfg: OrderCfg, sequence: 
   lines.push("\x1B\x40");
 
   if (orderCfg.showSequence) {
-    lines.push("\x1B\x61\x01");
-    lines.push("\x1B\x21\x30");
-    lines.push(`#${sequence}`);
-    lines.push("\x1B\x21\x00");
-    lines.push("\x1B\x61\x00");
+    lines.push("\x1B\x61\x01", "\x1B\x21\x30", `#${sequence}`, "\x1B\x21\x00", "\x1B\x61\x00");
   }
 
   if (orderCfg.showTable) lines.push(`Ban: ${order.table.name}`);
@@ -91,13 +87,10 @@ async function buildOrderContent(orderId: string, orderCfg: OrderCfg, sequence: 
   }
 
   if (orderCfg.showNote && order.note) {
-    lines.push("------------------------");
-    lines.push("* " + order.note);
+    lines.push("------------------------", "* " + order.note);
   }
 
-  lines.push("------------------------");
-  lines.push("\n\n\n\n");
-  lines.push("\x1D\x56\x00");
+  lines.push("------------------------", "\n\n\n\n", "\x1D\x56\x00");
 
   return lines.join("\n");
 }
@@ -127,12 +120,9 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
   const now = new Date();
   const lines: string[] = [];
 
-  lines.push("\x1B\x40");
-  lines.push("\x1B\x61\x01");
-  lines.push("\x1B\x21\x10");
+  lines.push("\x1B\x40", "\x1B\x61\x01", "\x1B\x21\x10");
   if (billCfg.header.showLogo) lines.push("🍽️");
-  lines.push((genCfg?.restaurantName || "RESTAURANT").toUpperCase());
-  lines.push("\x1B\x21\x00");
+  lines.push((genCfg?.restaurantName || "RESTAURANT").toUpperCase(), "\x1B\x21\x00");
 
   const addrParts: string[] = [];
   if (billCfg.header.showAddress && genCfg?.address) addrParts.push(genCfg.address);
@@ -143,10 +133,7 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
     lines.push(now.toLocaleDateString("vi-VN") + " " + now.toLocaleTimeString("vi-VN"));
   }
 
-  lines.push("\x1B\x61\x00");
-  lines.push("========================================");
-  lines.push("             HOA DON BAN HANG             ");
-  lines.push("========================================");
+  lines.push("\x1B\x61\x00", "========================================", "             HOA DON BAN HANG             ", "========================================");
 
   if (billCfg.body.showOrderNumber) {
     lines.push(`So HD: #${String(order.orderNumber).padStart(4, "0")}${order.orderNumberSuffix ? "-" + order.orderNumberSuffix : ""}`);
@@ -163,8 +150,7 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
   if (billCfg.body.showQuantity) colHeader += "SL".padStart(4);
   if (billCfg.body.showUnitPrice) colHeader += "DG".padStart(12);
   if (billCfg.body.showAmount) colHeader += "TT".padStart(12);
-  lines.push(colHeader);
-  lines.push("----------------------------------------");
+  lines.push(colHeader, "----------------------------------------");
 
   for (const item of order.items) {
     const name = item.product.name;
@@ -202,9 +188,7 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
 
   lines.push("========================================");
   if (billCfg.footer.showTotal) {
-    lines.push("\x1B\x21\x10");
-    lines.push(`TONG CONG:`.padEnd(28) + fmt(order.totalAmount).padStart(18));
-    lines.push("\x1B\x21\x00");
+    lines.push("\x1B\x21\x10", `TONG CONG:`.padEnd(28) + fmt(order.totalAmount).padStart(18), "\x1B\x21\x00");
   }
   lines.push("========================================");
 
@@ -216,12 +200,10 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
   }
 
   if (billCfg.footer.thankYou) {
-    lines.push("\x1B\x61\x01");
-    lines.push(billCfg.footer.thankYou);
+    lines.push("\x1B\x61\x01", billCfg.footer.thankYou);
   }
 
-  lines.push("\n\n\n\n");
-  lines.push("\x1D\x56\x00");
+  lines.push("\n\n\n\n", "\x1D\x56\x00");
 
   return lines.join("\n");
 }

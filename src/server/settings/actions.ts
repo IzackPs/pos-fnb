@@ -10,14 +10,14 @@ const addSortOrder = (data: Record<string, unknown>) => ({
   sortOrder: data.sortOrder ?? 0,
 });
 
-const roleCrud = makeCrud({ model: db.role as unknown as CrudDelegate, path: "/settings/users" });
-const categoryCrud = makeCrud({ model: db.category as unknown as CrudDelegate, path: "/settings/categories", prepareCreate: addSortOrder });
-const unitCrud = makeCrud({ model: db.unit as unknown as CrudDelegate, path: "/settings/units" });
-const areaCrud = makeCrud({ model: db.area as unknown as CrudDelegate, path: "/settings/areas", prepareCreate: addSortOrder });
-const shiftCrud = makeCrud({ model: db.shift as unknown as CrudDelegate, path: "/settings/shifts" });
-const paymentMethodCrud = makeCrud({ model: db.paymentMethod as unknown as CrudDelegate, path: "/settings/payment-methods", prepareCreate: addSortOrder });
-const toppingGroupCrud = makeCrud({ model: db.toppingGroup as unknown as CrudDelegate, path: "/settings/toppings" });
-const toppingCrud = makeCrud({ model: db.topping as unknown as CrudDelegate, path: "/settings/toppings", prepareCreate: addSortOrder });
+const roleCrud = makeCrud({ model: db.role, path: "/settings/users" });
+const categoryCrud = makeCrud({ model: db.category, path: "/settings/categories", prepareCreate: addSortOrder });
+const unitCrud = makeCrud({ model: db.unit, path: "/settings/units" });
+const areaCrud = makeCrud({ model: db.area, path: "/settings/areas", prepareCreate: addSortOrder });
+const shiftCrud = makeCrud({ model: db.shift, path: "/settings/shifts" });
+const paymentMethodCrud = makeCrud({ model: db.paymentMethod, path: "/settings/payment-methods", prepareCreate: addSortOrder });
+const toppingGroupCrud = makeCrud({ model: db.toppingGroup, path: "/settings/toppings" });
+const toppingCrud = makeCrud({ model: db.topping, path: "/settings/toppings", prepareCreate: addSortOrder });
 
 // ============ General Config ============
 export async function getGeneralConfig() {

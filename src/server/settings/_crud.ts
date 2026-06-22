@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
  * Each `db.<model>` is cast to this via `as unknown as CrudDelegate`.
  */
 export interface CrudDelegate {
-  create: (args: { data: unknown }) => Promise<unknown>;
-  update: (args: { where: { id: string }; data: unknown }) => Promise<unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create: (args: { data: any }) => Promise<unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  update: (args: { where: { id: string }; data: any }) => Promise<unknown>;
   delete: (args: { where: { id: string } }) => Promise<unknown>;
 }
 

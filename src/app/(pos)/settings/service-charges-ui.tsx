@@ -122,8 +122,14 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
   };
 
   function condLabel(d: ServiceCharge) {
+    const dateLocale = locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN";
     switch (d.applyCondition) {
-      case "DATE_RANGE": return d.startDate ? `${new Date(d.startDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : "∞"}` : t.settings.scCondition.DATE_RANGE;
+      case "DATE_RANGE": {
+        if (!d.startDate) return t.settings.scCondition.DATE_RANGE;
+        const start = new Date(d.startDate).toLocaleDateString(dateLocale);
+        const end = d.endDate ? new Date(d.endDate).toLocaleDateString(dateLocale) : "∞";
+        return `${start} → ${end}`;
+      }
       case "HOLIDAY": return t.settings.scCondition.HOLIDAY;
       case "MIN_ORDER": return `${t.settings.scCondition.MIN_ORDER.replace("X", new Intl.NumberFormat().format(d.minOrderValue || 0) + t.common.d)}`;
       case "GUEST_COUNT": return `${t.settings.scCondition.GUEST_COUNT.replace("X", String(d.minGuestCount))}`;

@@ -123,6 +123,7 @@ export function PrintTemplatesManager({
   }
 
   const isOrder = form.type === "ORDER";
+  const saveLabel = pending ? t.common.saving : editing ? t.printTemplate.update : t.printTemplate.saveAndCreate;
 
   return (
     <div className="space-y-4">
@@ -329,7 +330,7 @@ export function PrintTemplatesManager({
           <DialogFooter className="shrink-0 px-6 py-4 border-t border-gray-100 bg-gray-50">
             <Button variant="outline" onClick={() => setOpen(false)}>{t.order.cancel}</Button>
             <Button disabled={pending || !form.name.trim()} onClick={doSave} className="bg-amber-500 hover:bg-amber-600">
-              {pending ? t.common.saving : editing ? t.printTemplate.update : t.printTemplate.saveAndCreate}
+              {saveLabel}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -361,8 +362,14 @@ export function PrintTemplatesManager({
 
 // ======================== ORDER PREVIEW ========================
 
+function getMaxWidth(width: number): number {
+  if (width === 48) return 180;
+  if (width === 58) return 220;
+  return 300;
+}
+
 function OrderPreview({ config, width, t }: Readonly<{ config: OrderConfig; width: number; name: string; t: Dictionary }>) {
-  const maxW = width === 48 ? 180 : width === 58 ? 220 : 300;
+  const maxW = getMaxWidth(width);
 
   return (
     <div style={{ width: maxW }} className="bg-white shadow-md rounded-none p-3 font-mono text-[12px] leading-relaxed text-black">
@@ -392,7 +399,7 @@ function OrderPreview({ config, width, t }: Readonly<{ config: OrderConfig; widt
 // ======================== BILL PREVIEW ========================
 
 function BillPreview({ config, width, name, t, locale }: Readonly<{ config: BillConfig; width: number; name: string; t: Dictionary; locale: Locale }>) {
-  const maxW = width === 48 ? 180 : width === 58 ? 220 : 300;
+  const maxW = getMaxWidth(width);
   const sampleItems = t.printTemplate.sampleItemsWithPrice;
   const subtotal = sampleItems.reduce((s, i) => s + i.price * i.qty, 0);
   const vat = Math.round(subtotal * 0.08);

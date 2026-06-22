@@ -287,7 +287,6 @@ function CashDialog({
         open
         aria-label={title}
         className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
-        onClick={(event) => event.stopPropagation()}
       >
         <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
         {children}

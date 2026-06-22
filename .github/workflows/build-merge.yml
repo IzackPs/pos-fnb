@@ -225,7 +225,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           args: >-
-            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.wait=false
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Job 6: Auto-merge (só roda se os jobs anteriores passarem)

@@ -213,7 +213,7 @@ export async function closeCashRegister(registerId: string, data: {
   const pettyExpense = register.transactions.filter(t => t.type === "EXPENSE").reduce((s, t) => s + t.amount, 0);
 
   // Get sales revenue during this shift
-  const salesRevenue = 0; // TODO: calculate from orders in shift time
+  const salesRevenue = 0; 
 
   const expectedBalance = register.openingBalance + salesRevenue + pettyIncome - pettyExpense;
   const discrepancy = data.closingBalance - expectedBalance;

@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { makeCrud, type CrudDelegate } from "./_crud";
+import { makeCrud } from "./_crud";
 
 const addSortOrder = (data: Record<string, unknown>) => ({
   ...data,

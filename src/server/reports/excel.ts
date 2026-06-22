@@ -289,7 +289,7 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
     row = addSummaryRows(
       ws,
       Object.entries(summary.byPaymentMethod).map(
-        ([method, amount]) => [method, `${fmt(amount as number)}`] as const,
+        ([method, amount]) => [method, `${fmt(amount)}`] as const,
       ),
       row,
     );
@@ -315,7 +315,7 @@ export async function exportRevenueToExcel(days: RevenueDay[], summary: RevenueS
     row = addSummaryRows(
       ws,
       Object.entries(expensesByCategory).map(
-        ([cat, amount]) => [cat, `${fmt(amount as number)}`] as const,
+        ([cat, amount]) => [cat, `${fmt(amount)}`] as const,
       ),
       row,
     );

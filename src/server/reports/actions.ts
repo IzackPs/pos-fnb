@@ -246,10 +246,10 @@ export async function getRevenueReport(mode: string, date?: string, startDate?: 
     totalExpenses,
     totalOtherIncome,
     profit: totalOtherIncome - totalExpenses,
-    byPaymentMethod: orders.flatMap(o => o.payments).reduce((acc, p) => {
+    byPaymentMethod: orders.flatMap(o => o.payments).reduce<Record<string, number>>((acc, p) => {
       acc[p.method] = (acc[p.method] || 0) + p.amount;
       return acc;
-    }, {} as Record<string, number>),
+    }, {}),
   };
 
   return {
@@ -299,21 +299,21 @@ export async function getIngredientReport(mode: string, date?: string, startDate
     totalStockIns: stockIns.length,
     totalAmount: stockIns.reduce((s, si) => s + si.totalAmount, 0),
     totalItems: stockIns.reduce((s, si) => s + si.items.length, 0),
-    bySupplier: stockIns.reduce((acc, si) => {
+    bySupplier: stockIns.reduce<Record<string, number>>((acc, si) => {
       const key = si.supplier || "Unknown";
       acc[key] = (acc[key] || 0) + si.totalAmount;
       return acc;
-    }, {} as Record<string, number>),
+    }, {}),
   };
 
   const stockOutSummary = {
     totalStockOuts: stockOuts.length,
     totalQuantity: stockOuts.reduce((s, so) => s + so.quantity, 0),
     totalCost: stockOuts.reduce((s, so) => s + so.totalCost, 0),
-    byReason: stockOuts.reduce((acc, so) => {
+    byReason: stockOuts.reduce<Record<string, number>>((acc, so) => {
       acc[so.reason] = (acc[so.reason] || 0) + so.quantity;
       return acc;
-    }, {} as Record<string, number>),
+    }, {}),
   };
 
   return {

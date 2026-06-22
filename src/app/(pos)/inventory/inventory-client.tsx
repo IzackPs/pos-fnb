@@ -36,17 +36,17 @@ export function InventoryClient({
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<StockInItem[]>([]);
   const [supplierId, setSupplierId] = useState("");
-  const [supplierName, setSupplierName] = useState("");
   const [note, setNote] = useState("");
   const [loadingItems, setLoadingItems] = useState(false);
   const cellPad = isMobile ? "p-2.5" : "p-4";
   const secPad = isMobile ? "p-3" : "p-5";
+  const supplierName = suppliers.find(s => s.id === supplierId)?.name || "";
 
-  // When supplier changes, auto-fill from last stock-in
+  // This effect intentionally drives local async loading state and form rows
+  // from the selected supplier.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    if (!supplierId) { setItems([]); return; }
-    const sup = suppliers.find(s => s.id === supplierId);
-    setSupplierName(sup?.name || "");
+    if (!supplierId) { return; }
 
     setLoadingItems(true);
     getLastStockInBySupplier(supplierId).then(data => {
@@ -64,7 +64,8 @@ export function InventoryClient({
         setItems([]);
       }
     }).catch(() => setItems([])).finally(() => setLoadingItems(false));
-  }, [supplierId, suppliers]);
+  }, [supplierId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function addEmptyRow() {
     setItems(p => [...p, { uid: crypto.randomUUID(), ingredientId: "", ingredientName: "", quantity: "", unitPrice: "", purchaseUnit: "", baseUnit: "" }]);
@@ -86,7 +87,6 @@ export function InventoryClient({
         setOpen(false);
         setItems([]);
         setSupplierId("");
-        setSupplierName("");
         setNote("");
       } catch { toast.error(t.common.error); }
     });
@@ -274,7 +274,13 @@ function StockInPanel({
         <div className={`shrink-0 border-b border-gray-100 bg-white gap-4 ${isMobile ? "px-4 py-3 grid grid-cols-1" : "px-8 py-4 grid grid-cols-1 md:grid-cols-2"}`}>
           <div className="space-y-1">
             <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.supplier}</Label>
-            <Select value={supplierId} onValueChange={v => setSupplierId(v ?? "")}>
+            <Select value={supplierId} onValueChange={v => {
+              const nextSupplierId = v ?? "";
+              setSupplierId(nextSupplierId);
+              if (!nextSupplierId) {
+                setItems([]);
+              }
+            }}>
               <SelectTrigger className="h-11 rounded-lg">
                 <SelectValue placeholder={t.inventory.selectSupplier}>{suppliers.find(s => s.id === supplierId)?.name}</SelectValue>
               </SelectTrigger>

@@ -80,8 +80,8 @@ export function InventoryClient({
           note: note || undefined,
           userId: "admin",
           items: items
-            .filter(i => i.ingredientId && parseFloat(i.quantity) > 0)
-            .map(i => ({ ingredientId: i.ingredientId, quantity: parseFloat(i.quantity), unitPrice: parseFloat(i.unitPrice) || 0 })),
+            .filter(i => i.ingredientId && Number.parseFloat(i.quantity) > 0)
+            .map(i => ({ ingredientId: i.ingredientId, quantity: Number.parseFloat(i.quantity), unitPrice: Number.parseFloat(i.unitPrice) || 0 })),
         });
         toast.success(t.inventory.stockIn + "!");
         setOpen(false);
@@ -237,7 +237,7 @@ function StockInPanel({
 }) {
   const { t } = useI18n();
   const { isMobile } = useDeviceInfo();
-  const total = items.reduce((s, i) => s + (parseFloat(i.quantity) || 0) * (parseFloat(i.unitPrice) || 0), 0);
+  const total = items.reduce((s, i) => s + (Number.parseFloat(i.quantity) || 0) * (Number.parseFloat(i.unitPrice) || 0), 0);
 
   function removeRow(idx: number) {
     setItems(p => p.filter((_, i) => i !== idx));
@@ -335,8 +335,8 @@ function StockInPanel({
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {items.map((item, idx) => {
-                  const qty = parseFloat(item.quantity) || 0;
-                  const price = parseFloat(item.unitPrice) || 0;
+                  const qty = Number.parseFloat(item.quantity) || 0;
+                  const price = Number.parseFloat(item.unitPrice) || 0;
                   const lineTotal = qty * price;
                   return (
                     <tr key={item.uid} className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
@@ -420,7 +420,7 @@ function StockInPanel({
             </div>
             <div className="text-xs">
               <span className="text-gray-500">{t.inventory.totalItems}</span>
-              <span className="ml-1 font-bold text-gray-700">{fmt(items.reduce((s, i) => s + (parseFloat(i.quantity) || 0), 0))}</span>
+              <span className="ml-1 font-bold text-gray-700">{fmt(items.reduce((s, i) => s + (Number.parseFloat(i.quantity) || 0), 0))}</span>
             </div>
             <div className={`${isMobile ? "text-base" : "text-lg"}`}>
               <span className={`text-gray-500 ${isMobile ? "text-xs" : "text-sm"}`}>{t.inventory.totalAmount}:</span>
@@ -431,7 +431,7 @@ function StockInPanel({
             <button onClick={onClose} className={`${isMobile ? "h-10 px-4" : "h-11 px-6"} rounded-lg border border-gray-200 font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors`}>{t.inventory.cancel}</button>
             <button
               onClick={onSubmit}
-              disabled={pending || items.length === 0 || !items.some(i => i.ingredientId && parseFloat(i.quantity) > 0)}
+              disabled={pending || items.length === 0 || !items.some(i => i.ingredientId && Number.parseFloat(i.quantity) > 0)}
               className={`${isMobile ? "h-10 px-5" : "h-11 px-8"} rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors touch-manipulation`}
             >
               {pending ? t.common.saving : t.inventory.save}

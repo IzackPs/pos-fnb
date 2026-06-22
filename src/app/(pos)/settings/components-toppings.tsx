@@ -133,7 +133,7 @@ export function ToppingsManager({
           </div>
           <DialogFooter>
             <Button disabled={pending} onClick={() => {
-              const data = { name: tForm.name, price: parseFloat(tForm.price) || 0 };
+              const data = { name: tForm.name, price: Number.parseFloat(tForm.price) || 0 };
               if (editTopping) doAct(updateTopping, editTopping.id, data);
               else doAct(createTopping, { ...data, toppingGroupId: tForm.toppingGroupId, sortOrder: 0 });
             }}>{pending ? t.common.saving : t.common.save}</Button>

@@ -110,12 +110,12 @@ export function ProductsManager({
   }
 
   async function handleAddRecipe() {
-    if (!recipeForm.ingredientId || parseFloat(recipeForm.quantity) <= 0) {
+    if (!recipeForm.ingredientId || Number.parseFloat(recipeForm.quantity) <= 0) {
       toast.error(t.settings.ingredientRequired);
       return;
     }
     start(async () => {
-      await addRecipeItem({ productId: recipeProductId, ingredientId: recipeForm.ingredientId, quantity: parseFloat(recipeForm.quantity) });
+      await addRecipeItem({ productId: recipeProductId, ingredientId: recipeForm.ingredientId, quantity: Number.parseFloat(recipeForm.quantity) });
       toast.success(t.settings.recipeAdded);
       // Refresh recipe list
       const items = await getProductRecipe(recipeProductId);
@@ -136,7 +136,7 @@ export function ProductsManager({
   function save() {
     start(async () => {
       try {
-        const data = { name: form.name, slug: form.slug, price: parseFloat(form.price), costPrice: parseFloat(form.costPrice ?? "0"), categoryId: form.categoryId, vatId: form.vatId, exciseTaxId: form.exciseTaxId || undefined, unitId: form.unitId, sortOrder: parseInt(form.sortOrder, 10) };
+        const data = { name: form.name, slug: form.slug, price: Number.parseFloat(form.price), costPrice: Number.parseFloat(form.costPrice ?? "0"), categoryId: form.categoryId, vatId: form.vatId, exciseTaxId: form.exciseTaxId || undefined, unitId: form.unitId, sortOrder: Number.parseInt(form.sortOrder, 10) };
         if (editing) await (updateProduct as LooseFn)(editing.id, data);
         else await (createProduct as LooseFn)(data);
         toast.success(editing ? t.settings.updated : t.settings.added);

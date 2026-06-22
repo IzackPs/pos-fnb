@@ -191,7 +191,7 @@ export function PrintTemplatesManager({
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">{t.printTemplate.paperSize}</Label>
-                        <Select value={String(form.width)} onValueChange={v => v && setForm(f => ({ ...f, width: parseInt(v, 10) }))}>
+                        <Select value={String(form.width)} onValueChange={v => v && setForm(f => ({ ...f, width: Number.parseInt(v, 10) }))}>
                           <SelectTrigger className="h-10"><SelectValue>{form.width}mm</SelectValue></SelectTrigger>
                           <SelectContent>{[48, 58, 80].map(w => <SelectItem key={w} value={String(w)}>{w}mm</SelectItem>)}</SelectContent>
                         </Select>

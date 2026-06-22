@@ -49,7 +49,7 @@ export function PrintersManager({
   }
 
   function save() {
-    const data = { ...form, port: parseInt(form.port, 10), paperWidth: parseInt(form.paperWidth, 10) };
+    const data = { ...form, port: Number.parseInt(form.port, 10), paperWidth: Number.parseInt(form.paperWidth, 10) };
     if (editing) doAct(updatePrinter, editing.id, data);
     else doAct(createPrinter, data);
   }

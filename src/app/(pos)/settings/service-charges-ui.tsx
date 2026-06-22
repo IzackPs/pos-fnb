@@ -78,14 +78,14 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
     start(async () => {
       try {
         const payload: ServiceChargeInput = {
-          name, type, value: parseFloat(value) || 0, scope,
+          name, type, value: Number.parseFloat(value) || 0, scope,
           applyCondition, isActive,
           areaId: scope === "AREA" ? areaId || undefined : undefined,
           categoryIds: scope === "CATEGORY" ? JSON.stringify(selectedCats) : undefined,
           startDate: applyCondition === "DATE_RANGE" ? startDate || undefined : undefined,
           endDate: applyCondition === "DATE_RANGE" ? endDate || undefined : undefined,
-          minOrderValue: applyCondition === "MIN_ORDER" ? (parseFloat(minOrder) || undefined) : undefined,
-          minGuestCount: applyCondition === "GUEST_COUNT" ? (parseInt(minGuest) || undefined) : undefined,
+          minOrderValue: applyCondition === "MIN_ORDER" ? (Number.parseFloat(minOrder) || undefined) : undefined,
+          minGuestCount: applyCondition === "GUEST_COUNT" ? (Number.parseInt(minGuest) || undefined) : undefined,
         };
         if (editingId) { await updateServiceCharge(editingId, payload); toast.success(t.common.success); }
         else { await createServiceCharge(payload); toast.success(t.common.success); }

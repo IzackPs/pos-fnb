@@ -21,7 +21,7 @@ export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
   function save() {
     start(async () => {
       try {
-        const data = { code: form.code, name: form.name, symbol: form.symbol, rate: parseFloat(form.rate), isDefault: form.isDefault };
+        const data = { code: form.code, name: form.name, symbol: form.symbol, rate: Number.parseFloat(form.rate), isDefault: form.isDefault };
         if (editId) await updateCurrency(editId, data);
         else await createCurrency(data);
         toast.success(t.common.success);

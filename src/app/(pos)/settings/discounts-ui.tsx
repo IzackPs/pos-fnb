@@ -74,11 +74,11 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
     start(async () => {
       try {
         const payload: DiscountInput = {
-          name, type, value: parseFloat(value) || 0, scope,
+          name, type, value: Number.parseFloat(value) || 0, scope,
           categoryIds: scope === "CATEGORY" ? JSON.stringify(selectedCats) : undefined,
           startDate: startDate || undefined, endDate: endDate || undefined,
           happyHourStart: hhStart || undefined, happyHourEnd: hhEnd || undefined,
-          dayOfWeek: dayOfWeek || undefined, minOrderValue: minOrder ? parseFloat(minOrder) : undefined,
+          dayOfWeek: dayOfWeek || undefined, minOrderValue: minOrder ? Number.parseFloat(minOrder) : undefined,
           isActive,
         };
         if (editingId) { await updateDiscount(editingId, payload); toast.success(t.common.success); }

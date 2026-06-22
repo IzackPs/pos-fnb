@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { Plus, TrendingDown, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
@@ -52,6 +52,8 @@ type SummaryCard = {
   color: string;
 };
 
+type TranslationMap = ReturnType<typeof useI18n>["t"];
+
 function fmt(n: number) {
   return new Intl.NumberFormat("vi-VN").format(n || 0);
 }
@@ -86,7 +88,7 @@ function closeAllDialogs(
 
 function getPettyCategoryLabel(
   category: PettyCategory,
-  t: ReturnType<typeof useI18n>["t"],
+  t: TranslationMap,
 ) {
   const categoryLabels: Record<PettyCategory, string> = {
     ICECUBE: `🧊 ${t.inventory.icecube}`,
@@ -121,7 +123,7 @@ function FlowsTable({
 }: Readonly<{
   flows: CashFlow[];
   locale: string;
-  t: ReturnType<typeof useI18n>["t"];
+  t: TranslationMap;
   moneySuffix: string;
 }>) {
   const dateLocale = getDateLocale(locale);
@@ -194,7 +196,7 @@ function RegistersTable({
 }: Readonly<{
   registers: CashRegister[];
   locale: string;
-  t: ReturnType<typeof useI18n>["t"];
+  t: TranslationMap;
   moneySuffix: string;
 }>) {
   const dateLocale = getDateLocale(locale);
@@ -305,6 +307,477 @@ function CashDialog({
   );
 }
 
+function CashHeader({
+  activeRegister,
+  isMobile,
+  onOpenRegister,
+  onCloseRegister,
+  onOpenFlow,
+  t,
+}: Readonly<{
+  activeRegister?: CashRegister;
+  isMobile: boolean;
+  onOpenRegister: () => void;
+  onCloseRegister: () => void;
+  onOpenFlow: () => void;
+  t: TranslationMap;
+}>) {
+  return (
+    <div className={`flex items-center justify-between ${isMobile ? "flex-wrap gap-2" : ""}`}>
+      <div>
+        <h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>
+          {t.cash.title}
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.cash}</p>
+      </div>
+      <div className="flex gap-2">
+        {activeRegister === undefined ? (
+          <button
+            onClick={onOpenRegister}
+            className={`${isMobile ? "btn-pos-secondary text-sm" : "btn-pos-primary"}`}
+          >
+            <Plus className="h-4 w-4" /> {t.cash.openRegister}
+          </button>
+        ) : (
+          <button
+            onClick={onCloseRegister}
+            className="btn-pos-secondary text-red-600 hover:bg-red-50 text-sm"
+          >
+            {t.cash.closeRegister}
+          </button>
+        )}
+        <button
+          onClick={onOpenFlow}
+          className="btn-pos-secondary text-sm"
+        >
+          <Plus className="h-4 w-4" />{" "}
+          {isMobile ? "+" : `${t.cash.income}/${t.cash.expense}`}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CashTabsSection({
+  activeRegister,
+  flows,
+  isMobile,
+  locale,
+  moneySuffix,
+  registers,
+  setOpenPetty,
+  setPettyForm,
+  t,
+}: Readonly<{
+  activeRegister?: CashRegister;
+  flows: CashFlow[];
+  isMobile: boolean;
+  locale: string;
+  moneySuffix: string;
+  registers: CashRegister[];
+  setOpenPetty: (open: boolean) => void;
+  setPettyForm: Dispatch<SetStateAction<PettyFormState>>;
+  t: TranslationMap;
+}>) {
+  return (
+    <Tabs defaultValue="flows">
+      <TabsList
+        className={`bg-gray-100 border border-gray-200 p-1 rounded-full ${
+          isMobile ? "flex flex-wrap" : ""
+        }`}
+      >
+        <TabsTrigger
+          value="flows"
+          className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium"
+        >
+          {t.cash.title}
+        </TabsTrigger>
+        <TabsTrigger
+          value="register"
+          className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium"
+        >
+          {t.cash.cashRegister}
+        </TabsTrigger>
+        {activeRegister ? (
+          <TabsTrigger
+            value="petty"
+            className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium"
+          >
+            {t.cash.pettyCash}
+          </TabsTrigger>
+        ) : null}
+      </TabsList>
+
+      <TabsContent value="flows" className="mt-4">
+        <FlowsTable
+          flows={flows}
+          locale={locale}
+          t={t}
+          moneySuffix={moneySuffix}
+        />
+      </TabsContent>
+
+      <TabsContent value="register" className="mt-4">
+        <RegistersTable
+          registers={registers}
+          locale={locale}
+          t={t}
+          moneySuffix={moneySuffix}
+        />
+      </TabsContent>
+
+      {activeRegister ? (
+        <TabsContent value="petty" className="mt-4">
+          <div className="flex gap-4">
+            <button
+              onClick={() => {
+                setPettyForm((current) => ({ ...current, type: "EXPENSE" }));
+                setOpenPetty(true);
+              }}
+              className="flex-1 h-16 rounded-2xl border-2 border-red-200 bg-red-50 text-red-600 font-bold text-sm flex items-center justify-center gap-2 hover:border-red-300 active:scale-[0.98] transition-all"
+            >
+              <TrendingDown className="h-5 w-5" /> {t.cash.expense}
+            </button>
+            <button
+              onClick={() => {
+                setPettyForm((current) => ({ ...current, type: "INCOME" }));
+                setOpenPetty(true);
+              }}
+              className="flex-1 h-16 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-emerald-300 active:scale-[0.98] transition-all"
+            >
+              <TrendingUp className="h-5 w-5" /> {t.cash.income}
+            </button>
+          </div>
+        </TabsContent>
+      ) : null}
+    </Tabs>
+  );
+}
+
+function OpenRegisterDialog({
+  onClose,
+  onChange,
+  onSubmit,
+  openingBalance,
+  pending,
+  t,
+}: Readonly<{
+  onClose: () => void;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  openingBalance: string;
+  pending: boolean;
+  t: TranslationMap;
+}>) {
+  return (
+    <CashDialog title={t.cash.openRegister} onClose={onClose}>
+      <div className="space-y-3">
+        <Label>
+          {t.cash.openingBalance} ({t.common.d})
+        </Label>
+        <Input
+          type="number"
+          className="h-11 rounded-lg"
+          value={openingBalance}
+          onChange={(event) => onChange(event.target.value)}
+          autoFocus
+        />
+      </div>
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={onClose}
+          className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
+        >
+          {t.order.cancel}
+        </button>
+        <button
+          onClick={onSubmit}
+          disabled={pending}
+          className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
+        >
+          {t.cash.openRegister}
+        </button>
+      </div>
+    </CashDialog>
+  );
+}
+
+function CloseRegisterDialog({
+  closingBalance,
+  onClose,
+  onChange,
+  onSubmit,
+  pending,
+  t,
+}: Readonly<{
+  closingBalance: string;
+  onClose: () => void;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  pending: boolean;
+  t: TranslationMap;
+}>) {
+  return (
+    <CashDialog title={t.cash.closeRegister} onClose={onClose}>
+      <div className="space-y-3">
+        <Label>
+          {t.cash.closingBalance} ({t.common.d})
+        </Label>
+        <Input
+          type="number"
+          className="h-11 rounded-lg"
+          value={closingBalance}
+          onChange={(event) => onChange(event.target.value)}
+          autoFocus
+        />
+      </div>
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={onClose}
+          className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
+        >
+          {t.order.cancel}
+        </button>
+        <button
+          onClick={onSubmit}
+          disabled={pending}
+          className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
+        >
+          {t.cash.closeRegister}
+        </button>
+      </div>
+    </CashDialog>
+  );
+}
+
+function FlowDialog({
+  categories,
+  flowForm,
+  onClose,
+  onSubmit,
+  pending,
+  setFlowForm,
+  t,
+}: Readonly<{
+  categories: CashCategory[];
+  flowForm: FlowFormState;
+  onClose: () => void;
+  onSubmit: () => void;
+  pending: boolean;
+  setFlowForm: Dispatch<SetStateAction<FlowFormState>>;
+  t: TranslationMap;
+}>) {
+  return (
+    <CashDialog
+      title={`${t.cash.income}/${t.cash.expense}`}
+      onClose={onClose}
+    >
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Label>{t.settings.type}</Label>
+          <Select
+            value={flowForm.type}
+            onValueChange={(value) =>
+              setFlowForm((current) => ({
+                ...current,
+                type: value as FlowType,
+              }))
+            }
+          >
+            <SelectTrigger className="h-11 rounded-lg">
+              <SelectValue placeholder={t.settings.type}>
+                {flowForm.type === "INCOME"
+                  ? `${t.cash.income} (INCOME)`
+                  : `${t.cash.expense} (EXPENSE)`}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="INCOME">{t.cash.income} (INCOME)</SelectItem>
+              <SelectItem value="EXPENSE">{t.cash.expense} (EXPENSE)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label>{t.cash.category}</Label>
+          <Select
+            value={flowForm.categoryId}
+            onValueChange={(value) =>
+              setFlowForm((current) => ({
+                ...current,
+                categoryId: value ?? "",
+              }))
+            }
+          >
+            <SelectTrigger className="h-11 rounded-lg">
+              <SelectValue placeholder={t.cash.category}>
+                {categories.find((category) => category.id === flowForm.categoryId)?.name}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {categories
+                .filter((category) => category.type === flowForm.type)
+                .map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label>
+            {t.order.amount} ({t.common.d})
+          </Label>
+          <Input
+            type="number"
+            className="h-11 rounded-lg"
+            value={flowForm.amount}
+            onChange={(event) =>
+              setFlowForm((current) => ({
+                ...current,
+                amount: event.target.value,
+              }))
+            }
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>{t.cash.description}</Label>
+          <Input
+            className="h-11 rounded-lg"
+            value={flowForm.description}
+            onChange={(event) =>
+              setFlowForm((current) => ({
+                ...current,
+                description: event.target.value,
+              }))
+            }
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={onClose}
+          className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
+        >
+          {t.order.cancel}
+        </button>
+        <button
+          onClick={onSubmit}
+          disabled={pending}
+          className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
+        >
+          {t.common.save}
+        </button>
+      </div>
+    </CashDialog>
+  );
+}
+
+function PettyDialog({
+  activeRegisterId,
+  onClose,
+  onSubmit,
+  pending,
+  pettyForm,
+  setPettyForm,
+  t,
+}: Readonly<{
+  activeRegisterId: string;
+  onClose: () => void;
+  onSubmit: () => void;
+  pending: boolean;
+  pettyForm: PettyFormState;
+  setPettyForm: Dispatch<SetStateAction<PettyFormState>>;
+  t: TranslationMap;
+}>) {
+  return (
+    <CashDialog
+      title={pettyForm.type === "EXPENSE" ? t.cash.expense : t.cash.income}
+      onClose={onClose}
+    >
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <Label>{t.settings.type}</Label>
+          <Select
+            value={pettyForm.category}
+            onValueChange={(value) =>
+              setPettyForm((current) => ({
+                ...current,
+                category: (value ?? "") as PettyCategory,
+              }))
+            }
+          >
+            <SelectTrigger className="h-11 rounded-lg">
+              <SelectValue placeholder={t.settings.type}>
+                {getPettyCategoryLabel(pettyForm.category, t)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ICECUBE">🧊 {t.inventory.icecube}</SelectItem>
+              <SelectItem value="GAS">🔥 {t.inventory.gas}</SelectItem>
+              <SelectItem value="VEGGIE">🥬 {t.inventory.veggie}</SelectItem>
+              <SelectItem value="REPAIR">🔧 {t.inventory.repair}</SelectItem>
+              <SelectItem value="TIP">💝 {t.inventory.tip}</SelectItem>
+              <SelectItem value="MISC">📦 {t.inventory.other}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label>
+            {t.order.amount} ({t.common.d})
+          </Label>
+          <Input
+            type="number"
+            className="h-11 rounded-lg"
+            value={pettyForm.amount}
+            onChange={(event) =>
+              setPettyForm((current) => ({
+                ...current,
+                amount: event.target.value,
+              }))
+            }
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>{t.order.note}</Label>
+          <Input
+            className="h-11 rounded-lg"
+            value={pettyForm.description}
+            onChange={(event) =>
+              setPettyForm((current) => ({
+                ...current,
+                description: event.target.value,
+              }))
+            }
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={onClose}
+          className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
+        >
+          {t.order.cancel}
+        </button>
+        <button
+          onClick={onSubmit}
+          disabled={pending || !activeRegisterId}
+          className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
+        >
+          {t.common.save}
+        </button>
+      </div>
+    </CashDialog>
+  );
+}
+
 export function CashClient({
   registers,
   flows,
@@ -388,397 +861,117 @@ export function CashClient({
     });
   }
 
+  function openCloseRegisterDialog() {
+    if (!activeRegister) {
+      return;
+    }
+
+    setActiveRegisterId(activeRegister.id);
+    setCloseReg(true);
+  }
+
+  function submitOpenRegister() {
+    handleAction(openCashRegister, {
+      openingBalance: Number.parseFloat(openingBalance) || 0,
+      userId: "admin",
+    });
+  }
+
+  function submitCloseRegister() {
+    handleAction(closeCashRegister, activeRegisterId, {
+      closingBalance: Number.parseFloat(closingBalance) || 0,
+      closedBy: "admin",
+    });
+  }
+
+  function submitFlow() {
+    handleAction(createCashFlow, {
+      ...flowForm,
+      amount: Number.parseFloat(flowForm.amount),
+      userId: "admin",
+    });
+  }
+
+  function submitPetty() {
+    handleAction(createPettyTransaction, {
+      cashRegisterId: activeRegisterId,
+      ...pettyForm,
+      amount: Number.parseFloat(pettyForm.amount),
+      userId: "admin",
+    });
+  }
+
   return (
     <div className={`h-full overflow-y-auto space-y-6 ${isMobile ? "px-3 py-4" : "p-6"}`}>
-      <div className={`flex items-center justify-between ${isMobile ? "flex-wrap gap-2" : ""}`}>
-        <div>
-          <h2 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>
-            {t.cash.title}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">{t.dashboard.modules.cash}</p>
-        </div>
-        <div className="flex gap-2">
-          {activeRegister === undefined ? (
-            <button
-              onClick={() => setOpenReg(true)}
-              className={`${isMobile ? "btn-pos-secondary text-sm" : "btn-pos-primary"}`}
-            >
-              <Plus className="h-4 w-4" /> {t.cash.openRegister}
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setActiveRegisterId(activeRegister.id);
-                setCloseReg(true);
-              }}
-              className="btn-pos-secondary text-red-600 hover:bg-red-50 text-sm"
-            >
-              {t.cash.closeRegister}
-            </button>
-          )}
-          <button
-            onClick={() => setOpenFlow(true)}
-            className="btn-pos-secondary text-sm"
-          >
-            <Plus className="h-4 w-4" />{" "}
-            {isMobile ? "+" : `${t.cash.income}/${t.cash.expense}`}
-          </button>
-        </div>
-      </div>
+      <CashHeader
+        activeRegister={activeRegister}
+        isMobile={isMobile}
+        onOpenRegister={() => setOpenReg(true)}
+        onCloseRegister={openCloseRegisterDialog}
+        onOpenFlow={() => setOpenFlow(true)}
+        t={t}
+      />
 
       <div className={`grid ${isMobile ? "grid-cols-1" : "grid-cols-3"} gap-4`}>
         <SummaryCards cards={summaryCards} />
       </div>
 
-      <Tabs defaultValue="flows">
-        <TabsList
-          className={`bg-gray-100 border border-gray-200 p-1 rounded-full ${
-            isMobile ? "flex flex-wrap" : ""
-          }`}
-        >
-          <TabsTrigger
-            value="flows"
-            className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium"
-          >
-            {t.cash.title}
-          </TabsTrigger>
-          <TabsTrigger
-            value="register"
-            className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium"
-          >
-            {t.cash.cashRegister}
-          </TabsTrigger>
-          {activeRegister ? (
-            <TabsTrigger
-              value="petty"
-              className="data-[state=active]:bg-white data-[state=active]:text-amber-700 data-[state=active]:shadow-sm rounded-full px-4 py-2 text-sm font-medium"
-            >
-              {t.cash.pettyCash}
-            </TabsTrigger>
-          ) : null}
-        </TabsList>
-
-        <TabsContent value="flows" className="mt-4">
-          <FlowsTable
-            flows={flows}
-            locale={locale}
-            t={t}
-            moneySuffix={moneySuffix}
-          />
-        </TabsContent>
-
-        <TabsContent value="register" className="mt-4">
-          <RegistersTable
-            registers={registers}
-            locale={locale}
-            t={t}
-            moneySuffix={moneySuffix}
-          />
-        </TabsContent>
-
-        {activeRegister ? (
-          <TabsContent value="petty" className="mt-4">
-            <div className="flex gap-4">
-              <button
-                onClick={() => {
-                  setPettyForm((current) => ({ ...current, type: "EXPENSE" }));
-                  setOpenPetty(true);
-                }}
-                className="flex-1 h-16 rounded-2xl border-2 border-red-200 bg-red-50 text-red-600 font-bold text-sm flex items-center justify-center gap-2 hover:border-red-300 active:scale-[0.98] transition-all"
-              >
-                <TrendingDown className="h-5 w-5" /> {t.cash.expense}
-              </button>
-              <button
-                onClick={() => {
-                  setPettyForm((current) => ({ ...current, type: "INCOME" }));
-                  setOpenPetty(true);
-                }}
-                className="flex-1 h-16 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-2 hover:border-emerald-300 active:scale-[0.98] transition-all"
-              >
-                <TrendingUp className="h-5 w-5" /> {t.cash.income}
-              </button>
-            </div>
-          </TabsContent>
-        ) : null}
-      </Tabs>
+      <CashTabsSection
+        activeRegister={activeRegister}
+        flows={flows}
+        isMobile={isMobile}
+        locale={locale}
+        moneySuffix={moneySuffix}
+        registers={registers}
+        setOpenPetty={setOpenPetty}
+        setPettyForm={setPettyForm}
+        t={t}
+      />
 
       {openReg ? (
-        <CashDialog title={t.cash.openRegister} onClose={() => setOpenReg(false)}>
-          <div className="space-y-3">
-            <Label>
-              {t.cash.openingBalance} ({t.common.d})
-            </Label>
-            <Input
-              type="number"
-              className="h-11 rounded-lg"
-              value={openingBalance}
-              onChange={(event) => setOpeningBalance(event.target.value)}
-              autoFocus
-            />
-          </div>
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={() => setOpenReg(false)}
-              className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
-            >
-              {t.order.cancel}
-            </button>
-            <button
-              onClick={() =>
-                handleAction(openCashRegister, {
-                  openingBalance: Number.parseFloat(openingBalance) || 0,
-                  userId: "admin",
-                })
-              }
-              disabled={pending}
-              className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
-            >
-              {t.cash.openRegister}
-            </button>
-          </div>
-        </CashDialog>
+        <OpenRegisterDialog
+          onClose={() => setOpenReg(false)}
+          onChange={setOpeningBalance}
+          onSubmit={submitOpenRegister}
+          openingBalance={openingBalance}
+          pending={pending}
+          t={t}
+        />
       ) : null}
 
       {closeReg ? (
-        <CashDialog title={t.cash.closeRegister} onClose={() => setCloseReg(false)}>
-          <div className="space-y-3">
-            <Label>
-              {t.cash.closingBalance} ({t.common.d})
-            </Label>
-            <Input
-              type="number"
-              className="h-11 rounded-lg"
-              value={closingBalance}
-              onChange={(event) => setClosingBalance(event.target.value)}
-              autoFocus
-            />
-          </div>
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={() => setCloseReg(false)}
-              className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
-            >
-              {t.order.cancel}
-            </button>
-            <button
-              onClick={() =>
-                handleAction(closeCashRegister, activeRegisterId, {
-                  closingBalance: Number.parseFloat(closingBalance) || 0,
-                  closedBy: "admin",
-                })
-              }
-              disabled={pending}
-              className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
-            >
-              {t.cash.closeRegister}
-            </button>
-          </div>
-        </CashDialog>
+        <CloseRegisterDialog
+          closingBalance={closingBalance}
+          onClose={() => setCloseReg(false)}
+          onChange={setClosingBalance}
+          onSubmit={submitCloseRegister}
+          pending={pending}
+          t={t}
+        />
       ) : null}
 
       {openFlow ? (
-        <CashDialog
-          title={`${t.cash.income}/${t.cash.expense}`}
+        <FlowDialog
+          categories={categories}
+          flowForm={flowForm}
           onClose={() => setOpenFlow(false)}
-        >
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>{t.settings.type}</Label>
-              <Select
-                value={flowForm.type}
-                onValueChange={(value) =>
-                  setFlowForm((current) => ({
-                    ...current,
-                    type: value as FlowType,
-                  }))
-                }
-              >
-                <SelectTrigger className="h-11 rounded-lg">
-                  <SelectValue placeholder={t.settings.type}>
-                    {flowForm.type === "INCOME"
-                      ? `${t.cash.income} (INCOME)`
-                      : `${t.cash.expense} (EXPENSE)`}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="INCOME">{t.cash.income} (INCOME)</SelectItem>
-                  <SelectItem value="EXPENSE">{t.cash.expense} (EXPENSE)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label>{t.cash.category}</Label>
-              <Select
-                value={flowForm.categoryId}
-                onValueChange={(value) =>
-                  setFlowForm((current) => ({
-                    ...current,
-                    categoryId: value ?? "",
-                  }))
-                }
-              >
-                <SelectTrigger className="h-11 rounded-lg">
-                  <SelectValue placeholder={t.cash.category}>
-                    {categories.find((category) => category.id === flowForm.categoryId)?.name}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {categories
-                    .filter((category) => category.type === flowForm.type)
-                    .map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label>
-                {t.order.amount} ({t.common.d})
-              </Label>
-              <Input
-                type="number"
-                className="h-11 rounded-lg"
-                value={flowForm.amount}
-                onChange={(event) =>
-                  setFlowForm((current) => ({
-                    ...current,
-                    amount: event.target.value,
-                  }))
-                }
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>{t.cash.description}</Label>
-              <Input
-                className="h-11 rounded-lg"
-                value={flowForm.description}
-                onChange={(event) =>
-                  setFlowForm((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={() => setOpenFlow(false)}
-              className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
-            >
-              {t.order.cancel}
-            </button>
-            <button
-              onClick={() =>
-                handleAction(createCashFlow, {
-                  ...flowForm,
-                  amount: Number.parseFloat(flowForm.amount),
-                  userId: "admin",
-                })
-              }
-              disabled={pending}
-              className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
-            >
-              {t.common.save}
-            </button>
-          </div>
-        </CashDialog>
+          onSubmit={submitFlow}
+          pending={pending}
+          setFlowForm={setFlowForm}
+          t={t}
+        />
       ) : null}
 
       {openPetty ? (
-        <CashDialog
-          title={pettyForm.type === "EXPENSE" ? t.cash.expense : t.cash.income}
+        <PettyDialog
+          activeRegisterId={activeRegisterId}
           onClose={() => setOpenPetty(false)}
-        >
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>{t.settings.type}</Label>
-              <Select
-                value={pettyForm.category}
-                onValueChange={(value) =>
-                  setPettyForm((current) => ({
-                    ...current,
-                    category: (value ?? "") as PettyCategory,
-                  }))
-                }
-              >
-                <SelectTrigger className="h-11 rounded-lg">
-                  <SelectValue placeholder={t.settings.type}>
-                    {getPettyCategoryLabel(pettyForm.category, t)}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ICECUBE">🧊 {t.inventory.icecube}</SelectItem>
-                  <SelectItem value="GAS">🔥 {t.inventory.gas}</SelectItem>
-                  <SelectItem value="VEGGIE">🥬 {t.inventory.veggie}</SelectItem>
-                  <SelectItem value="REPAIR">🔧 {t.inventory.repair}</SelectItem>
-                  <SelectItem value="TIP">💝 {t.inventory.tip}</SelectItem>
-                  <SelectItem value="MISC">📦 {t.inventory.other}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label>
-                {t.order.amount} ({t.common.d})
-              </Label>
-              <Input
-                type="number"
-                className="h-11 rounded-lg"
-                value={pettyForm.amount}
-                onChange={(event) =>
-                  setPettyForm((current) => ({
-                    ...current,
-                    amount: event.target.value,
-                  }))
-                }
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label>{t.order.note}</Label>
-              <Input
-                className="h-11 rounded-lg"
-                value={pettyForm.description}
-                onChange={(event) =>
-                  setPettyForm((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={() => setOpenPetty(false)}
-              className="flex-1 h-11 rounded-lg border border-gray-200 text-sm text-gray-600"
-            >
-              {t.order.cancel}
-            </button>
-            <button
-              onClick={() =>
-                handleAction(createPettyTransaction, {
-                  cashRegisterId: activeRegisterId,
-                  ...pettyForm,
-                  amount: Number.parseFloat(pettyForm.amount),
-                  userId: "admin",
-                })
-              }
-              disabled={pending}
-              className="flex-1 h-11 rounded-lg bg-amber-500 text-white font-semibold text-sm"
-            >
-              {t.common.save}
-            </button>
-          </div>
-        </CashDialog>
+          onSubmit={submitPetty}
+          pending={pending}
+          pettyForm={pettyForm}
+          setPettyForm={setPettyForm}
+          t={t}
+        />
       ) : null}
     </div>
   );

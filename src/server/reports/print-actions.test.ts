@@ -14,7 +14,7 @@ interface FakeSocket {
   handlers: Record<string, (e?: Error) => void>;
 }
 
-vi.mock("net", () => {
+vi.mock("node:net", () => {
   class Socket implements FakeSocket {
     handlers: Record<string, (e?: Error) => void> = {};
     on(ev: string, cb: (e?: Error) => void) { this.handlers[ev] = cb; return this; }
@@ -159,19 +159,18 @@ describe("print-actions createPrintJob", () => {
   });
 
   it("sends over TCP in SERVER mode and records success", async () => {
-    vi.useFakeTimers();
     mockOrderLookups();
     mockPrinter({ printMode: "SERVER" });
-    const promise = createPrintJob({ orderId: "order-1", type: "BILL" });
-    await vi.runAllTimersAsync();
-    const res = await promise;
+    // Real timers: production resolves ~500ms after a successful write, well
+    // under the test timeout. Fake timers don't control the mock socket's
+    // queueMicrotask, which desyncs ordering and leaks into later tests.
+    const res = await createPrintJob({ orderId: "order-1", type: "BILL" });
     expect(res.success).toBe(true);
     // CLIENT-only content is undefined in SERVER mode.
     expect(res.content).toBeUndefined();
   });
 
   it("records a failure when the printer connection errors", async () => {
-    vi.useRealTimers();
     mockOrderLookups();
     mockPrinter({ printMode: "SERVER" });
     socketBehavior = (sock) => sock.handlers.error?.(new Error("ECONNREFUSED"));

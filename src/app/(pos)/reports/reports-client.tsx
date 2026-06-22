@@ -19,6 +19,9 @@ const DATE_LOCALE_BY_APP_LOCALE: Record<Locale, string> = {
   en: "en-US",
   pt: "pt-BR",
   vi: "vi-VN",
+  zh: "zh-CN",
+  ko: "ko-KR",
+  ja: "ja-JP",
 };
 
 function dateLocale(locale: Locale) { return DATE_LOCALE_BY_APP_LOCALE[locale]; }

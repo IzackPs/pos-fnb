@@ -188,6 +188,15 @@ function getBluetoothIcon(btState: { connected: boolean; connecting: boolean }) 
   return <BluetoothOff className="h-4 w-4" />;
 }
 
+function getSourceOrderIds(tables: TableInfo[], tableIds: string[]): string[] {
+  const result: string[] = [];
+  for (const tid of tableIds.slice(1)) {
+    const oid = tables.find(tb => tb.id === tid)?.orders[0]?.id;
+    if (oid) result.push(oid);
+  }
+  return result;
+}
+
 // ─── Table Grid View ────────────────────────────────────────────
 export function TableGridView({
   areas, activeAreaId, setActiveAreaId, onOpenTable, onSelectOrder,
@@ -259,21 +268,16 @@ export function TableGridView({
     const tableIds = Array.from(selectedTables);
     if (tableIds.length < 2) { toast.error(t.order.mergeTablePrompt); return; }
     start(async () => {
-      const targetTableId = tableIds[0];
-      const sourceOrderIds: string[] = [];
-      for (const tid of tableIds.slice(1)) {
-        const tbl = activeArea.tables.find(tb => tb.id === tid);
-        const oid = tbl?.orders[0]?.id;
-        if (oid) sourceOrderIds.push(oid);
-      }
-      await onMergeTables(sourceOrderIds, targetTableId);
+      await onMergeTables(getSourceOrderIds(activeArea.tables, tableIds), tableIds[0]);
       toast.success(t.order.mergeTables + "!");
       resetSelectionMode();
     });
   }
 
   // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
-  const gridCols = isMobile ? "grid-cols-3" : isTablet ? "grid-cols-4" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
+  let gridCols = "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
+  if (isMobile) gridCols = "grid-cols-3";
+  else if (isTablet) gridCols = "grid-cols-4";
   const cardPadding = isMobile ? "p-2.5" : "p-4";
   const gapSize = isMobile ? "gap-2" : "gap-4";
 
@@ -470,7 +474,6 @@ function OrderDetailView({
 
   // ══════ Shared: Order Panel content ══════
   function renderOrderPanel(compact?: boolean) {
-    if (!orderDetail) return null;
     return (
       <div className="flex flex-col h-full bg-white">
         {compact && (
@@ -537,7 +540,7 @@ function OrderDetailView({
         </div>
 
         {/* Actions */}
-        <div className={`grid ${compact ? "grid-cols-3" : "grid-cols-3"} gap-1.5 px-3 py-2.5 shrink-0 border-t border-gray-200`}>
+        <div className="grid grid-cols-3 gap-1.5 px-3 py-2.5 shrink-0 border-t border-gray-200">
           <button onClick={onSend} disabled={pending || !canSend}
             className="col-span-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 transition-all touch-manipulation">
             <Send className="h-4 w-4" /> {t.order.sendToKitchen}</button>

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dispatch, SetStateAction } from "react";
 import { useState, useTransition, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -49,6 +50,142 @@ function getDateLocale(locale: string) {
 function getElapsedMinutes(openedAt: Date) {
   // Live elapsed-minutes display — Date.now() read during render is intentional.
   return Math.round((Date.now() - new Date(openedAt).getTime()) / 60000);
+}
+
+function getTableDisabledState(params: {
+  mergeMode: boolean;
+  splitMode: boolean;
+  hasOrder: boolean;
+  isSelected: boolean;
+  selectedCount: number;
+}) {
+  const { mergeMode, splitMode, hasOrder, isSelected, selectedCount } = params;
+  const inMode = mergeMode || splitMode;
+
+  if (!inMode) {
+    return false;
+  }
+
+  if (mergeMode) {
+    return !hasOrder;
+  }
+
+  return !hasOrder || (selectedCount === 1 && !isSelected);
+}
+
+function getTableCardClassName(params: {
+  hasOrder: boolean;
+  isSelected: boolean;
+  disabled: boolean;
+  inMode: boolean;
+  isMobile: boolean;
+  cardPadding: string;
+}) {
+  const { hasOrder, isSelected, disabled, inMode, isMobile, cardPadding } = params;
+  let stateClassName = "bg-emerald-50 border-emerald-200";
+
+  if (inMode && isSelected) {
+    stateClassName = "bg-blue-100 border-blue-500 ring-2 ring-blue-300";
+  } else if (inMode && hasOrder) {
+    stateClassName = "bg-amber-50 border-amber-300 hover:border-blue-400";
+  } else if (hasOrder) {
+    stateClassName = "bg-amber-50 border-amber-300";
+  }
+
+  return `rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
+    disabled ? "opacity-30 cursor-not-allowed" : ""
+  } ${stateClassName}`;
+}
+
+function handleTableCardAction(params: {
+  mergeMode: boolean;
+  splitMode: boolean;
+  hasOrder: boolean;
+  selectedCount: number;
+  table: TableInfo;
+  order?: TableInfo["orders"][number];
+  onToggleTable: (tableId: string) => void;
+  onSelectOrder: (orderId: string) => void;
+  onOpenTable: (table: TableInfo) => void;
+}) {
+  const {
+    mergeMode,
+    splitMode,
+    hasOrder,
+    selectedCount,
+    table,
+    order,
+    onToggleTable,
+    onSelectOrder,
+    onOpenTable,
+  } = params;
+
+  if (mergeMode) {
+    if (hasOrder) {
+      onToggleTable(table.id);
+    }
+    return;
+  }
+
+  if (splitMode) {
+    if (hasOrder && selectedCount === 0) {
+      onToggleTable(table.id);
+    }
+    return;
+  }
+
+  if (hasOrder && order) {
+    onSelectOrder(order.id);
+    return;
+  }
+
+  onOpenTable(table);
+}
+
+function getSelectedToppings(
+  toppingProduct: ProductInfo,
+  toppingSelections: Record<string, boolean>,
+) {
+  const toppingsById = toppingProduct.toppingGroups
+    .flatMap(group => group.toppingGroup.toppings)
+    .reduce<Record<string, { price: number }>>((acc, topping) => {
+      acc[topping.id] = { price: topping.price };
+      return acc;
+    }, {});
+
+  return Object.entries(toppingSelections)
+    .filter(([, selected]) => selected)
+    .map(([id]) => ({
+      toppingId: id,
+      price: toppingsById[id]?.price ?? 0,
+    }));
+}
+
+function buildSingleToppingSelection(group: ProductInfo["toppingGroups"][number], toppingId: string) {
+  return group.toppingGroup.toppings.reduce<Record<string, boolean>>((selection, topping) => {
+    selection[topping.id] = topping.id === toppingId;
+    return selection;
+  }, {});
+}
+
+function updateToppingSelection(
+  group: ProductInfo["toppingGroups"][number],
+  toppingId: string,
+  setToppingSelections: Dispatch<SetStateAction<Record<string, boolean>>>,
+) {
+  if (group.toppingGroup.type === "SINGLE") {
+    const selection = buildSingleToppingSelection(group, toppingId);
+    setToppingSelections(current => ({ ...current, ...selection }));
+    return;
+  }
+
+  setToppingSelections(current => ({ ...current, [toppingId]: !current[toppingId] }));
+}
+
+function getBluetoothIcon(btState: { connected: boolean; connecting: boolean }) {
+  if (btState.connecting) return <Bluetooth className="h-4 w-4 animate-pulse" />;
+  if (btState.connected) return <BluetoothConnected className="h-4 w-4" />;
+  return <BluetoothOff className="h-4 w-4" />;
 }
 
 // ─── Table Grid View ────────────────────────────────────────────
@@ -135,60 +272,6 @@ export function TableGridView({
     });
   }
 
-  function getTableDisabled(hasOrder: boolean, isSelected: boolean) {
-    const inMode = mergeMode || splitMode;
-
-    if (!inMode) {
-      return false;
-    }
-
-    if (mergeMode) {
-      return !hasOrder;
-    }
-
-    return !hasOrder || (selectedTables.size === 1 && !isSelected);
-  }
-
-  function handleTableCardClick(table: TableInfo, hasOrder: boolean, order?: TableInfo["orders"][number]) {
-    if (mergeMode) {
-      if (hasOrder) {
-        toggleTable(table.id);
-      }
-      return;
-    }
-
-    if (splitMode) {
-      if (hasOrder && selectedTables.size === 0) {
-        toggleTable(table.id);
-      }
-      return;
-    }
-
-    if (hasOrder && order) {
-      onSelectOrder(order.id);
-      return;
-    }
-
-    onOpenTable(table);
-  }
-
-  function getTableCardClassName(hasOrder: boolean, isSelected: boolean, disabled: boolean) {
-    const inMode = mergeMode || splitMode;
-    let stateClassName = "bg-emerald-50 border-emerald-200";
-
-    if (inMode && isSelected) {
-      stateClassName = "bg-blue-100 border-blue-500 ring-2 ring-blue-300";
-    } else if (inMode && hasOrder) {
-      stateClassName = "bg-amber-50 border-amber-300 hover:border-blue-400";
-    } else if (hasOrder) {
-      stateClassName = "bg-amber-50 border-amber-300";
-    }
-
-    return `rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
-      disabled ? "opacity-30 cursor-not-allowed" : ""
-    } ${stateClassName}`;
-  }
-
   // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
   const gridCols = isMobile ? "grid-cols-3" : isTablet ? "grid-cols-4" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
   const cardPadding = isMobile ? "p-2.5" : "p-4";
@@ -273,12 +356,28 @@ export function TableGridView({
             const order = table.orders[0];
             const isSelected = selectedTables.has(table.id);
             const inMode = mergeMode || splitMode;
-            const disabled = getTableDisabled(hasOrder, isSelected);
+            const disabled = getTableDisabledState({
+              mergeMode,
+              splitMode,
+              hasOrder,
+              isSelected,
+              selectedCount: selectedTables.size,
+            });
 
             return (
               <button key={table.id} disabled={disabled}
-                onClick={() => handleTableCardClick(table, hasOrder, order)}
-                className={getTableCardClassName(hasOrder, isSelected, disabled)}>
+                onClick={() => handleTableCardAction({
+                  mergeMode,
+                  splitMode,
+                  hasOrder,
+                  selectedCount: selectedTables.size,
+                  table,
+                  order,
+                  onToggleTable: toggleTable,
+                  onSelectOrder,
+                  onOpenTable,
+                })}
+                className={getTableCardClassName({ hasOrder, isSelected, disabled, inMode, isMobile, cardPadding })}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
@@ -368,12 +467,6 @@ function OrderDetailView({
   const pendingItems = orderDetail.items.filter(i => i.status === "PENDING");
   const canSend = pendingItems.length > 0;
   const sidebarW = isTablet ? "w-[300px]" : "w-[380px]";
-
-  function btIcon() {
-    if (btState.connecting) return <Bluetooth className="h-4 w-4 animate-pulse" />;
-    if (btState.connected) return <BluetoothConnected className="h-4 w-4" />;
-    return <BluetoothOff className="h-4 w-4" />;
-  }
 
   // ══════ Shared: Order Panel content ══════
   function renderOrderPanel(compact?: boolean) {
@@ -523,7 +616,7 @@ function OrderDetailView({
             disabled={btState.connecting}
             className={`p-1.5 rounded-lg transition-all touch-manipulation ${btState.connected ? "bg-white/20 text-white" : "bg-white/20 text-white/60"}`}
           >
-            {btIcon()}
+            {getBluetoothIcon(btState)}
           </button>
         </div>
 
@@ -624,7 +717,7 @@ function OrderDetailView({
           className={`p-1.5 rounded-lg transition-all ${btState.connected ? "bg-white/20 text-white hover:bg-white/30" : "bg-white/20 text-white/60 hover:bg-white/30"}`}
           title={btState.connected ? t.order.bluetoothConnected : btState.connecting ? t.order.bluetoothConnecting : t.order.bluetoothConnect}
         >
-          {btIcon()}
+          {getBluetoothIcon(btState)}
         </button>
       </div>
 
@@ -777,10 +870,7 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
   function confirmTopping() {
     if (!toppingProduct || !activeOrderId) return;
     start(async () => {
-      const selected = Object.entries(toppingSelections).filter(([, v]) => v).map(([id]) => {
-        const tp = toppingProduct.toppingGroups.flatMap(g => g.toppingGroup.toppings).find(tp => tp.id === id);
-        return { toppingId: id, price: tp?.price ?? 0 };
-      });
+      const selected = getSelectedToppings(toppingProduct, toppingSelections);
       await addItem(activeOrderId, toppingProduct.id, 1, selected.length > 0 ? selected : undefined);
       setRefreshKey(k => k + 1); setToppingProduct(null);
     });
@@ -887,10 +977,7 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
               <div className="space-y-1.5">{g.toppingGroup.toppings.map(topping => (
                 <label key={topping.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 cursor-pointer has-[:checked]:border-amber-500 has-[:checked]:bg-amber-50">
                   <input type={g.toppingGroup.type === "SINGLE" ? "radio" : "checkbox"} name={`tg-${g.toppingGroup.id}`} checked={toppingSelections[topping.id] ?? false}
-                    onChange={() => {
-                      if (g.toppingGroup.type === "SINGLE") { const sel: Record<string, boolean> = {}; g.toppingGroup.toppings.forEach(ot => { sel[ot.id] = ot.id === topping.id; }); setToppingSelections(f => ({ ...f, ...sel })); }
-                      else setToppingSelections(f => ({ ...f, [topping.id]: !f[topping.id] }));
-                    }} className="h-4 w-4 accent-amber-500" />
+                    onChange={() => updateToppingSelection(g, topping.id, setToppingSelections)} className="h-4 w-4 accent-amber-500" />
                   <span className="text-sm flex-1">{topping.name}</span>
                   {topping.price > 0 ? <span className="text-xs font-medium text-amber-600">+{fmt(topping.price)}{t.common.d}</span> : <span className="text-xs text-emerald-600 font-medium">{t.order.free}</span>}
                 </label>

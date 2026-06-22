@@ -576,20 +576,29 @@ function WarehouseIngredientsTable({ data, t }: Readonly<{ data: WarehouseReport
             </>
           }
         >
-            {data.ingredients.map((ingredient) => (
-              <tr key={ingredient.id} className={`border-b border-gray-100 hover:bg-amber-50/30 ${ingredient.currentStock <= ingredient.minStock && ingredient.minStock > 0 ? "bg-amber-50" : ingredient.currentStock <= 0 ? "bg-red-50" : ""}`}>
+            {data.ingredients.map((ingredient) => {
+              let rowBg = "";
+              if (ingredient.currentStock <= ingredient.minStock && ingredient.minStock > 0) rowBg = "bg-amber-50";
+              else if (ingredient.currentStock <= 0) rowBg = "bg-red-50";
+
+              let stockColor = "";
+              if (ingredient.currentStock <= 0 && ingredient.minStock > 0) stockColor = "text-red-600";
+              else if (ingredient.currentStock <= ingredient.minStock) stockColor = "text-amber-600";
+              return (
+              <tr key={ingredient.id} className={`border-b border-gray-100 hover:bg-amber-50/30 ${rowBg}`}>
                 <td className="p-3 font-medium">{ingredient.name}</td>
                 <td className="p-3 text-gray-500">{ingredient.purchaseUnit}</td>
                 <td className="p-3 text-gray-500">{ingredient.baseUnit}</td>
                 <td className="p-3 text-right text-gray-500">{fmt(ingredient.conversionFactor)}</td>
-                <td className={`p-3 text-right font-mono font-bold ${ingredient.currentStock <= 0 && ingredient.minStock > 0 ? "text-red-600" : ingredient.currentStock <= ingredient.minStock ? "text-amber-600" : ""}`}>{fmt(ingredient.currentStock)}</td>
+                <td className={`p-3 text-right font-mono font-bold ${stockColor}`}>{fmt(ingredient.currentStock)}</td>
                 <td className="p-3 text-right text-gray-500">{fmt(ingredient.minStock)}</td>
                 <td className="p-3 text-right font-mono">{fmt(ingredient.costPerBaseUnit)}</td>
                 <td className="p-3 text-right font-mono font-bold">{fmt(ingredient.currentStock * ingredient.costPerBaseUnit)}</td>
                 <td className="p-3 text-xs text-gray-500">{ingredient.recipes?.map((recipe) => recipe.product.name).join(", ") || "—"}</td>
                 <td className="p-3 text-xs">{ingredient.supplier || "—"}</td>
               </tr>
-            ))}
+              );
+            })}
         </ReportTable>
       </div>
       {data.ingredients.length === 0 ? <EmptyState text={t.reports.noData} className="text-center text-gray-400 py-12" /> : null}

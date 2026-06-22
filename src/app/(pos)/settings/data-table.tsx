@@ -17,13 +17,13 @@ type Column = {
 type ActionFn = (...args: never[]) => Promise<unknown>;
 type LooseFn = (...args: unknown[]) => Promise<unknown>;
 
-type Props = {
+type Props = Readonly<{
   data: Record<string, unknown>[];
   columns: Column[];
   onCreate?: ActionFn;
   onUpdate?: ActionFn;
   onDelete?: ActionFn;
-};
+}>;
 
 export function DataTable({ data, columns, onCreate, onUpdate, onDelete }: Props) {
   const { t } = useI18n();

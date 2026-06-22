@@ -20,7 +20,7 @@ type TableInfo = { id: string; name: string; capacity: number; isKaraoke: boolea
 type ActionFn = (...args: never[]) => Promise<unknown>;
 type LooseFn = (...args: unknown[]) => Promise<unknown>;
 
-type Props = {
+type Props = Readonly<{
   areas: Area[];
   createArea: ActionFn;
   updateArea: ActionFn;
@@ -28,7 +28,7 @@ type Props = {
   createTable: ActionFn;
   updateTable: ActionFn;
   deleteTable: ActionFn;
-};
+}>;
 
 export function AreasManager({ areas, createArea, updateArea, deleteArea, createTable, updateTable, deleteTable }: Props) {
   const { t } = useI18n();

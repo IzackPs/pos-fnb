@@ -65,7 +65,7 @@ type SummaryCard = {
   bg?: string;
 };
 
-type KeyValueSummaryProps = {
+type KeyValueSummaryProps = Readonly<{
   title: string;
   emptyText: string;
   entries: Array<{
@@ -74,7 +74,7 @@ type KeyValueSummaryProps = {
     value: string | number;
     valueClassName?: string;
   }>;
-};
+}>;
 
 function useReportPeriod(today: string, initialMode = "day"): PeriodState {
   const [mode, setMode] = useState(initialMode);

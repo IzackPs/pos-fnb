@@ -8,7 +8,7 @@ type Column = {
 
 type ActionFn = (...args: never[]) => Promise<unknown>;
 
-type Props = {
+type Props = Readonly<{
   title: string;
   description: string;
   data: Record<string, unknown>[];
@@ -16,7 +16,7 @@ type Props = {
   onCreate?: ActionFn;
   onUpdate?: ActionFn;
   onDelete?: ActionFn;
-};
+}>;
 
 /**
  * Shared shell for the simple "title + description + DataTable" settings pages.

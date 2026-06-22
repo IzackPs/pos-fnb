@@ -25,7 +25,7 @@ export default function LoginPage() {
         return;
       }
       // Redirect to first accessible module based on session scopes
-      window.location.href = "/order";
+      globalThis.location.href = "/order";
     });
   }
 

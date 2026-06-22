@@ -95,7 +95,7 @@ function exportExcel(type: string, mode: string, date: string, startDate: string
     params.set("date", date);
   }
 
-  window.open(`/api/reports?${params.toString()}`, "_blank");
+  globalThis.open(`/api/reports?${params.toString()}`, "_blank");
 }
 
 function exportWithFeedback(
@@ -108,7 +108,7 @@ function exportWithFeedback(
 ) {
   setExporting(true);
   exportExcel(type, mode, date, startDate, endDate);
-  window.setTimeout(() => setExporting(false), 2000);
+  globalThis.setTimeout(() => setExporting(false), 2000);
 }
 
 async function loadOverviewData(today: string) {
@@ -940,8 +940,8 @@ function WarehouseTab({ t }: Readonly<{ t: Dictionary }>) {
 
   const handleExport = () => {
     setExporting(true);
-    window.open("/api/reports?type=warehouse", "_blank");
-    window.setTimeout(() => setExporting(false), 2000);
+    globalThis.open("/api/reports?type=warehouse", "_blank");
+    globalThis.setTimeout(() => setExporting(false), 2000);
   };
 
   return (

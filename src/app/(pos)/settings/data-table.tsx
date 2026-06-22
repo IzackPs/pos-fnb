@@ -45,9 +45,10 @@ export function DataTable({ data, columns, onCreate, onUpdate, onDelete }: Props
     const init: Record<string, string> = {};
     columns.forEach(c => {
       const raw = row[c.key];
+      const stringified = raw == null ? "" : String(raw);
       init[c.key] = c.type === "percent"
         ? ((Number(raw) || 0) * 100).toString()
-        : (raw == null ? "" : String(raw));
+        : stringified;
     });
     setForm(init);
     setOpen(true);
@@ -109,9 +110,10 @@ export function DataTable({ data, columns, onCreate, onUpdate, onDelete }: Props
               <tr key={String(row.id)} className="hover:bg-amber-50/30 transition-colors">
                 {columns.map((c, ci) => {
                   const raw = row[c.key];
+                  const stringified = raw == null ? "" : String(raw);
                   const val = c.type === "percent"
                     ? ((Number(raw) || 0) * 100).toFixed(0) + "%"
-                    : (raw == null ? "" : String(raw));
+                    : stringified;
                   return (
                     <td key={c.key} className={`px-4 py-3 ${ci === 0 ? "font-semibold text-gray-900" : "text-gray-500"} ${c.key === "email" ? "text-sm font-mono" : ""}`}>
                       {val || <span className="text-gray-300 italic">—</span>}

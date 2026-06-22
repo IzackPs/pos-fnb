@@ -245,9 +245,9 @@ function RegistersTable({
                     hasDiscrepancy ? "text-red-500" : "text-emerald-600"
                   }`}
                 >
-                  {register.discrepancy != null
-                    ? formatMoney(register.discrepancy, moneySuffix || "")
-                    : "—"}
+                  {register.discrepancy == null
+                    ? "—"
+                    : formatMoney(register.discrepancy, moneySuffix || "")}
                 </td>
                 <td className="p-4">
                   <span
@@ -283,16 +283,15 @@ function CashDialog({
       className="z-50 flex items-center justify-center bg-black/40"
       onDismiss={onClose}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
+      <dialog
+        open
         aria-label={title}
         className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6"
         onClick={(event) => event.stopPropagation()}
       >
         <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
         {children}
-      </div>
+      </dialog>
     </DismissibleBackdrop>
   );
 }

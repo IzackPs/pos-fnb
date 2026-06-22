@@ -22,6 +22,18 @@ type Discount = {
 };
 type Cat = { id: string; name: string };
 
+const LOCALE_TO_DATE_LOCALE: Record<string, string> = { pt: "pt-BR", en: "en-US" };
+
+function getDateLocale(locale: string): string {
+  return LOCALE_TO_DATE_LOCALE[locale] ?? "vi-VN";
+}
+
+function getTypeLabel(type: string, fixedLabel: string): string {
+  if (type === "PERCENTAGE") return "%";
+  if (type === "FIXED") return fixedLabel;
+  return "XY";
+}
+
 type DiscountInput = {
   name: string; type: string; value: number; scope?: string;
   startDate?: string; endDate?: string; happyHourStart?: string; happyHourEnd?: string;
@@ -94,6 +106,18 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
     });
   }
 
+  function renderDateCell(d: Discount, dateLocale: string, unlimitedLabel: string) {
+    if (!d.startDate) return unlimitedLabel;
+    const start = new Date(d.startDate).toLocaleDateString(dateLocale);
+    const end = d.endDate ? new Date(d.endDate).toLocaleDateString(dateLocale) : "∞";
+    return (
+      <>
+        {`${start} → ${end}`}
+        {d.happyHourStart && <span className="block">🍸 {d.happyHourStart}–{d.happyHourEnd}</span>}
+      </>
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -123,7 +147,7 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
               <tr key={d.id} className="hover:bg-amber-50/30 transition-colors">
                 <td className="px-4 py-3 font-semibold">{d.name}</td>
                 <td className="px-4 py-3">
-                  <Badge variant="outline" className="text-xs">{d.type === "PERCENTAGE" ? "%" : d.type === "FIXED" ? t.common.d : "XY"}</Badge>
+                  <Badge variant="outline" className="text-xs">{getTypeLabel(d.type, t.common.d)}</Badge>
                 </td>
                 <td className="px-4 py-3 text-right font-mono">
                   {d.type === "PERCENTAGE" ? `${d.value}%` : `${new Intl.NumberFormat().format(d.value)}${t.common.d}`}
@@ -136,8 +160,7 @@ export function DiscountsUI({ discounts, categories, createDiscount, updateDisco
                   ) : t.settings.allItems}
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500">
-                  {d.startDate ? `${new Date(d.startDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN")} → ${d.endDate ? new Date(d.endDate).toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN") : "∞"}` : t.settings.discountUnlimited}
-                  {d.happyHourStart && <span className="block">🍸 {d.happyHourStart}–{d.happyHourEnd}</span>}
+                  {renderDateCell(d, getDateLocale(locale), t.settings.discountUnlimited)}
                 </td>
                 <td className="px-4 py-3 text-center">{d.isActive ? <Badge className="bg-emerald-50 text-emerald-700 text-xs">ON</Badge> : <Badge variant="secondary" className="text-xs">OFF</Badge>}</td>
                 <td className="px-4 py-3 text-right">

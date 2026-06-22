@@ -163,7 +163,7 @@ describe("print-actions createPrintJob", () => {
     mockOrderLookups();
     mockPrinter({ printMode: "SERVER" });
     const promise = createPrintJob({ orderId: "order-1", type: "BILL" });
-    await vi.advanceTimersByTimeAsync(600);
+    await vi.runAllTimersAsync();
     const res = await promise;
     expect(res.success).toBe(true);
     // CLIENT-only content is undefined in SERVER mode.
@@ -171,6 +171,7 @@ describe("print-actions createPrintJob", () => {
   });
 
   it("records a failure when the printer connection errors", async () => {
+    vi.useRealTimers();
     mockOrderLookups();
     mockPrinter({ printMode: "SERVER" });
     socketBehavior = (sock) => sock.handlers.error?.(new Error("ECONNREFUSED"));

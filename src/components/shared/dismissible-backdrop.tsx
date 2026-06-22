@@ -34,6 +34,10 @@ export function DismissibleBackdrop({
           return;
         }
 
+        if (event.target !== event.currentTarget) {
+          return;
+        }
+
         event.preventDefault();
         dismissOnBackdropPress(event);
       }}

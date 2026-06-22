@@ -46,6 +46,7 @@ export async function getDashboardStats() {
   });
 
   const timeline = recentOrders.map(o => ({
+    id: o.id,
     label: o.status === "PAID"
       ? `Table ${o.table.name} checkout`
       : o.status === "SENT"

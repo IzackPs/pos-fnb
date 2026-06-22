@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const { isMobile } = useDeviceInfo();
   const [stats, setStats] = useState<Stats | null>(null);
   const [, start] = useTransition();
+  const dateLocale = locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN";
 
   const moduleKeys = ["sales", "inventory", "cash", "reports", "settings"] as const;
   const moduleIcons = [ClipboardList, Package, DollarSign, BarChart3, Settings];
@@ -36,7 +37,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-gray-900`}>{t.dashboard.title}</h1>
-          <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString(locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN", { day: "numeric", month: "long", year: "numeric" })}</p>
+          <p className="text-sm text-gray-500 mt-1">{new Date().toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric" })}</p>
         </div>
         {!isMobile && (
           <Link href="/order" className="btn-pos-primary">
@@ -117,7 +118,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400 text-center py-8">{t.dashboard.noActivity}</p>
             )}
             {stats?.timeline.map((item, i) => (
-              <div key={i} className="relative pl-8">
+              <div key={item.id} className="relative pl-8">
                 <div className="absolute left-0 top-0 w-5 h-5 rounded-full flex items-center justify-center border-[3px] border-white" style={{ backgroundColor: item.color + "20" }}>
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                 </div>

@@ -51,7 +51,7 @@ type StockInRowProps = Readonly<{
   allIngredients: IngredientBasic[];
   ingredientLabel: string;
   quantityLabel: string;
-  onIngredientChange: (idx: number, ingredientId: string | null) => void;
+  onIngredientChange: (idx: number, ingredientId: string) => void;
   onItemChange: (idx: number, field: keyof StockInItem, value: string) => void;
   onRemove: (idx: number) => void;
 }>;
@@ -293,22 +293,20 @@ function StockInPanel({
     setItems(p => p.map((it, i) => i === idx ? { ...it, [field]: value } : it));
   }
 
-  function handleSupplierChange(nextSupplierId: string | null) {
-    const supplierIdValue = nextSupplierId ?? "";
-    setSupplierId(supplierIdValue);
-    if (!supplierIdValue) {
+  function handleSupplierChange(nextSupplierId: string) {
+    setSupplierId(nextSupplierId);
+    if (!nextSupplierId) {
       setItems([]);
     }
   }
 
-  function handleIngredientChange(idx: number, ingredientId: string | null) {
-    const nextIngredientId = ingredientId ?? "";
-    const selectedIngredient = allIngredients.find(ing => ing.id === nextIngredientId);
+  function handleIngredientChange(idx: number, ingredientId: string) {
+    const selectedIngredient = allIngredients.find(ing => ing.id === ingredientId);
     const ingredientName = selectedIngredient?.name || "";
     const purchaseUnit = selectedIngredient?.purchaseUnit || "";
     const baseUnit = selectedIngredient?.baseUnit || "";
     setItems(prev => prev.map((it, i) => (
-      i === idx ? { ...it, ingredientId: nextIngredientId, ingredientName, purchaseUnit, baseUnit } : it
+      i === idx ? { ...it, ingredientId, ingredientName, purchaseUnit, baseUnit } : it
     )));
   }
 

@@ -279,7 +279,17 @@ function CashDialog({
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
       onClick={onClose}
+      onKeyDown={(event) => {
+        if (
+          event.target === event.currentTarget &&
+          (event.key === "Enter" || event.key === " " || event.key === "Escape")
+        ) {
+          event.preventDefault();
+          onClose();
+        }
+      }}
       role="presentation"
+      tabIndex={0}
     >
       <div
         role="dialog"

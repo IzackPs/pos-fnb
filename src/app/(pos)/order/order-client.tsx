@@ -558,7 +558,7 @@ function OrderDetailView({
 
   // ══════ Mobile Checkout View (inline, replaces sheet) ══════
   function renderMobileCheckout() {
-    const raw = mPaymentAmount.replace(/[^0-9]/g, "");
+    const raw = mPaymentAmount.replace(/\D/g, "");
     return (
       <div className="flex-1 flex flex-col bg-white">
         <div className="px-4 py-3 border-b border-gray-200 shrink-0">
@@ -582,7 +582,7 @@ function OrderDetailView({
             <select className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={mPaymentMethod} onChange={e => setMPaymentMethod(e.target.value)}>
               <option value="CASH">💵 {t.order.cash}</option><option value="BANK_TRANSFER">🏦 {t.order.transfer}</option><option value="MOMO">📱 Momo</option></select></div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.amount}</label>
-            <input type="text" inputMode="numeric" style={{ textAlign: "right" }} className="w-full h-12 px-4 rounded-lg border border-gray-200 text-xl font-mono font-bold" value={mPaymentAmount ? Number(mPaymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = mPaymentAmount || ""} onBlur={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} placeholder="0" /></div>
+            <input type="text" inputMode="numeric" style={{ textAlign: "right" }} className="w-full h-12 px-4 rounded-lg border border-gray-200 text-xl font-mono font-bold" value={mPaymentAmount ? Number(mPaymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = mPaymentAmount || ""} onBlur={e => { const v = e.target.value.replace(/\D/g, ""); setMPaymentAmount(v); }} onChange={e => { const v = e.target.value.replace(/\D/g, ""); setMPaymentAmount(v); }} placeholder="0" /></div>
           <div className="flex gap-3 pt-2">
             <button onClick={() => setMobileCheckout(false)} className="flex-1 h-12 rounded-xl border border-gray-200 font-medium text-sm text-gray-600 touch-manipulation">{t.order.cancel}</button>
             <button onClick={() => { if (!mobileCheckoutPending) onMobileCheckout(mPaymentMethod, raw); }} disabled={mobileCheckoutPending || !raw || Number.parseFloat(raw) <= 0} className="flex-1 h-12 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
@@ -898,7 +898,7 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
   function handleSend() {
     if (!activeOrderId) return;
     start(async () => {
-      await sendOrder(activeOrderId, activeAreaId!);
+      await sendOrder(activeOrderId, activeAreaId);
       toast.success(t.order.sendSuccess);
       if (bt.connected) await handlePrintBluetooth(activeOrderId, "ORDER");
       setRefreshKey(k => k + 1);
@@ -930,9 +930,9 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
     setMobileCheckoutPending(true);
     start(async () => {
       try {
-        await checkoutOrder(activeOrderId!, [{ method, amount: Number.parseFloat(amount) }]);
+        await checkoutOrder(activeOrderId, [{ method, amount: Number.parseFloat(amount) }]);
         toast.success(t.order.checkoutSuccess);
-        if (bt.connected) await handlePrintBluetooth(activeOrderId!, "BILL");
+        if (bt.connected) await handlePrintBluetooth(activeOrderId, "BILL");
         handleBack();
         router.refresh();
       } catch {
@@ -1006,7 +1006,7 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
             <select className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
               <option value="CASH">💵 {t.order.cash}</option><option value="BANK_TRANSFER">🏦 {t.order.transfer}</option><option value="MOMO">📱 Momo</option></select></div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.amount}</label>
-            <input type="text" inputMode="numeric" style={{ textAlign: 'right' }} className="w-full h-11 px-4 rounded-lg border border-gray-200 text-lg font-mono font-bold" value={paymentAmount ? Number(paymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = paymentAmount || ""} onBlur={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setPaymentAmount(raw); }} onChange={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setPaymentAmount(raw); }} placeholder="0" /></div>
+            <input type="text" inputMode="numeric" style={{ textAlign: 'right' }} className="w-full h-11 px-4 rounded-lg border border-gray-200 text-lg font-mono font-bold" value={paymentAmount ? Number(paymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = paymentAmount || ""} onBlur={e => { const raw = e.target.value.replace(/\D/g, ""); setPaymentAmount(raw); }} onChange={e => { const raw = e.target.value.replace(/\D/g, ""); setPaymentAmount(raw); }} placeholder="0" /></div>
           <div className="flex gap-3">
             <button onClick={() => setCheckoutDialog(false)} className="flex-1 h-11 rounded-lg border border-gray-200 font-medium text-sm text-gray-600">{t.order.cancel}</button>
             <button onClick={confirmCheckout} disabled={pending} className="flex-1 h-11 rounded-lg bg-red-500 text-white font-semibold text-sm">{t.order.checkout}</button>

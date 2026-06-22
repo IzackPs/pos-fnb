@@ -19,17 +19,58 @@ type IngredientBasic = Awaited<ReturnType<typeof getIngredients>>[0];
 type Supplier = { id: string; name: string; contact: string | null; phone: string | null; email: string | null; address: string | null; note: string | null };
 
 type StockInItem = { uid: string; ingredientId: string; ingredientName: string; quantity: string; unitPrice: string; purchaseUnit: string; baseUnit: string };
+type InventoryClientProps = Readonly<{
+  ingredients: Ingredient[];
+  stockIns: StockIn[];
+  stockOuts: Awaited<ReturnType<typeof getStockOuts>>;
+  lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>;
+  allIngredients: IngredientBasic[];
+  suppliers: Supplier[];
+}>;
+type StockSortField = "name" | "stock" | "unit";
+type SortDirection = "asc" | "desc";
+type SortableStockTableProps = Readonly<{ ingredients: Ingredient[]; isMobile: boolean }>;
+type StockInPanelProps = Readonly<{
+  items: StockInItem[];
+  setItems: React.Dispatch<React.SetStateAction<StockInItem[]>>;
+  supplierId: string;
+  setSupplierId: (v: string) => void;
+  note: string;
+  setNote: (v: string) => void;
+  pending: boolean;
+  loadingItems: boolean;
+  suppliers: Supplier[];
+  allIngredients: IngredientBasic[];
+  onClose: () => void;
+  onSubmit: () => void;
+  addEmptyRow: () => void;
+}>;
+type StockInRowProps = Readonly<{
+  item: StockInItem;
+  idx: number;
+  allIngredients: IngredientBasic[];
+  ingredientLabel: string;
+  quantityLabel: string;
+  onIngredientChange: (idx: number, ingredientId?: string) => void;
+  onItemChange: (idx: number, field: keyof StockInItem, value: string) => void;
+  onRemove: (idx: number) => void;
+}>;
 
 function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
 
 const DATE_LOCALES: Record<string, string> = { pt: "pt-BR", en: "en-US" };
 function dateLocale(locale: string) { return DATE_LOCALES[locale] ?? "vi-VN"; }
+function lineTotal(item: StockInItem) {
+  return (Number.parseFloat(item.quantity) || 0) * (Number.parseFloat(item.unitPrice) || 0);
+}
+
+function totalQuantity(items: StockInItem[]) {
+  return items.reduce((sum, item) => sum + (Number.parseFloat(item.quantity) || 0), 0);
+}
 
 export function InventoryClient({
   ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers
-}: {
-  ingredients: Ingredient[]; stockIns: StockIn[]; stockOuts: Awaited<ReturnType<typeof getStockOuts>>; lowStock: Awaited<ReturnType<typeof getLowStockIngredients>>; allIngredients: IngredientBasic[]; suppliers: Supplier[];
-}) {
+}: InventoryClientProps) {
   const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [pending, start] = useTransition();
@@ -154,12 +195,12 @@ export function InventoryClient({
 }
 
 // ===== SORTABLE STOCK STATUS TABLE =====
-function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient[]; isMobile: boolean }) {
+function SortableStockTable({ ingredients, isMobile }: SortableStockTableProps) {
   const { t } = useI18n();
-  const [sortField, setSortField] = useState<"name" | "stock" | "unit">("name");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<StockSortField>("name");
+  const [sortDir, setSortDir] = useState<SortDirection>("asc");
 
-  function toggleSort(field: "name" | "stock" | "unit") {
+  function toggleSort(field: StockSortField) {
     if (sortField === field) {
       setSortDir(d => d === "asc" ? "desc" : "asc");
     } else {
@@ -176,7 +217,7 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
     return sortDir === "asc" ? cmp : -cmp;
   });
 
-  const sortArrow = (field: "name" | "stock" | "unit") => {
+  const sortArrow = (field: StockSortField) => {
     if (sortField !== field) return <span className="ml-1 text-gray-300">↕</span>;
     return <span className="ml-1 text-amber-500">{sortDir === "asc" ? "↑" : "↓"}</span>;
   };
@@ -189,16 +230,34 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
     <table className="w-full text-sm">
       <thead>
         <tr className="bg-gray-50 border-b border-gray-200">
-          <th className="text-left p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("name")}>
-            {t.settings.name}{sortArrow("name")}
+          <th className="text-left p-0">
+            <button
+              type="button"
+              onClick={() => toggleSort("name")}
+              className="w-full p-3 text-left font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors"
+            >
+              {t.settings.name}{sortArrow("name")}
+            </button>
           </th>
           {!isMobile && (
-            <th className="text-left p-3 cursor-pointer select-none hover:bg-gray-100 transition-colors" onClick={() => toggleSort("unit")}>
-              {t.inventory.baseUnit}{sortArrow("unit")}
+            <th className="text-left p-0">
+              <button
+                type="button"
+                onClick={() => toggleSort("unit")}
+                className="w-full p-3 text-left cursor-pointer select-none hover:bg-gray-100 transition-colors"
+              >
+                {t.inventory.baseUnit}{sortArrow("unit")}
+              </button>
             </th>
           )}
-          <th className={`text-right p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors ${isMobile ? "pr-4" : ""}`} onClick={() => toggleSort("stock")}>
-            {t.inventory.currentStock}{sortArrow("stock")}
+          <th className="p-0">
+            <button
+              type="button"
+              onClick={() => toggleSort("stock")}
+              className={`w-full p-3 font-semibold cursor-pointer select-none hover:bg-gray-100 transition-colors ${isMobile ? "pr-4 text-right" : "text-right"}`}
+            >
+              {t.inventory.currentStock}{sortArrow("stock")}
+            </button>
           </th>
         </tr>
       </thead>
@@ -220,24 +279,11 @@ function SortableStockTable({ ingredients, isMobile }: { ingredients: Ingredient
 // ===== FULL-WIDTH SLIDE-OVER STOCK-IN PANEL =====
 function StockInPanel({
   items, setItems, supplierId, setSupplierId, note, setNote, pending, loadingItems, suppliers, allIngredients, onClose, onSubmit, addEmptyRow
-}: {
-  items: StockInItem[];
-  setItems: React.Dispatch<React.SetStateAction<StockInItem[]>>;
-  supplierId: string;
-  setSupplierId: (v: string) => void;
-  note: string;
-  setNote: (v: string) => void;
-  pending: boolean;
-  loadingItems: boolean;
-  suppliers: Supplier[];
-  allIngredients: IngredientBasic[];
-  onClose: () => void;
-  onSubmit: () => void;
-  addEmptyRow: () => void;
-}) {
+}: StockInPanelProps) {
   const { t } = useI18n();
   const { isMobile } = useDeviceInfo();
-  const total = items.reduce((s, i) => s + (Number.parseFloat(i.quantity) || 0) * (Number.parseFloat(i.unitPrice) || 0), 0);
+  const total = items.reduce((sum, item) => sum + lineTotal(item), 0);
+  const hasValidItems = items.some(item => item.ingredientId && Number.parseFloat(item.quantity) > 0);
 
   function removeRow(idx: number) {
     setItems(p => p.filter((_, i) => i !== idx));
@@ -245,6 +291,28 @@ function StockInPanel({
 
   function updateItem(idx: number, field: keyof StockInItem, value: string) {
     setItems(p => p.map((it, i) => i === idx ? { ...it, [field]: value } : it));
+  }
+
+  function handleSupplierChange(nextSupplierId = "") {
+    setSupplierId(nextSupplierId);
+    if (!nextSupplierId) {
+      setItems([]);
+    }
+  }
+
+  function handleIngredientChange(idx: number, ingredientId = "") {
+    const selectedIngredient = allIngredients.find(ing => ing.id === ingredientId);
+    setItems(prev => prev.map((it, i) => (
+      i === idx
+        ? {
+          ...it,
+          ingredientId,
+          ingredientName: selectedIngredient?.name || "",
+          purchaseUnit: selectedIngredient?.purchaseUnit || "",
+          baseUnit: selectedIngredient?.baseUnit || "",
+        }
+        : it
+    )));
   }
 
   return (
@@ -274,13 +342,7 @@ function StockInPanel({
         <div className={`shrink-0 border-b border-gray-100 bg-white gap-4 ${isMobile ? "px-4 py-3 grid grid-cols-1" : "px-8 py-4 grid grid-cols-1 md:grid-cols-2"}`}>
           <div className="space-y-1">
             <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.supplier}</Label>
-            <Select value={supplierId} onValueChange={v => {
-              const nextSupplierId = v ?? "";
-              setSupplierId(nextSupplierId);
-              if (!nextSupplierId) {
-                setItems([]);
-              }
-            }}>
+            <Select value={supplierId} onValueChange={handleSupplierChange}>
               <SelectTrigger className="h-11 rounded-lg">
                 <SelectValue placeholder={t.inventory.selectSupplier}>{suppliers.find(s => s.id === supplierId)?.name}</SelectValue>
               </SelectTrigger>
@@ -334,71 +396,19 @@ function StockInPanel({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {items.map((item, idx) => {
-                  const qty = Number.parseFloat(item.quantity) || 0;
-                  const price = Number.parseFloat(item.unitPrice) || 0;
-                  const lineTotal = qty * price;
-                  return (
-                    <tr key={item.uid} className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
-                      <td className="p-2 pl-4 text-gray-400 text-xs font-mono">{idx + 1}</td>
-                      <td className="p-2">
-                        <Select
-                          value={item.ingredientId}
-                          onValueChange={v => {
-                            const val = v ?? "";
-                            setItems(prev => prev.map((it, i) => {
-                              if (i !== idx) return it;
-                              const found = allIngredients.find(ing => ing.id === val);
-                              return { ...it, ingredientId: val, ingredientName: found?.name || "", purchaseUnit: found?.purchaseUnit || "", baseUnit: found?.baseUnit || "" };
-                            }));
-                          }}
-                        >
-                          <SelectTrigger className="h-10 rounded-lg border-gray-200">
-                            <SelectValue placeholder={`— ${t.inventory.ingredient} —`}>
-                              {item.ingredientName || `— ${t.inventory.ingredient} —`}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {allIngredients.map(i => (
-                              <SelectItem key={i.id} value={i.id}>
-                                {i.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="p-2">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 text-xs font-medium">
-                          {item.purchaseUnit || item.baseUnit || "—"}
-                        </span>
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          className="h-10 rounded-lg w-24 text-center tabular-nums"
-                          type="number" min="0" step="0.01" placeholder={t.inventory.quantity}
-                          value={item.quantity}
-                          onChange={e => updateItem(idx, "quantity", e.target.value)}
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Input
-                          className="h-10 rounded-lg w-32 text-right tabular-nums"
-                          type="number" min="0" step="100" placeholder="0"
-                          value={item.unitPrice}
-                          onChange={e => updateItem(idx, "unitPrice", e.target.value)}
-                        />
-                      </td>
-                      <td className="p-2 text-right font-mono font-bold text-gray-700">
-                        {lineTotal > 0 ? fmt(lineTotal) : "—"}
-                      </td>
-                      <td className="p-2 pr-4 text-center">
-                        <button onClick={() => removeRow(idx)} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {items.map((item, idx) => (
+                  <StockInTableRow
+                    key={item.uid}
+                    item={item}
+                    idx={idx}
+                    allIngredients={allIngredients}
+                    ingredientLabel={t.inventory.ingredient}
+                    quantityLabel={t.inventory.quantity}
+                    onIngredientChange={handleIngredientChange}
+                    onItemChange={updateItem}
+                    onRemove={removeRow}
+                  />
+                ))}
               </tbody>
             </table>
             {items.length === 0 && (
@@ -420,7 +430,7 @@ function StockInPanel({
             </div>
             <div className="text-xs">
               <span className="text-gray-500">{t.inventory.totalItems}</span>
-              <span className="ml-1 font-bold text-gray-700">{fmt(items.reduce((s, i) => s + (Number.parseFloat(i.quantity) || 0), 0))}</span>
+              <span className="ml-1 font-bold text-gray-700">{fmt(totalQuantity(items))}</span>
             </div>
             <div className={`${isMobile ? "text-base" : "text-lg"}`}>
               <span className={`text-gray-500 ${isMobile ? "text-xs" : "text-sm"}`}>{t.inventory.totalAmount}:</span>
@@ -431,7 +441,7 @@ function StockInPanel({
             <button onClick={onClose} className={`${isMobile ? "h-10 px-4" : "h-11 px-6"} rounded-lg border border-gray-200 font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors`}>{t.inventory.cancel}</button>
             <button
               onClick={onSubmit}
-              disabled={pending || items.length === 0 || !items.some(i => i.ingredientId && Number.parseFloat(i.quantity) > 0)}
+              disabled={pending || items.length === 0 || !hasValidItems}
               className={`${isMobile ? "h-10 px-5" : "h-11 px-8"} rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors touch-manipulation`}
             >
               {pending ? t.common.saving : t.inventory.save}
@@ -440,5 +450,69 @@ function StockInPanel({
         </div>
       </div>
     </div>
+  );
+}
+
+function StockInTableRow({
+  item,
+  idx,
+  allIngredients,
+  ingredientLabel,
+  quantityLabel,
+  onIngredientChange,
+  onItemChange,
+  onRemove,
+}: StockInRowProps) {
+  const itemLineTotal = lineTotal(item);
+
+  return (
+    <tr className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
+      <td className="p-2 pl-4 text-gray-400 text-xs font-mono">{idx + 1}</td>
+      <td className="p-2">
+        <Select value={item.ingredientId} onValueChange={value => onIngredientChange(idx, value)}>
+          <SelectTrigger className="h-10 rounded-lg border-gray-200">
+            <SelectValue placeholder={`— ${ingredientLabel} —`}>
+              {item.ingredientName || `— ${ingredientLabel} —`}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {allIngredients.map(i => (
+              <SelectItem key={i.id} value={i.id}>
+                {i.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </td>
+      <td className="p-2">
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 text-xs font-medium">
+          {item.purchaseUnit || item.baseUnit || "—"}
+        </span>
+      </td>
+      <td className="p-2">
+        <Input
+          className="h-10 rounded-lg w-24 text-center tabular-nums"
+          type="number" min="0" step="0.01" placeholder={quantityLabel}
+          value={item.quantity}
+          onChange={e => onItemChange(idx, "quantity", e.target.value)}
+        />
+      </td>
+      <td className="p-2">
+        <Input
+          className="h-10 rounded-lg w-32 text-right tabular-nums"
+          type="number" min="0" step="100" placeholder="0"
+          value={item.unitPrice}
+          onChange={e => onItemChange(idx, "unitPrice", e.target.value)}
+        />
+      </td>
+      <td className="p-2 text-right font-mono font-bold text-gray-700">
+        {itemLineTotal > 0 ? fmt(itemLineTotal) : "—"}
+      </td>
+      <td className="p-2 pr-4 text-center">
+        <button onClick={() => onRemove(idx)} className="h-9 w-9 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors">
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </td>
+    </tr>
   );
 }

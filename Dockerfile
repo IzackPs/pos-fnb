@@ -13,7 +13,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Instala TODAS as dependências (dev + prod) — precisamos das dev para o build
-RUN npm ci
+RUN npm install -g npm@11 && npm ci
 
 # =============================================================================
 # Stage 2 — builder

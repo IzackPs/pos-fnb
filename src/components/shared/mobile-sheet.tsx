@@ -27,8 +27,6 @@ export function MobileSheet({
       >
         <dialog
           open
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
           className={`bg-white border-0 rounded-2xl shadow-xl w-full ${maxWidth} p-6 mx-4`}
         >
             <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>

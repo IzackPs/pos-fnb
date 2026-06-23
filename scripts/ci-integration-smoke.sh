@@ -91,6 +91,8 @@ fi
 assert_authenticated_route "/dashboard"
 assert_authenticated_route "/order"
 assert_authenticated_route "/inventory"
+assert_authenticated_route "/cash"
 assert_authenticated_route "/reports"
+assert_authenticated_route "/settings"
 
 echo "Integration smoke passed: login, auth session and protected POS routes are reachable."

@@ -10,10 +10,14 @@ import {
   cancelItem,
   checkoutOrder,
   getCategoriesWithProducts,
+  getActiveAreasWithTables,
   getAreasWithTables,
   getOrder,
+  getTempBill,
   mergeTables,
   openTable,
+  printTempBill,
+  refreshKaraokeTime,
   removeItem,
   sendOrder,
   splitItems,
@@ -617,5 +621,105 @@ describe("order server actions", () => {
     prismaMock.table.findFirst.mockResolvedValue(null);
 
     await expect(splitItemsEvenly("order-1", ["x"])).rejects.toThrow("No empty tables");
+  });
+
+  it("getActiveAreasWithTables delegates to getAreasWithTables", async () => {
+    prismaMock.area.findMany.mockResolvedValue([{ id: "area-1" }]);
+
+    await expect(getActiveAreasWithTables()).resolves.toEqual([{ id: "area-1" }]);
+    expect(prismaMock.area.findMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("refreshKaraokeTime recalculates order and revalidates path", async () => {
+    prismaMock.order.findUnique
+      .mockResolvedValueOnce({ status: "OPEN", table: { isKaraoke: false, area: { type: "RESTAURANT" } } })
+      .mockResolvedValueOnce({ guestCount: 1, discountAmount: 0, table: { areaId: "area-1" }, items: [] });
+    prismaMock.serviceCharge.findMany.mockResolvedValue([]);
+    prismaMock.holiday.findMany.mockResolvedValue([]);
+    prismaMock.order.update.mockResolvedValue({ id: "order-1" });
+
+    await refreshKaraokeTime("order-1");
+
+    expect(prismaMock.order.update).toHaveBeenCalled();
+    expect(revalidatePathMock).toHaveBeenCalledWith("/order");
+  });
+
+  it("getTempBill returns order detail", async () => {
+    prismaMock.order.findUnique.mockResolvedValue({ id: "order-1" });
+
+    await expect(getTempBill("order-1")).resolves.toEqual({ id: "order-1" });
+    expect(prismaMock.order.findUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "order-1" } }),
+    );
+  });
+
+  it("printTempBill sends a TEMP_BILL print job", async () => {
+    prismaMock.order.findUnique.mockResolvedValue({
+      id: "order-1",
+      table: { areaId: "area-1" },
+      items: [],
+      payments: [],
+      karaokeSessions: [],
+      user: null,
+    });
+    createPrintJobMock.mockResolvedValue({ success: true, jobId: "print-2" });
+
+    await printTempBill("order-1");
+
+    expect(createPrintJobMock).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: "order-1", type: "TEMP_BILL" }),
+    );
+  });
+
+  it("printTempBill returns early when order not found", async () => {
+    prismaMock.order.findUnique.mockResolvedValue(null);
+
+    await printTempBill("missing-order");
+
+    expect(createPrintJobMock).not.toHaveBeenCalled();
+  });
+
+  it("cancelItem overrides note when explicit note is provided", async () => {
+    prismaMock.orderItem.findUnique.mockResolvedValue({ id: "item-1", note: "old note" });
+    prismaMock.orderItem.update.mockResolvedValue({ id: "item-1", orderId: "order-1" });
+    mockRecalcDependencies();
+
+    await cancelItem("item-1", "user-1", "new note");
+
+    expect(prismaMock.orderItem.update).toHaveBeenCalledWith({
+      where: { id: "item-1" },
+      data: {
+        status: "CANCELLED",
+        cancelledBy: "user-1",
+        cancelledAt: expect.any(Date),
+        note: "new note",
+      },
+    });
+  });
+
+  it("openTable creates a COMP order on a non-karaoke table", async () => {
+    prismaMock.order.findFirst.mockResolvedValueOnce(null);
+    prismaMock.order.findFirst.mockResolvedValueOnce({ orderNumber: 3 });
+    prismaMock.table.findUnique.mockResolvedValue({ id: "t1", isKaraoke: false, areaId: "a1", area: { type: "RESTAURANT" } });
+    prismaMock.order.create.mockResolvedValue({ id: "order-comp" });
+    prismaMock.order.findUnique
+      .mockResolvedValueOnce({ status: "OPEN", table: { isKaraoke: false, area: { type: "RESTAURANT" } } })
+      .mockResolvedValueOnce({ guestCount: 1, discountAmount: 0, table: { areaId: "a1" }, items: [] });
+    prismaMock.serviceCharge.findMany.mockResolvedValue([]);
+    prismaMock.holiday.findMany.mockResolvedValue([]);
+    prismaMock.order.update.mockResolvedValue({ id: "order-comp" });
+
+    await openTable("t1", 1, "COMP");
+
+    expect(prismaMock.order.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ type: "COMP" }) }),
+    );
+  });
+
+  it("checkoutOrder throws when order is not found", async () => {
+    prismaMock.order.findUnique.mockResolvedValue(null);
+
+    await expect(checkoutOrder("missing", [{ method: "CASH", amount: 0 }])).rejects.toThrow("Order not found");
+    expect(prismaMock.payment.create).not.toHaveBeenCalled();
   });
 });

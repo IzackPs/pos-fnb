@@ -197,6 +197,12 @@ function getSourceOrderIds(tables: TableInfo[], tableIds: string[]): string[] {
   return result;
 }
 
+function getGridCols(isMobile: boolean, isTablet: boolean): string {
+  if (isMobile) return "grid-cols-3";
+  if (isTablet) return "grid-cols-4";
+  return "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
+}
+
 // ─── Table Grid View ────────────────────────────────────────────
 export function TableGridView({
   areas, activeAreaId, setActiveAreaId, onOpenTable, onSelectOrder,
@@ -249,35 +255,26 @@ export function TableGridView({
     });
   }
 
-  function confirmSplitSelection() {
-    if (selectedTables.size !== 1) {
-      toast.error(t.order.splitTablePrompt);
-      return;
-    }
-
-    const selectedTableId = Array.from(selectedTables)[0];
-    const table = activeArea.tables.find(tb => tb.id === selectedTableId);
-    const orderId = table?.orders[0]?.id;
-
-    if (orderId) {
-      onSplitTable(orderId);
+  function handleConfirm() {
+    if (mergeMode) {
+      const tableIds = Array.from(selectedTables);
+      if (tableIds.length < 2) { toast.error(t.order.mergeTablePrompt); return; }
+      start(async () => {
+        await onMergeTables(getSourceOrderIds(activeArea.tables, tableIds), tableIds[0]);
+        toast.success(t.order.mergeTables + "!");
+        resetSelectionMode();
+      });
+    } else {
+      if (selectedTables.size !== 1) { toast.error(t.order.splitTablePrompt); return; }
+      const selectedTableId = Array.from(selectedTables)[0];
+      const table = activeArea.tables.find(tb => tb.id === selectedTableId);
+      const orderId = table?.orders[0]?.id;
+      if (orderId) onSplitTable(orderId);
     }
   }
 
-  function confirmMerge() {
-    const tableIds = Array.from(selectedTables);
-    if (tableIds.length < 2) { toast.error(t.order.mergeTablePrompt); return; }
-    start(async () => {
-      await onMergeTables(getSourceOrderIds(activeArea.tables, tableIds), tableIds[0]);
-      toast.success(t.order.mergeTables + "!");
-      resetSelectionMode();
-    });
-  }
-
-  // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
-  let gridCols = "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
-  if (isMobile) gridCols = "grid-cols-3";
-  else if (isTablet) gridCols = "grid-cols-4";
+  const gridCols = getGridCols(isMobile, isTablet);
+  const showModeBanner = mergeMode || splitMode;
   const cardPadding = isMobile ? "p-2.5" : "p-4";
   const gapSize = isMobile ? "gap-2" : "gap-4";
 
@@ -308,14 +305,14 @@ export function TableGridView({
       </div>
 
       {/* Mobile: Mode banner + action bar at the bottom */}
-      {isMobile && (mergeMode || splitMode) && (
+      {isMobile && showModeBanner && (
         <div className="px-3 py-2 text-xs flex items-center gap-2 shrink-0 bg-blue-50 border-b border-blue-200">
           <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
           <button onClick={resetSelectionMode}
             className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100 touch-manipulation">{t.order.cancel}</button>
-          <button onClick={() => { if (mergeMode) confirmMerge(); else confirmSplitSelection(); }}
+          <button onClick={handleConfirm}
             disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 touch-manipulation ${
               mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
@@ -326,14 +323,14 @@ export function TableGridView({
       )}
 
       {/* Desktop: Mode banner */}
-      {!isMobile && (mergeMode || splitMode) && (
+      {!isMobile && showModeBanner && (
         <div className="px-6 py-2 text-sm flex items-center gap-3 shrink-0 bg-blue-50 border-b border-blue-200">
           <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
           <button onClick={resetSelectionMode}
             className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100">{t.order.cancel}</button>
-          <button onClick={() => { if (mergeMode) confirmMerge(); else confirmSplitSelection(); }}
+          <button onClick={handleConfirm}
             disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
             className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 ${
               mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
@@ -473,6 +470,16 @@ function OrderDetailView({
   const canSend = pendingItems.length > 0;
   const sidebarW = isTablet ? "w-[300px]" : "w-[380px]";
 
+  function handleCheckoutClick(compact?: boolean) {
+    if (compact) {
+      setOrderSheetOpen(false);
+      setMPaymentAmount(String(detail.totalAmount));
+      setMobileCheckout(true);
+    } else {
+      onCheckout();
+    }
+  }
+
   // ══════ Shared: Order Panel content ══════
   function renderOrderPanel(compact?: boolean) {
     return (
@@ -551,7 +558,7 @@ function OrderDetailView({
             <Merge className="h-3 w-3" /> {t.order.merge}</button>
           <button onClick={onSplit} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all touch-manipulation">
             <Split className="h-3 w-3" /> {t.order.split}</button>
-          <button onClick={() => { if (compact) { setOrderSheetOpen(false); setMPaymentAmount(String(detail.totalAmount)); setMobileCheckout(true); } else { onCheckout(); } }} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
+          <button onClick={() => handleCheckoutClick(compact)} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
             <Banknote className="h-4 w-4" /> {t.order.checkout}</button>
         </div>
       </div>

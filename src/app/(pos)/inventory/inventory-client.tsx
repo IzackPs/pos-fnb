@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, type MouseEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -313,9 +313,13 @@ function StockInPanel({
 
   const panelWidthClass = isMobile ? "w-full" : "w-full max-w-6xl";
 
+  function handleOverlayClick(e: MouseEvent<HTMLButtonElement>) {
+    if (e.target === e.currentTarget) onClose();
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex">
-      <button type="button" aria-label={t.inventory.cancel} onClick={e => { if (e.target === e.currentTarget) onClose(); }} className="absolute inset-0 bg-black/50 cursor-default" />
+      <button type="button" aria-label={t.inventory.cancel} onClick={handleOverlayClick} className="absolute inset-0 bg-black/50 cursor-default" />
       <div
         className={`relative ml-auto ${panelWidthClass} bg-white h-full overflow-hidden flex flex-col shadow-2xl`}
       >

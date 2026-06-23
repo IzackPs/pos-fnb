@@ -451,6 +451,31 @@ async function syncKaraokeTime(orderId: string) {
 
 // ============ CALCULATIONS ============
 
+type ChargeRow = {
+  applyCondition: string | null; startDate: Date | null; endDate: Date | null;
+  minOrderValue: number | null; minGuestCount: number | null;
+  scope: string | null; areaId: string | null; type: string; value: number;
+};
+
+function calcChargeAmount(sc: ChargeRow, subtotal: number, guestCount: number, areaId: string | undefined, now: Date, isHoliday: boolean): number {
+  const cond = sc.applyCondition || "ALL_DAYS";
+  let applicable = false;
+  switch (cond) {
+    case "ALL_DAYS": applicable = true; break;
+    case "DATE_RANGE":
+      if (sc.startDate && sc.endDate) applicable = now >= new Date(sc.startDate) && now <= new Date(sc.endDate);
+      break;
+    case "HOLIDAY": applicable = isHoliday; break;
+    case "MIN_ORDER": applicable = subtotal >= (sc.minOrderValue || 0); break;
+    case "GUEST_COUNT": applicable = guestCount >= (sc.minGuestCount || 0); break;
+  }
+  if (applicable && sc.scope === "AREA" && sc.areaId) applicable = areaId === sc.areaId;
+  if (!applicable) return 0;
+  if (sc.type === "PERCENTAGE" || sc.type === "SERVICE_FEE") return subtotal * (sc.value / 100);
+  if (sc.type === "PER_GUEST") return sc.value * guestCount;
+  return sc.value;
+}
+
 async function recalcOrder(orderId: string) {
   // Sync karaoke time first (for karaoke orders)
   await syncKaraokeTime(orderId);
@@ -516,32 +541,7 @@ async function recalcOrder(orderId: string) {
   const isHoliday = todayHolidays.length > 0;
 
   for (const sc of activeCharges) {
-    const cond = sc.applyCondition || "ALL_DAYS";
-    let applicable = false;
-
-    switch (cond) {
-      case "ALL_DAYS": applicable = true; break;
-      case "DATE_RANGE":
-        if (sc.startDate && sc.endDate) applicable = now >= new Date(sc.startDate) && now <= new Date(sc.endDate);
-        break;
-      case "HOLIDAY": applicable = isHoliday; break;
-      case "MIN_ORDER": applicable = subtotal >= (sc.minOrderValue || 0); break;
-      case "GUEST_COUNT": applicable = order.guestCount >= (sc.minGuestCount || 0); break;
-    }
-
-    if (applicable && sc.scope === "AREA" && sc.areaId) {
-      applicable = order.table?.areaId === sc.areaId;
-    }
-
-    if (applicable) {
-      if (sc.type === "PERCENTAGE" || sc.type === "SERVICE_FEE") {
-        serviceCharge += subtotal * (sc.value / 100);
-      } else if (sc.type === "PER_GUEST") {
-        serviceCharge += sc.value * order.guestCount;
-      } else {
-        serviceCharge += sc.value;
-      }
-    }
+    serviceCharge += calcChargeAmount(sc, subtotal, order.guestCount, order.table?.areaId, now, isHoliday);
   }
 
   const totalAmount = subtotal + vatAmount + exciseTaxAmount - order.discountAmount + serviceCharge;

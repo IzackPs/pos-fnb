@@ -61,7 +61,7 @@ export async function getDashboardStats() {
     id: o.id,
     label: getOrderLabel(o.status, o.table.name),
     amount: o.totalAmount,
-    time: o.closedAt ? minutesAgo(o.closedAt) : minutesAgo(o.openedAt),
+    time: minutesAgo(o.closedAt ?? o.openedAt),
     color: getOrderColor(o.status),
   }));
 

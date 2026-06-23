@@ -87,11 +87,8 @@ const [state, setState] = useState<BluetoothPrinterState>({
       charRef.current = char;
       setState({ device, connected: true, connecting: false, error: null });
     } catch (e) {
-      if ((e as Error).name === "NotFoundError") {
-        setState(s => ({ ...s, connecting: false, error: null }));
-      } else {
-        setState(s => ({ ...s, connecting: false, error: (e as Error).message }));
-      }
+      const error = (e as Error).name !== "NotFoundError" ? (e as Error).message : null;
+      setState(s => ({ ...s, connecting: false, error }));
     }
   }, [t.settings.bluetoothNotSupported]);
 

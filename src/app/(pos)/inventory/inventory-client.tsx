@@ -293,9 +293,10 @@ function StockInPanel({
     setItems(p => p.map((it, i) => i === idx ? { ...it, [field]: value } : it));
   }
 
-  function handleSupplierChange(nextSupplierId: string) {
-    setSupplierId(nextSupplierId);
-    if (!nextSupplierId) {
+  function handleSupplierChange(nextSupplierId: string | null) {
+    const selectedSupplierId = nextSupplierId ?? "";
+    setSupplierId(selectedSupplierId);
+    if (!selectedSupplierId) {
       setItems([]);
     }
   }

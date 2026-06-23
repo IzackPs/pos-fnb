@@ -827,7 +827,6 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
     }, 30000);
     return () => clearInterval(interval);
     // Re-arm interval only on order identity/type change, not on every orderDetail mutation.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderDetail?.id, orderDetail?.type, activeOrderId]);
 
   function handleBack() { setView("tables"); setActiveOrderId(null); setOrderDetail(null); }

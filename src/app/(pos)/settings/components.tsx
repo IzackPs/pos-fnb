@@ -97,7 +97,7 @@ function serializeScopes(modules: string[]): string {
   return JSON.stringify(modules);
 }
 
-export function UsersManager({ users, roles }: { users: readonly User[]; roles: readonly Role[] }) {
+export function UsersManager({ users, roles }: { readonly users: readonly User[]; readonly roles: readonly Role[] }) {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState("users");
   const [openUserSheet, setOpenUserSheet] = useState(false);

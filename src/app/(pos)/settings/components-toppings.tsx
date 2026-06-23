@@ -170,6 +170,10 @@ function LinkedProductsSection({
     linkedByCat[catName].push(p);
   });
 
+  function handleUnlink(productId: string) {
+    start(async () => { await (onUnlink as LooseFn)(productId, groupId); });
+  }
+
   return (
     <div className="mt-3 border-t pt-3">
       <div className="flex items-center justify-between mb-2">
@@ -200,7 +204,7 @@ function LinkedProductsSection({
                     {p.name}
                     <button
                       className="ml-0.5 hover:bg-red-100 rounded p-0.5 text-amber-400 hover:text-red-500"
-                      onClick={() => start(async () => { await (onUnlink as LooseFn)(p.id, groupId); })}
+                      onClick={() => handleUnlink(p.id)}
                     >
                       <Trash2 className="h-2.5 w-2.5" />
                     </button>

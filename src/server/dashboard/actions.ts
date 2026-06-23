@@ -2,6 +2,18 @@
 
 import { db } from "@/lib/db";
 
+function getOrderLabel(status: string, tableName: string): string {
+  if (status === "PAID") return `Table ${tableName} checkout`;
+  if (status === "SENT") return `Table ${tableName} preparing`;
+  return `Table ${tableName} opened`;
+}
+
+function getOrderColor(status: string): string {
+  if (status === "PAID") return "#10b981";
+  if (status === "SENT") return "#d97706";
+  return "#3b82f6";
+}
+
 export async function getDashboardStats() {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -47,14 +59,10 @@ export async function getDashboardStats() {
 
   const timeline = recentOrders.map(o => ({
     id: o.id,
-    label: o.status === "PAID"
-      ? `Table ${o.table.name} checkout`
-      : o.status === "SENT"
-        ? `Table ${o.table.name} preparing`
-        : `Table ${o.table.name} opened`,
+    label: getOrderLabel(o.status, o.table.name),
     amount: o.totalAmount,
     time: o.closedAt ? minutesAgo(o.closedAt) : minutesAgo(o.openedAt),
-    color: o.status === "PAID" ? "#10b981" : o.status === "SENT" ? "#d97706" : "#3b82f6",
+    color: getOrderColor(o.status),
   }));
 
   // Top selling product today

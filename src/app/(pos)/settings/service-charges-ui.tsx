@@ -29,12 +29,12 @@ type ServiceChargeInput = {
   minOrderValue?: number; minGuestCount?: number; isActive?: boolean;
 };
 
-export function ServiceChargesUI({ charges, categories, areas, createServiceCharge, updateServiceCharge, deleteServiceCharge }: {
+export function ServiceChargesUI({ charges, categories, areas, createServiceCharge, updateServiceCharge, deleteServiceCharge }: Readonly<{
   charges: ServiceCharge[]; categories: Cat[]; areas: Area[];
   createServiceCharge: (data: ServiceChargeInput) => Promise<void>;
   updateServiceCharge: (id: string, data: Record<string, unknown>) => Promise<void>;
   deleteServiceCharge: (id: string) => Promise<void>;
-}) {
+}>) {
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

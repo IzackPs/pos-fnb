@@ -39,7 +39,6 @@ export function AreasManager({ areas, createArea, updateArea, deleteArea, create
   const [editTable, setEditTable] = useState<TableInfo | null>(null);
   const [areaForm, setAreaForm] = useState({ name: "", type: "RESTAURANT", sortOrder: "0" });
   const [tableForm, setTableForm] = useState({ name: "", areaId: "", capacity: "4", isKaraoke: false, positionX: "0", positionY: "0" });
-  const [, setActiveArea] = useState<string>("");
 
   function openNewArea() { setEditArea(null); setAreaForm({ name: "", type: "RESTAURANT", sortOrder: "0" }); setOpenArea(true); }
   function openEditArea(a: Area) { setEditArea(a); setAreaForm({ name: a.name, type: a.type, sortOrder: a.sortOrder.toString() }); setOpenArea(true); }
@@ -47,7 +46,7 @@ export function AreasManager({ areas, createArea, updateArea, deleteArea, create
   function openNewTable(areaId: string) {
     const area = areas.find(a => a.id === areaId);
     const isKaraoke = area?.type === "KARAOKE";
-    setEditTable(null); setActiveArea(areaId);
+    setEditTable(null);
     setTableForm({ name: "", areaId, capacity: "4", isKaraoke, positionX: "0", positionY: "0" });
     setOpenTable(true);
   }

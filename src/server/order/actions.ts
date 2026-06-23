@@ -276,7 +276,7 @@ export async function splitItemsEvenly(orderId: string, itemIds: string[]) {
 
   for (const itemId of itemIds) {
     const item = await db.orderItem.findUnique({ where: { id: itemId } });
-    if (!item || item.orderId !== orderId) continue;
+    if (item?.orderId !== orderId) continue;
     if (item.quantity > 1) {
       const stay = Math.ceil(item.quantity / 2);
       const move = item.quantity - stay;
@@ -353,10 +353,10 @@ async function printOrderTicket(orderId: string, areaId: string, printType: stri
     const { createPrintJob } = await import("@/server/reports/print-actions");
     const result = await createPrintJob({
       orderId,
-      type: printType === "ORDER" ? "ORDER" : printType === "TEMP_BILL" ? "TEMP_BILL" : "BILL",
+      type: (printType === "ORDER" || printType === "TEMP_BILL" ? printType : "BILL") as "ORDER" | "TEMP_BILL" | "BILL",
     });
-    if (!result.success) console.error(`[PRINT] Failed: ${result.error}`);
-    else console.log(`[PRINT] Job #${result.jobId} sent successfully`);
+    if (result.success) console.log(`[PRINT] Job #${result.jobId} sent successfully`);
+    else console.error(`[PRINT] Failed: ${result.error}`);
   } catch (e) {
     console.error("[PRINT] Error:", e);
   }
@@ -369,7 +369,7 @@ async function syncKaraokeTime(orderId: string) {
     where: { id: orderId },
     include: { table: { include: { area: true } } },
   });
-  if (!order || !order.table) return;
+  if (!order?.table) return;
   if (!order.table.isKaraoke && order.table.area.type !== "KARAOKE") return;
   if (order.status !== "OPEN" && order.status !== "SENT") return;
 

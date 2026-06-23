@@ -74,7 +74,7 @@ function unpackConfig(raw: string): { order: OrderConfig; bill: BillConfig } {
     if (parsed._version === 2) {
       return {
         order: { ...defaultOrderConfig, ...parsed.order },
-        bill: { ...defaultBillConfig, ...(parsed.bill || {}), header: { ...defaultBillConfig.header, ...parsed.bill?.header }, body: { ...defaultBillConfig.body, ...parsed.bill?.body }, footer: { ...defaultBillConfig.footer, ...parsed.bill?.footer } },
+        bill: { ...defaultBillConfig, ...parsed.bill, header: { ...defaultBillConfig.header, ...parsed.bill?.header }, body: { ...defaultBillConfig.body, ...parsed.bill?.body }, footer: { ...defaultBillConfig.footer, ...parsed.bill?.footer } },
       };
     }
   } catch {}
@@ -91,13 +91,13 @@ export function PrintTemplatesManager({
   const [editing, setEditing] = useState<Tpl | null>(null);
   const [form, setForm] = useState({ name: "", type: "ORDER", printerId: printers[0]?.id ?? "", width: 80 });
   const [orderCfg, setOrderCfg] = useState<OrderConfig>({ ...defaultOrderConfig });
-  const [billCfg, setBillCfg] = useState<BillConfig>(JSON.parse(JSON.stringify(defaultBillConfig)));
+  const [billCfg, setBillCfg] = useState<BillConfig>(structuredClone(defaultBillConfig));
 
   function openNew() {
     setEditing(null);
     setForm({ name: "", type: "ORDER", printerId: printers[0]?.id ?? "", width: 80 });
     setOrderCfg({ ...defaultOrderConfig });
-    setBillCfg(JSON.parse(JSON.stringify(defaultBillConfig)));
+    setBillCfg(structuredClone(defaultBillConfig));
     setOpen(true);
   }
 
@@ -127,7 +127,8 @@ export function PrintTemplatesManager({
   }
 
   const isOrder = form.type === "ORDER";
-  const saveLabel = pending ? t.common.saving : editing ? t.printTemplate.update : t.printTemplate.saveAndCreate;
+  const baseLabel = editing ? t.printTemplate.update : t.printTemplate.saveAndCreate;
+  const saveLabel = pending ? t.common.saving : baseLabel;
 
   return (
     <div className="space-y-4">

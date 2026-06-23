@@ -14,12 +14,18 @@ type Stats = Awaited<ReturnType<typeof getDashboardStats>>;
 
 const fmt = (v: number) => new Intl.NumberFormat("vi-VN").format(v);
 
+function getDateLocale(loc: string): string {
+  if (loc === "pt") return "pt-BR";
+  if (loc === "en") return "en-US";
+  return "vi-VN";
+}
+
 export default function DashboardPage() {
   const { t, locale } = useI18n();
   const { isMobile } = useDeviceInfo();
   const [stats, setStats] = useState<Stats | null>(null);
   const [, start] = useTransition();
-  const dateLocale = locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN";
+  const dateLocale = getDateLocale(locale);
 
   const moduleKeys = ["sales", "inventory", "cash", "reports", "settings"] as const;
   const moduleIcons = [ClipboardList, Package, DollarSign, BarChart3, Settings];

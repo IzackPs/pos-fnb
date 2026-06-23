@@ -311,11 +311,13 @@ function StockInPanel({
     )));
   }
 
+  const panelWidthClass = isMobile ? "w-full" : "w-full max-w-6xl";
+
   return (
     <div className="fixed inset-0 z-50 flex">
       <button type="button" aria-label={t.inventory.cancel} onClick={e => { if (e.target === e.currentTarget) onClose(); }} className="absolute inset-0 bg-black/50 cursor-default" />
       <div
-        className={`relative ml-auto ${isMobile ? "w-full" : "w-full max-w-6xl"} bg-white h-full overflow-hidden flex flex-col shadow-2xl`}
+        className={`relative ml-auto ${panelWidthClass} bg-white h-full overflow-hidden flex flex-col shadow-2xl`}
       >
         {/* Header */}
         <div className={`shrink-0 flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white ${isMobile ? "px-4 py-3" : "px-8 py-5"}`}>
@@ -464,7 +466,7 @@ function StockInTableRow({
     <tr className={`hover:bg-amber-50/30 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50/30"}`}>
       <td className="p-2 pl-4 text-gray-400 text-xs font-mono">{idx + 1}</td>
       <td className="p-2">
-        <Select value={item.ingredientId} onValueChange={value => onIngredientChange(idx, value)}>
+        <Select value={item.ingredientId} onValueChange={value => onIngredientChange(idx, value ?? "")}>
           <SelectTrigger className="h-10 rounded-lg border-gray-200">
             <SelectValue placeholder={`— ${ingredientLabel} —`}>
               {item.ingredientName || `— ${ingredientLabel} —`}

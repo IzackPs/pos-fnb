@@ -39,7 +39,7 @@ export function AreasManager({ areas, createArea, updateArea, deleteArea, create
   const [editTable, setEditTable] = useState<TableInfo | null>(null);
   const [areaForm, setAreaForm] = useState({ name: "", type: "RESTAURANT", sortOrder: "0" });
   const [tableForm, setTableForm] = useState({ name: "", areaId: "", capacity: "4", isKaraoke: false, positionX: "0", positionY: "0" });
-  const [, setActiveArea] = useState<string>("");
+  const [_activeArea, setActiveArea] = useState<string>("");
 
   function openNewArea() { setEditArea(null); setAreaForm({ name: "", type: "RESTAURANT", sortOrder: "0" }); setOpenArea(true); }
   function openEditArea(a: Area) { setEditArea(a); setAreaForm({ name: a.name, type: a.type, sortOrder: a.sortOrder.toString() }); setOpenArea(true); }

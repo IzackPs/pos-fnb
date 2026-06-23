@@ -13,7 +13,7 @@ import { useDeviceInfo } from "@/components/shared/device-provider";
 import { MobileBottomNav } from "@/components/shared/mobile-bottom-nav";
 import { usePermission } from "@/hooks/use-permission";
 
-export function PosLayoutClient({ children, enabledModuleNames }: { children: React.ReactNode; enabledModuleNames: readonly string[] }) {
+export function PosLayoutClient({ children, enabledModuleNames }: Readonly<{ children: React.ReactNode; enabledModuleNames: readonly string[] }>) {
   const enabledModules = new Set(enabledModuleNames);
   const pathname = usePathname();
   const { data: session } = useSession();

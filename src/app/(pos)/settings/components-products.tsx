@@ -38,6 +38,8 @@ type RecipeItem = {
   unit?: { id: string; name: string } | null;
 };
 
+function fmtPrice(v: number) { return new Intl.NumberFormat("vi-VN").format(v || 0); }
+
 export function ProductsManager({
   products, categories, vats, exciseTaxes, units, createProduct, updateProduct, deleteProduct,
   allIngredients, toppingGroups, linkToppingGroup, unlinkToppingGroup,
@@ -147,7 +149,6 @@ export function ProductsManager({
 
   function handleDelete(id: string) { start(async () => { await (deleteProduct as LooseFn)(id); toast.success(t.common.success); }); }
 
-  function fmtPrice(v: number) { return new Intl.NumberFormat("vi-VN").format(v || 0); }
 
   return (
     <>
@@ -166,7 +167,7 @@ export function ProductsManager({
       <div className="flex flex-wrap gap-2 mb-4">
         <button
           className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-            !catFilter ? "bg-amber-500 text-white shadow-sm" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+            catFilter ? "bg-gray-100 text-gray-500 hover:bg-gray-200" : "bg-amber-500 text-white shadow-sm"
           }`}
           onClick={() => setCatFilter("")}
         >{t.inventory.all}        </button>

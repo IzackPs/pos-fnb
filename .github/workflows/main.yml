@@ -265,6 +265,15 @@ jobs:
       - name: Start standalone server
         run: node .next/standalone/server.js &
 
+      - name: Wait for server
+        run: |
+          for i in $(seq 1 20); do
+            curl -sf http://localhost:3000/login && break
+            echo "Waiting for server... ($i)"
+            sleep 3
+          done
+          curl -sf http://localhost:3000/login > /dev/null
+
       - name: Run integration smoke
         run: npm run test:integration
 
@@ -292,6 +301,7 @@ jobs:
       AUTH_SECRET: ci-load-test-secret
       AUTH_URL: http://localhost:3000
       NEXTAUTH_URL: http://localhost:3000
+      BASE_URL: http://localhost:3000
       PORT: 3000
       HOSTNAME: 0.0.0.0
       LOAD_TEST_PROFILE: ci
@@ -330,6 +340,18 @@ jobs:
           npx prisma db push --accept-data-loss
           npx tsx prisma/seed.ts
 
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install -y k6
+
       - name: Download standalone build
         uses: actions/download-artifact@v4
         with:
@@ -342,16 +364,13 @@ jobs:
         run: |
           for i in $(seq 1 20); do
             curl -sf http://localhost:3000/login && break
-            echo "Waiting... ($i)"
+            echo "Waiting for server... ($i)"
             sleep 3
           done
           curl -sf http://localhost:3000/login > /dev/null
 
       - name: Run k6 load test
-        uses: grafana/k6-action@v0.3.1
-        with:
-          filename: k6/load-test.js
-          flags: --out json=k6-results.json
+        run: k6 run --out json=k6-results.json k6/load-test.js
         env:
           BASE_URL: http://localhost:3000
 

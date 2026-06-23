@@ -311,23 +311,25 @@ function StockInPanel({
     )));
   }
 
-  const panelWidthClass = isMobile ? "w-full" : "w-full max-w-6xl";
+  const cls = isMobile
+    ? { panel: "w-full", header: "px-4 py-3", iconBox: "w-8 h-8 rounded-lg", iconSize: "h-4 w-4", title: "text-lg", subtitle: "text-xs", meta: "px-4 py-3 grid grid-cols-1", items: "px-2 py-3", label: "text-xs", footer: "px-3 py-3 flex-wrap gap-2", footerGap: "gap-3 flex-wrap", totalSize: "text-base", amountLabel: "text-xs", cancelBtn: "h-10 px-4", submitBtn: "h-10 px-5" }
+    : { panel: "w-full max-w-6xl", header: "px-8 py-5", iconBox: "w-10 h-10 rounded-xl", iconSize: "h-5 w-5", title: "text-xl", subtitle: "text-sm", meta: "px-8 py-4 grid grid-cols-1 md:grid-cols-2", items: "px-8 py-4", label: "text-sm", footer: "px-8 py-4", footerGap: "gap-8", totalSize: "text-lg", amountLabel: "text-sm", cancelBtn: "h-11 px-6", submitBtn: "h-11 px-8" };
 
   return (
     <div className="fixed inset-0 z-50 flex">
       <button type="button" aria-label={t.inventory.cancel} onClick={onClose} className="absolute inset-0 bg-black/50 cursor-default" />
       <div
-        className={`relative ml-auto ${panelWidthClass} bg-white h-full overflow-hidden flex flex-col shadow-2xl`}
+        className={`relative ml-auto ${cls.panel} bg-white h-full overflow-hidden flex flex-col shadow-2xl`}
       >
         {/* Header */}
-        <div className={`shrink-0 flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white ${isMobile ? "px-4 py-3" : "px-8 py-5"}`}>
+        <div className={`shrink-0 flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-amber-50 to-white ${cls.header}`}>
           <div className="flex items-center gap-2.5">
-            <div className={`${isMobile ? "w-8 h-8 rounded-lg" : "w-10 h-10 rounded-xl"} bg-amber-100 flex items-center justify-center`}>
-              <FileText className={`${isMobile ? "h-4 w-4" : "h-5 w-5"} text-amber-600`} />
+            <div className={`${cls.iconBox} bg-amber-100 flex items-center justify-center`}>
+              <FileText className={`${cls.iconSize} text-amber-600`} />
             </div>
             <div>
-              <h2 className={`${isMobile ? "text-lg" : "text-xl"} font-bold text-gray-900`}>{t.inventory.stockIn}</h2>
-              <p className={`text-gray-500 ${isMobile ? "text-xs" : "text-sm"}`}>{t.inventory.selectSupplierToAutoFill}</p>
+              <h2 className={`${cls.title} font-bold text-gray-900`}>{t.inventory.stockIn}</h2>
+              <p className={`text-gray-500 ${cls.subtitle}`}>{t.inventory.selectSupplierToAutoFill}</p>
             </div>
           </div>
           <button onClick={onClose} className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
@@ -336,7 +338,7 @@ function StockInPanel({
         </div>
 
         {/* Meta info */}
-        <div className={`shrink-0 border-b border-gray-100 bg-white gap-4 ${isMobile ? "px-4 py-3 grid grid-cols-1" : "px-8 py-4 grid grid-cols-1 md:grid-cols-2"}`}>
+        <div className={`shrink-0 border-b border-gray-100 bg-white gap-4 ${cls.meta}`}>
           <div className="space-y-1">
             <Label className="text-xs text-gray-500 uppercase tracking-wider">{t.inventory.supplier}</Label>
             <Select value={supplierId} onValueChange={handleSupplierChange}>
@@ -368,9 +370,9 @@ function StockInPanel({
         </div>
 
         {/* Items table */}
-        <div className={`flex-1 overflow-y-auto ${isMobile ? "px-2 py-3" : "px-8 py-4"}`}>
+        <div className={`flex-1 overflow-y-auto ${cls.items}`}>
           <div className="flex items-center justify-between mb-3">
-            <Label className={`font-semibold text-gray-700 ${isMobile ? "text-xs" : "text-sm"}`}>
+            <Label className={`font-semibold text-gray-700 ${cls.label}`}>
               {t.inventory.ingredientList} ({items.length})
               {loadingItems && <span className="ml-2 text-amber-500 font-normal animate-pulse">{t.common.loading}</span>}
             </Label>
@@ -419,8 +421,8 @@ function StockInPanel({
         </div>
 
         {/* Footer */}
-        <div className={`shrink-0 border-t border-gray-200 bg-gray-50 flex items-center justify-between ${isMobile ? "px-3 py-3 flex-wrap gap-2" : "px-8 py-4"}`}>
-          <div className={`flex items-center ${isMobile ? "gap-3 flex-wrap" : "gap-8"}`}>
+        <div className={`shrink-0 border-t border-gray-200 bg-gray-50 flex items-center justify-between ${cls.footer}`}>
+          <div className={`flex items-center ${cls.footerGap}`}>
             <div className="text-xs">
               <span className="text-gray-500">{t.inventory.totalLines}</span>
               <span className="ml-1 font-bold text-gray-700">{items.length}</span>
@@ -429,17 +431,17 @@ function StockInPanel({
               <span className="text-gray-500">{t.inventory.totalItems}</span>
               <span className="ml-1 font-bold text-gray-700">{fmt(totalQuantity(items))}</span>
             </div>
-            <div className={`${isMobile ? "text-base" : "text-lg"}`}>
-              <span className={`text-gray-500 ${isMobile ? "text-xs" : "text-sm"}`}>{t.inventory.totalAmount}:</span>
+            <div className={cls.totalSize}>
+              <span className={`text-gray-500 ${cls.amountLabel}`}>{t.inventory.totalAmount}:</span>
               <span className="ml-2 font-bold text-amber-600">{fmt(total)}{t.common.d}</span>
             </div>
           </div>
           <div className="flex gap-2">
-            <button onClick={onClose} className={`${isMobile ? "h-10 px-4" : "h-11 px-6"} rounded-lg border border-gray-200 font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors`}>{t.inventory.cancel}</button>
+            <button onClick={onClose} className={`${cls.cancelBtn} rounded-lg border border-gray-200 font-medium text-sm text-gray-600 hover:bg-gray-100 transition-colors`}>{t.inventory.cancel}</button>
             <button
               onClick={onSubmit}
               disabled={pending || items.length === 0 || !hasValidItems}
-              className={`${isMobile ? "h-10 px-5" : "h-11 px-8"} rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors touch-manipulation`}
+              className={`${cls.submitBtn} rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors touch-manipulation`}
             >
               {pending ? t.common.saving : t.inventory.save}
             </button>

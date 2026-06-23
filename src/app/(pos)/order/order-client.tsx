@@ -277,6 +277,10 @@ export function TableGridView({
   const showModeBanner = mergeMode || splitMode;
   const cardPadding = isMobile ? "p-2.5" : "p-4";
   const gapSize = isMobile ? "gap-2" : "gap-4";
+  const modeBannerText = mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt;
+  const modeConfirmText = mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems;
+  const modeConfirmClass = mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600";
+  const modeMinSelection = mergeMode ? 2 : 1;
 
   return (
     <div className="flex flex-col h-full">
@@ -307,17 +311,15 @@ export function TableGridView({
       {/* Mobile: Mode banner + action bar at the bottom */}
       {isMobile && showModeBanner && (
         <div className="px-3 py-2 text-xs flex items-center gap-2 shrink-0 bg-blue-50 border-b border-blue-200">
-          <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
+          <span className="font-semibold text-blue-700">{modeBannerText}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
           <button onClick={resetSelectionMode}
             className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100 touch-manipulation">{t.order.cancel}</button>
           <button onClick={handleConfirm}
-            disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 touch-manipulation ${
-              mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
-            }`}>
-            {mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems}
+            disabled={pending || selectedTables.size < modeMinSelection}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 touch-manipulation ${modeConfirmClass}`}>
+            {modeConfirmText}
           </button>
         </div>
       )}
@@ -325,17 +327,15 @@ export function TableGridView({
       {/* Desktop: Mode banner */}
       {!isMobile && showModeBanner && (
         <div className="px-6 py-2 text-sm flex items-center gap-3 shrink-0 bg-blue-50 border-b border-blue-200">
-          <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
+          <span className="font-semibold text-blue-700">{modeBannerText}</span>
           <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
           <div className="flex-1" />
           <button onClick={resetSelectionMode}
             className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100">{t.order.cancel}</button>
           <button onClick={handleConfirm}
-            disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 ${
-              mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
-            }`}>
-            {mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems}
+            disabled={pending || selectedTables.size < modeMinSelection}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 ${modeConfirmClass}`}>
+            {modeConfirmText}
           </button>
         </div>
       )}
@@ -604,6 +604,7 @@ function OrderDetailView({
       </div>
     );
   }
+  const btClickHandler = btState.connected ? onBtDisconnect : onBtConnect;
   if (isMobile) {
     return (
       <div className="flex flex-col h-full">
@@ -623,7 +624,7 @@ function OrderDetailView({
             <Users className="h-3 w-3 ml-1 opacity-70" />
           </div>
           <button
-            onClick={btState.connected ? onBtDisconnect : onBtConnect}
+            onClick={btClickHandler}
             disabled={btState.connecting}
             className={`p-1.5 rounded-lg transition-all touch-manipulation ${btState.connected ? "bg-white/20 text-white" : "bg-white/20 text-white/60"}`}
           >
@@ -697,6 +698,9 @@ function OrderDetailView({
   }
 
   // ══════ TABLET / DESKTOP: Side-by-side ══════
+  let btTitle = t.order.bluetoothConnect;
+  if (btState.connected) btTitle = t.order.bluetoothConnected;
+  else if (btState.connecting) btTitle = t.order.bluetoothConnecting;
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -723,10 +727,10 @@ function OrderDetailView({
         </div>
         <span className="text-sm font-bold">{t.order.total}: {fmt(orderDetail.totalAmount)}{t.common.d}</span>
         <button
-          onClick={btState.connected ? onBtDisconnect : onBtConnect}
+          onClick={btClickHandler}
           disabled={btState.connecting}
           className={`p-1.5 rounded-lg transition-all ${btState.connected ? "bg-white/20 text-white hover:bg-white/30" : "bg-white/20 text-white/60 hover:bg-white/30"}`}
-          title={btState.connected ? t.order.bluetoothConnected : btState.connecting ? t.order.bluetoothConnecting : t.order.bluetoothConnect}
+          title={btTitle}
         >
           {getBluetoothIcon(btState)}
         </button>
@@ -816,7 +820,7 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
   useEffect(() => { const interval = setInterval(() => router.refresh(), 30000); return () => clearInterval(interval); }, [router]);
   // Auto-refresh karaoke orders every 30s to update time
   useEffect(() => {
-    if (!orderDetail || orderDetail.type !== "KARAOKE" || !activeOrderId) return;
+    if (orderDetail?.type !== "KARAOKE" || !activeOrderId) return;
     const interval = setInterval(async () => {
       await refreshKaraokeTime(activeOrderId);
       setRefreshKey(k => k + 1);
@@ -923,7 +927,11 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
       else toast.success(t.order.tempBillSuccess);
     });
   }
-  function handleCheckout() { if (!orderDetail) return; setPaymentAmount(orderDetail.totalAmount.toString()); setCheckoutDialog(true); }
+  function handleCheckout() {
+    if (!orderDetail) return;
+    setPaymentAmount(orderDetail.totalAmount.toString());
+    setCheckoutDialog(true);
+  }
   function confirmCheckout() {
     if (!activeOrderId) return;
     start(async () => {

@@ -137,6 +137,28 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
     }
   }
 
+  function chargeValueLabel(c: ServiceCharge) {
+    if (c.type === "PERCENTAGE") return `${c.value}%`;
+    if (c.type === "PER_GUEST") return `${new Intl.NumberFormat().format(c.value)}${t.common.d}/${t.order.guestCount.toLowerCase()}`;
+    return `${new Intl.NumberFormat().format(c.value)}${t.common.d}`;
+  }
+
+  function chargeScopeLabel(c: ServiceCharge) {
+    if (c.scope === "AREA") return `${t.settings.areas}: ${c.area?.name || c.areaId}`;
+    if (c.scope === "CATEGORY" && c.categoryIds) {
+      return (
+        <span className="flex flex-wrap gap-1">
+          {(JSON.parse(c.categoryIds) as string[]).map((cid) => (
+            <span key={cid} className="bg-blue-100 text-blue-700 rounded px-1.5 py-0.5">
+              {categories.find(x => x.id === cid)?.name || cid}
+            </span>
+          ))}
+        </span>
+      );
+    }
+    return t.settings.allItems;
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -167,12 +189,10 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
                 <td className="px-4 py-3 font-semibold">{c.name}</td>
                 <td className="px-4 py-3"><Badge variant="outline" className="text-xs">{scTypeMap[c.type as keyof typeof scTypeMap] || c.type}</Badge></td>
                 <td className="px-4 py-3 text-right font-mono">
-                  {c.type === "PERCENTAGE" ? `${c.value}%` : c.type === "PER_GUEST" ? `${new Intl.NumberFormat().format(c.value)}${t.common.d}/${t.order.guestCount.toLowerCase()}` : `${new Intl.NumberFormat().format(c.value)}${t.common.d}`}
+                  {chargeValueLabel(c)}
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500">
-                  {c.scope === "AREA" ? `${t.settings.areas}: ${c.area?.name || c.areaId}` : c.scope === "CATEGORY" && c.categoryIds ? (
-                    <span className="flex flex-wrap gap-1">{JSON.parse(c.categoryIds).map((cid: string) => <span key={cid} className="bg-blue-100 text-blue-700 rounded px-1.5 py-0.5">{categories.find(x => x.id === cid)?.name || cid}</span>)}</span>
-                  ) : t.settings.allItems}
+                  {chargeScopeLabel(c)}
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500">{condLabel(c)}</td>
                 <td className="px-4 py-3 text-center">{c.isActive ? <Badge className="bg-emerald-50 text-emerald-700 text-xs">{t.settings.active}</Badge> : <Badge variant="secondary" className="text-xs">{t.settings.inactive}</Badge>}</td>

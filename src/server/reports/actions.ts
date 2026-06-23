@@ -22,10 +22,6 @@ function dateRangeByMode(mode: ReportMode, date?: string, startDate?: string, en
   const d = date ? new Date(date) : now;
 
   switch (mode) {
-    case "day":
-      start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-      end = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
-      break;
     case "week": {
       const day = d.getDay();
       const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
@@ -43,6 +39,7 @@ function dateRangeByMode(mode: ReportMode, date?: string, startDate?: string, en
       start = new Date(d.getFullYear(), 0, 1, 0, 0, 0, 0);
       end = new Date(d.getFullYear(), 11, 31, 23, 59, 59, 999);
       break;
+    case "day":
     default:
       start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
       end = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);

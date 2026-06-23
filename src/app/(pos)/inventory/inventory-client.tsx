@@ -294,18 +294,17 @@ function StockInPanel({
   }
 
   function handleSupplierChange(nextSupplierId: string | null) {
-    const selectedSupplierId = nextSupplierId ?? "";
-    setSupplierId(selectedSupplierId);
-    if (!selectedSupplierId) {
+    setSupplierId(nextSupplierId ?? "");
+    if (!nextSupplierId) {
       setItems([]);
     }
   }
 
   function handleIngredientChange(idx: number, ingredientId: string) {
     const selectedIngredient = allIngredients.find(ing => ing.id === ingredientId);
-    const ingredientName = selectedIngredient?.name || "";
-    const purchaseUnit = selectedIngredient?.purchaseUnit || "";
-    const baseUnit = selectedIngredient?.baseUnit || "";
+    const ingredientName = selectedIngredient?.name ?? "";
+    const purchaseUnit = selectedIngredient?.purchaseUnit ?? "";
+    const baseUnit = selectedIngredient?.baseUnit ?? "";
     setItems(prev => prev.map((it, i) => (
       i === idx ? { ...it, ingredientId, ingredientName, purchaseUnit, baseUnit } : it
     )));

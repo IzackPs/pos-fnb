@@ -28,11 +28,11 @@ export function MobileSheet({
         <dialog
           open
           className={`bg-white border-0 rounded-2xl shadow-xl w-full ${maxWidth} p-6 mx-4`}
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
         >
-          <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
-          {children}
+          <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
+            {children}
+          </div>
         </dialog>
       </DismissibleBackdrop>
     ) : null;

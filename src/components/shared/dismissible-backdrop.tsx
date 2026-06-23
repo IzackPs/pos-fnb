@@ -16,7 +16,7 @@ export function DismissibleBackdrop({
   onDismiss,
 }: Readonly<DismissibleBackdropProps>) {
   const dismissOnBackdropPress = (
-    event: MouseEvent<HTMLDivElement> | KeyboardEvent<HTMLDivElement>,
+    event: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>,
   ) => {
     if (event.target !== event.currentTarget) {
       return;
@@ -26,7 +26,8 @@ export function DismissibleBackdrop({
   };
 
   return (
-    <div
+    <button
+      type="button"
       className={cn("fixed inset-0", className)}
       onClick={dismissOnBackdropPress}
       onKeyDown={(event) => {
@@ -41,11 +42,9 @@ export function DismissibleBackdrop({
         event.preventDefault();
         dismissOnBackdropPress(event);
       }}
-      role="button"
       aria-label="Dismiss"
-      tabIndex={0}
     >
       {children}
-    </div>
+    </button>
   );
 }

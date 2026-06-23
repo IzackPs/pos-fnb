@@ -68,6 +68,10 @@ function totalQuantity(items: StockInItem[]) {
   return items.reduce((sum, item) => sum + (Number.parseFloat(item.quantity) || 0), 0);
 }
 
+function ingredientFields(ing: IngredientBasic | undefined) {
+  return { ingredientName: ing?.name ?? "", purchaseUnit: ing?.purchaseUnit ?? "", baseUnit: ing?.baseUnit ?? "" };
+}
+
 export function InventoryClient({
   ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers
 }: InventoryClientProps) {
@@ -301,10 +305,7 @@ function StockInPanel({
   }
 
   function handleIngredientChange(idx: number, ingredientId: string) {
-    const selectedIngredient = allIngredients.find(ing => ing.id === ingredientId);
-    const ingredientName = selectedIngredient?.name ?? "";
-    const purchaseUnit = selectedIngredient?.purchaseUnit ?? "";
-    const baseUnit = selectedIngredient?.baseUnit ?? "";
+    const { ingredientName, purchaseUnit, baseUnit } = ingredientFields(allIngredients.find(ing => ing.id === ingredientId));
     setItems(prev => prev.map((it, i) => (
       i === idx ? { ...it, ingredientId, ingredientName, purchaseUnit, baseUnit } : it
     )));

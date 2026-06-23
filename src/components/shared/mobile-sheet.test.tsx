@@ -42,7 +42,7 @@ describe("MobileSheet (desktop modal)", () => {
     await userEvent.click(screen.getByText("inner"));
     expect(onClose).not.toHaveBeenCalled();
 
-    await userEvent.click(screen.getByText("T").parentElement!.parentElement!);
+    await userEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

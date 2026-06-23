@@ -253,7 +253,9 @@ describe("OrderClient", () => {
     await user.click(within(coffeeRow).getByRole("button", { name: "Huỷ" }));
     await waitFor(() => expect(actionsMock.cancelItem).toHaveBeenCalledWith("i1", "user"));
 
-    await user.click(screen.getByRole("button", { name: "Gửi bếp" }));
+    const sendButton = screen.getByRole("button", { name: "Gửi bếp" });
+    await waitFor(() => expect(sendButton).toBeEnabled());
+    await user.click(sendButton);
     await waitFor(() => expect(actionsMock.sendOrder).toHaveBeenCalledWith("o1", "area-1"));
     expect(toast.success).toHaveBeenCalledWith("Đã gửi bếp!");
 

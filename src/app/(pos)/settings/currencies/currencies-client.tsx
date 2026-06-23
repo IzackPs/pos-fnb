@@ -81,7 +81,7 @@ export function CurrenciesManager({ currencies }: { readonly currencies: Currenc
           className="z-50 flex items-center justify-center bg-black/40"
           onDismiss={() => setOpen(false)}
         >
-          <dialog open onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()} className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4 m-0">
+          <dialog open className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4 m-0">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">{editId ? t.common.edit + " " + t.settings.sidebar.currencies : t.common.add + " " + t.settings.sidebar.currencies}</h3>
               <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-gray-100"><X className="h-4 w-4 text-gray-400" /></button>

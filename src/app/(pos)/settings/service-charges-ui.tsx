@@ -46,7 +46,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
   const [scope, setScope] = useState("ALL");
   const [areaId, setAreaId] = useState("");
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
-  const [applyCondition, setCondition] = useState("ALL_DAYS");
+  const [applyCondition, setApplyCondition] = useState("ALL_DAYS");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [minOrder, setMinOrder] = useState("");
@@ -55,7 +55,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
 
   function reset() {
     setName(""); setType("PERCENTAGE"); setValue("0"); setScope("ALL");
-    setAreaId(""); setSelectedCats([]); setCondition("ALL_DAYS");
+    setAreaId(""); setSelectedCats([]); setApplyCondition("ALL_DAYS");
     setStartDate(""); setEndDate(""); setMinOrder(""); setMinGuest("");
     setIsActive(true);
   }
@@ -65,7 +65,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
     setName(c.name); setType(c.type); setValue(String(c.value)); setScope(c.scope);
     setAreaId(c.areaId || "");
     setSelectedCats(c.categoryIds ? JSON.parse(c.categoryIds) : []);
-    setCondition(c.applyCondition || "ALL_DAYS");
+    setApplyCondition(c.applyCondition || "ALL_DAYS");
     setStartDate(c.startDate ? c.startDate.toISOString().slice(0, 10) : "");
     setEndDate(c.endDate ? c.endDate.toISOString().slice(0, 10) : "");
     setMinOrder(c.minOrderValue ? String(c.minOrderValue) : "");
@@ -122,7 +122,8 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
   };
 
   function condLabel(d: ServiceCharge) {
-    const dateLocale = locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN";
+    const localeMap: Record<string, string> = { pt: "pt-BR", en: "en-US" };
+    const dateLocale = localeMap[locale] ?? "vi-VN";
     switch (d.applyCondition) {
       case "DATE_RANGE": {
         if (!d.startDate) return t.settings.scCondition.DATE_RANGE;
@@ -256,7 +257,7 @@ export function ServiceChargesUI({ charges, categories, areas, createServiceChar
             )}
 
             <div className="space-y-1"><Label>{t.settings.scCondition.ALL_DAYS}</Label>
-              <Select value={applyCondition} onValueChange={v => setCondition(v || "ALL_DAYS")}>
+              <Select value={applyCondition} onValueChange={v => setApplyCondition(v || "ALL_DAYS")}>
                 <SelectTrigger><SelectValue>{condMap[applyCondition as keyof typeof condMap]}</SelectValue></SelectTrigger>
                 <SelectContent>
                   {Object.entries(condMap).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}

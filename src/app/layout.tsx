@@ -1,12 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
 import { I18nProvider } from "@/i18n/context";
 import { DeviceProvider } from "@/components/shared/device-provider";
 import "./globals.css";
-
-import type { Viewport } from "next";
 
 export const dynamic = "force-dynamic";
 

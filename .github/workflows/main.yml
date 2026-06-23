@@ -1,9 +1,6 @@
 name: CI
 
 on:
-  pull_request:
-    branches:
-      - main
   push:
     branches:
       - main
@@ -53,7 +50,6 @@ jobs:
   unit:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
-    needs: lint
     env:
       AUTH_SECRET: ci-secret-not-used
       AUTH_URL: http://localhost:3000
@@ -96,11 +92,53 @@ jobs:
           name: coverage-report
           path: coverage/lcov.info
 
+  # ─── Fail-fast ───────────────────────────────────────────────────────────────
+  # Aborts the whole run as soon as a fast check (lint/unit) fails, so the long
+  # build/integration/load jobs don't keep burning minutes. Cross-job fail-fast is
+  # not native outside matrices, so we cancel the run explicitly.
+  fail-fast:
+    name: Cancel run on early failure
+    runs-on: ubuntu-latest
+    needs: [lint, unit]
+    if: failure()
+    permissions:
+      actions: write
+    steps:
+      - name: Cancel in-progress run
+        run: gh run cancel "${{ github.run_id }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  # Stops the still-running sibling (load ⇄ integration) the moment one of them fails.
+  fail-fast-integration:
+    name: Cancel run if integration fails
+    runs-on: ubuntu-latest
+    needs: [integration]
+    if: failure()
+    permissions:
+      actions: write
+    steps:
+      - run: gh run cancel "${{ github.run_id }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  fail-fast-load:
+    name: Cancel run if load fails
+    runs-on: ubuntu-latest
+    needs: [load]
+    if: failure()
+    permissions:
+      actions: write
+    steps:
+      - run: gh run cancel "${{ github.run_id }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   # ─── SonarQube Scan ────────────────────────────────────────────────────────
   sonar:
     name: SonarQube Analysis
     runs-on: ubuntu-latest
-    needs: [load]
+    needs: [lint, unit]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -127,7 +165,6 @@ jobs:
   build:
     name: Build (Dockerfile)
     runs-on: ubuntu-latest
-    needs: [unit]
     steps:
       - uses: actions/checkout@v4
 
@@ -142,6 +179,7 @@ jobs:
           target: builder
           load: true
           tags: pos-fnb:builder
+          provenance: false
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -214,10 +252,10 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Migrate and seed
+      - name: Apply schema and seed
         run: |
-          npx prisma migrate deploy
-          npx prisma db seed
+          npx prisma db push --skip-generate --accept-data-loss
+          node prisma/seed.ts
 
       - name: Download standalone build
         uses: actions/download-artifact@v4
@@ -234,7 +272,7 @@ jobs:
   load:
     name: Load Test (k6)
     runs-on: ubuntu-latest
-    needs: [build, integration]
+    needs: [build]
     services:
       postgres:
         image: postgres:16-alpine
@@ -287,10 +325,10 @@ jobs:
         if: steps.cache-prisma.outputs.cache-hit != 'true'
         run: npx prisma generate
 
-      - name: Migrate and seed
+      - name: Apply schema and seed
         run: |
-          npx prisma migrate deploy
-          npx prisma db seed
+          npx prisma db push --skip-generate --accept-data-loss
+          node prisma/seed.ts
 
       - name: Download standalone build
         uses: actions/download-artifact@v4

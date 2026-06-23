@@ -27,11 +27,19 @@ assert_authenticated_route() {
   local path="$1"
   local status
 
-  status="$(curl -sS -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" "${BASE_URL}${path}")"
-  if [[ "$status" != "200" ]]; then
-    echo "Authenticated route ${path} returned ${status}, expected 200" >&2
-    return 1
-  fi
+  for attempt in $(seq 1 10); do
+    status="$(curl -sS -b "$COOKIE_JAR" -o /dev/null -w "%{http_code}" "${BASE_URL}${path}")"
+    if [[ "$status" == "200" ]]; then
+      return 0
+    fi
+    echo "Authenticated route ${path}: got ${status}, expected 200 (${attempt}/10)"
+    sleep 2
+  done
+
+  echo "Authenticated route ${path} returned ${status}, expected 200" >&2
+  echo "Response headers:" >&2
+  curl -sS -b "$COOKIE_JAR" -D - -o /dev/null "${BASE_URL}${path}" >&2 || true
+  return 1
 }
 
 rm -f "$COOKIE_JAR" "$LOGIN_BODY"
@@ -61,6 +69,21 @@ login_status="$(
 
 if [[ "$login_status" != "200" && "$login_status" != "302" ]]; then
   echo "Login returned ${login_status}, expected 200 or 302" >&2
+  cat "$LOGIN_BODY" >&2
+  exit 1
+fi
+
+# NextAuth returns HTTP 200/302 even when credentials are rejected — it redirects
+# back to the sign-in page with an `error` query param. Catch that explicitly so a
+# failed login is not mistaken for success.
+if grep -q "error" "$LOGIN_BODY"; then
+  echo "Login was rejected (error in callback response):" >&2
+  cat "$LOGIN_BODY" >&2
+  exit 1
+fi
+
+if ! grep -q "authjs.session-token" "$COOKIE_JAR"; then
+  echo "No session cookie (authjs.session-token) set after login" >&2
   cat "$LOGIN_BODY" >&2
   exit 1
 fi

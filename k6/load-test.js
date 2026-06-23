@@ -5,15 +5,21 @@ import { Trend, Rate } from "k6/metrics";
 const loginDuration = new Trend("login_duration", true);
 const dashboardDuration = new Trend("dashboard_duration", true);
 const errorRate = new Rate("errors");
+const isCiProfile = __ENV.LOAD_TEST_PROFILE === "ci";
 
 export const options = {
-  stages: [
+  stages: isCiProfile ? [
+    { duration: "5s", target: 5 },
+    { duration: "10s", target: 5 },
+    { duration: "5s", target: 0 },
+  ] : [
     { duration: "30s", target: 10 },
     { duration: "1m",  target: 10 },
     { duration: "30s", target: 25 },
     { duration: "1m",  target: 25 },
     { duration: "30s", target: 0  },
   ],
+  summaryTrendStats: ["avg", "min", "med", "p(90)", "p(95)", "max"],
   thresholds: {
     http_req_duration:  ["p(95)<1000"],
     http_req_failed:    ["rate<0.01"],
@@ -58,7 +64,7 @@ function login() {
   return res.cookies;
 }
 
-export default function () {
+export default function runLoadScenario() {
   const cookies = login();
 
   const jar = http.cookieJar();

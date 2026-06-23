@@ -255,7 +255,7 @@ jobs:
       - name: Apply schema and seed
         run: |
           npx prisma db push --accept-data-loss
-          node prisma/seed.ts
+          npx tsx prisma/seed.ts
 
       - name: Download standalone build
         uses: actions/download-artifact@v4
@@ -328,7 +328,7 @@ jobs:
       - name: Apply schema and seed
         run: |
           npx prisma db push --accept-data-loss
-          node prisma/seed.ts
+          npx tsx prisma/seed.ts
 
       - name: Download standalone build
         uses: actions/download-artifact@v4

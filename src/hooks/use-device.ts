@@ -35,7 +35,7 @@ function getDeviceInfo(width: number, height: number): DeviceInfo {
 }
 
 function getInitialInfo(): DeviceInfo {
-  if (typeof globalThis.window !== "undefined") {
+  if (globalThis.window !== undefined) {
     return getDeviceInfo(globalThis.innerWidth, globalThis.innerHeight);
   }
   return getDeviceInfo(1024, 768); // SSR fallback
@@ -43,7 +43,7 @@ function getInitialInfo(): DeviceInfo {
 
 export function useDevice(): DeviceInfo {
   const [info, setInfo] = useState<DeviceInfo>(getInitialInfo);
-  const lastDeviceRef = useRef<Device>(getDevice(typeof globalThis.window !== "undefined" ? globalThis.innerWidth : 1024));
+  const lastDeviceRef = useRef<Device>(getDevice(globalThis.window === undefined ? 1024 : globalThis.innerWidth));
 
   useEffect(() => {
     let raf = 0;

@@ -592,9 +592,9 @@ export const pt = {
       { name: "Coca-Cola Lemos", qty: 3, toppings: "Com gelo e limão" }
     ],
     sampleItemsWithPrice: [
-      { name: "Hambúrguer Artesanal", qty: 2, price: 35.00, toppings: "Sem cebola" },
-      { name: "Batata Frita Média", qty: 1, price: 15.00, toppings: "" },
-      { name: "Coca-Cola Lemos", qty: 3, price: 8.00, toppings: "Com gelo e limão" }
+      { name: "Hambúrguer Artesanal", qty: 2, price: 35, toppings: "Sem cebola" },
+      { name: "Batata Frita Média", qty: 1, price: 15, toppings: "" },
+      { name: "Coca-Cola Lemos", qty: 3, price: 8, toppings: "Com gelo e limão" }
     ],
     templateTypes: {
       ORDER: "Pedido (Cozinha/Bar)",

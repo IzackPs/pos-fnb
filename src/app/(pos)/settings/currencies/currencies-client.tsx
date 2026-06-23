@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 type Currency = { id: string; code: string; name: string; symbol: string; rate: number; isDefault: boolean; sortOrder: number };
 
-export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
+export function CurrenciesManager({ currencies }: { readonly currencies: Currency[] }) {
   const { t } = useI18n();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
@@ -81,7 +81,7 @@ export function CurrenciesManager({ currencies }: { currencies: Currency[] }) {
           className="z-50 flex items-center justify-center bg-black/40"
           onDismiss={() => setOpen(false)}
         >
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4" onClick={e => e.stopPropagation()}>
+          <div role="dialog" className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 mx-4" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-gray-900">{editId ? t.common.edit + " " + t.settings.sidebar.currencies : t.common.add + " " + t.settings.sidebar.currencies}</h3>
               <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-gray-100"><X className="h-4 w-4 text-gray-400" /></button>

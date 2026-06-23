@@ -41,10 +41,10 @@ type DiscountInput = {
 };
 
 export function DiscountsUI({ discounts, categories, createDiscount, updateDiscount, deleteDiscount }: {
-  discounts: Discount[]; categories: Cat[];
-  createDiscount: (data: DiscountInput) => Promise<void>;
-  updateDiscount: (id: string, data: Record<string, unknown>) => Promise<void>;
-  deleteDiscount: (id: string) => Promise<void>;
+  readonly discounts: Discount[]; readonly categories: Cat[];
+  readonly createDiscount: (data: DiscountInput) => Promise<void>;
+  readonly updateDiscount: (id: string, data: Record<string, unknown>) => Promise<void>;
+  readonly deleteDiscount: (id: string) => Promise<void>;
 }) {
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);

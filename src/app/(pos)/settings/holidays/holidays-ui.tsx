@@ -53,7 +53,8 @@ export function HolidaysUI({ holidays, createHoliday, updateHoliday, deleteHolid
     start(async () => { try { await deleteHoliday(id); toast.success(t.settings.deleted); } catch { toast.error(t.common.error); } });
   }
 
-  const dateLocale = locale === "pt" ? "pt-BR" : locale === "en" ? "en-US" : "vi-VN";
+  const localeMap: Record<string, string> = { pt: "pt-BR", en: "en-US" };
+  const dateLocale = localeMap[locale] ?? "vi-VN";
   const today = new Date();
   const upcoming = holidays.filter(h => new Date(h.date) >= today);
   const past = holidays.filter(h => new Date(h.date) < today);

@@ -41,7 +41,8 @@ export function DismissibleBackdrop({
         event.preventDefault();
         dismissOnBackdropPress(event);
       }}
-      role="presentation"
+      role="button"
+      aria-label="Dismiss"
       tabIndex={0}
     >
       {children}

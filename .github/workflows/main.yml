@@ -265,6 +265,11 @@ jobs:
         with:
           name: next-standalone-build
 
+      - name: Copy static assets into standalone
+        run: |
+          mkdir -p .next/standalone/.next/static && cp -a .next/static/. .next/standalone/.next/static/
+          mkdir -p .next/standalone/public && cp -a public/. .next/standalone/public/
+
       - name: Start standalone server
         run: node .next/standalone/server.js &
 
@@ -362,6 +367,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: next-standalone-build
+
+      - name: Copy static assets into standalone
+        run: |
+          mkdir -p .next/standalone/.next/static && cp -a .next/static/. .next/standalone/.next/static/
+          mkdir -p .next/standalone/public && cp -a public/. .next/standalone/public/
 
       - name: Start standalone server
         run: node .next/standalone/server.js &
@@ -468,6 +478,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: next-standalone-build
+
+      # O standalone server.js espera .next/static e public relativos
+      # ao seu próprio diretório — exatamente como o Dockerfile runner stage faz.
+      # Sem isso, os bundles JS retornam 404 e React nunca hidrata no browser.
+      - name: Copy static assets into standalone
+        run: |
+          mkdir -p .next/standalone/.next/static && cp -a .next/static/. .next/standalone/.next/static/
+          mkdir -p .next/standalone/public && cp -a public/. .next/standalone/public/
 
       - name: Start standalone server
         run: node .next/standalone/server.js &

@@ -54,6 +54,7 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700">{t.login.username}</label>
               <input
+                data-testid="login-username"
                 name="username"
                 value={form.username}
                 onChange={e => setForm(f => ({ ...f, username: e.target.value }))}
@@ -69,6 +70,7 @@ export default function LoginPage() {
                 <button type="button" className="text-xs font-medium text-amber-600 hover:text-amber-700">{t.login.forgotPassword}</button>
               </div>
               <input
+                data-testid="login-password"
                 name="password"
                 type="password"
                 value={form.password}
@@ -80,6 +82,7 @@ export default function LoginPage() {
             </div>
 
             <button
+              data-testid="login-submit"
               type="submit"
               disabled={pending}
               className="w-full h-12 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white rounded-xl font-bold text-sm shadow-md shadow-amber-200 active:scale-[0.98] transition-all disabled:opacity-50 cursor-pointer"

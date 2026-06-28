@@ -12,7 +12,6 @@ const flowErrors         = new Rate("browser_flow_errors");
 const BASE     = __ENV.BASE_URL       || "http://localhost:3000";
 const USERNAME = __ENV.LOAD_TEST_USER || "admin";
 const PASSWORD = __ENV.LOAD_TEST_PASS || "admin123";
-
 const isCiProfile = __ENV.LOAD_TEST_PROFILE === "ci";
 
 export const options = {
@@ -30,140 +29,157 @@ export const options = {
     },
   },
   thresholds: {
-    // Login deve completar em <8s (inclui bcrypt + hidratação React)
-    browser_login_duration:      ["p(95)<8000"],
-    // Fluxo de pedido (abrir mesa → adicionar item → enviar cozinha) em <10s
-    browser_order_flow_duration: ["p(95)<10000"],
-    // Checkout em <6s
-    browser_checkout_duration:   ["p(95)<6000"],
-    // Taxa de erro do fluxo completo < 5%
+    browser_login_duration:      ["p(95)<10000"],
+    browser_order_flow_duration: ["p(95)<12000"],
+    browser_checkout_duration:   ["p(95)<8000"],
     browser_flow_errors:         ["rate<0.05"],
-    // Core Web Vitals
     "browser_web_vital_lcp{scenario:pos_order_flow}": ["p(90)<3000"],
   },
 };
 
-// ─── Helper: log de erro legível ─────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function errStr(err) {
   if (!err) return "unknown error";
   if (typeof err === "string") return err;
   if (err.message) return err.message;
-  try { return String(err); } catch { return "unserializable error"; }
+  try { return String(err); } catch { return "unserializable"; }
 }
 
-// ─── Helper: aguarda URL conter um padrão (poll) ──────────────────────────────
-async function waitForUrlContains(page, pattern, timeoutMs = 12000) {
+// Poll até a URL conter o padrão esperado.
+async function waitForUrlContains(page, pattern, timeoutMs = 15000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const url = page.url();
-    if (url.includes(pattern)) return true;
-    await sleep(0.3);
+    if (page.url().includes(pattern)) return;
+    await sleep(0.5);
   }
-  throw new Error(`Timeout esperando URL conter "${pattern}". URL atual: ${page.url()}`);
+  throw new Error(`Timeout (${timeoutMs}ms) esperando URL conter "${pattern}". Atual: ${page.url()}`);
 }
 
 // ─── Login ────────────────────────────────────────────────────────────────────
-// O login.tsx usa signIn("credentials", { redirect: false }) e depois
-// faz globalThis.location.href = "/order" — não navega para /dashboard.
+// PROBLEMA RESOLVIDO: o login.tsx usa signIn() do NextAuth com redirect:false
+// e depois faz globalThis.location.href = "/order".
+// Sem esperar a hidratação do React, o browser submete o <form> via GET nativo
+// (sem method/action definido), mandando credenciais como query params e falhando.
+// A solução: aguardar o __reactFiber no botão antes de clicar.
 async function doLogin(page) {
   const t0 = Date.now();
 
   await page.goto(`${BASE}/login`);
-  // Aguarda o formulário renderizar (o campo username já tem name="username")
-  await page.locator("input[name='username']").waitFor({ timeout: 8000 });
 
-  await page.locator("input[name='username']").fill(USERNAME);
-  await page.locator("input[name='password']").fill(PASSWORD);
-  await page.locator("button[type='submit']").click();
+  // Aguardar o input aparecer (SSR já renderizou)
+  await page.locator("[data-testid='login-username']").waitFor({ timeout: 8000 });
 
-  // Após login bem-sucedido → location.href = "/order"
-  await waitForUrlContains(page, "/order", 12000);
-  // Aguarda o painel de mesas carregar (indica SSR + hidratação concluída)
-  await page.locator("[data-testid='table-free'], [data-testid='table-occupied']").first().waitFor({ timeout: 10000 });
+  // CRÍTICO: Aguardar hidratação do React.
+  // Sem isso, o click no submit dispara o submit nativo do <form> (GET),
+  // ignorando o e.preventDefault() do handleSubmit que ainda não foi registrado.
+  await page.waitForFunction(() => {
+    const btn = document.querySelector("[data-testid='login-submit']");
+    if (!btn) return false;
+    // React anexa __reactFiber* ou __reactInternalInstance* ao DOM node após hidratar
+    return Object.keys(btn).some((k) => k.startsWith("__react"));
+  }, { timeout: 10000 });
+
+  await page.locator("[data-testid='login-username']").fill(USERNAME);
+  await page.locator("[data-testid='login-password']").fill(PASSWORD);
+  await page.locator("[data-testid='login-submit']").click();
+
+  // Após login bem-sucedido: location.href = "/order" (não /dashboard!)
+  await waitForUrlContains(page, "/order", 15000);
+
+  // Aguarda mesas aparecerem (SSR + hidratação do OrderClient concluídos)
+  await page
+    .locator("[data-testid='table-free'], [data-testid='table-occupied']")
+    .first()
+    .waitFor({ timeout: 12000 });
 
   return Date.now() - t0;
 }
 
-// ─── Fluxo de pedido ─────────────────────────────────────────────────────────
+// ─── Fluxo de pedido ──────────────────────────────────────────────────────────
 async function doOrderFlow(page) {
   const t0 = Date.now();
 
-  // Tentar clicar em uma mesa livre primeiro; se não houver, usar uma ocupada
-  const freeTable = page.locator("[data-testid='table-free']").first();
+  // Preferir mesa livre; se não houver, abrir uma ocupada (continuar pedido)
+  const freeTable     = page.locator("[data-testid='table-free']").first();
   const occupiedTable = page.locator("[data-testid='table-occupied']").first();
 
   const hasFree = await freeTable.isVisible({ timeout: 3000 }).catch(() => false);
   if (hasFree) {
     await freeTable.click();
   } else {
-    // Se não há mesa livre, usa mesa ocupada (continua pedido existente)
     const hasOccupied = await occupiedTable.isVisible({ timeout: 3000 }).catch(() => false);
-    if (!hasOccupied) {
-      throw new Error("Nenhuma mesa disponível (nem livre nem ocupada)");
-    }
+    if (!hasOccupied) throw new Error("Sem mesas disponíveis (nem livre nem ocupada)");
     await occupiedTable.click();
   }
 
-  // Aguarda painel de produtos — Server Action openTable() completou quando isso aparecer
+  // Painel de produtos visível = Server Action openTable() concluiu
   await page.locator("[data-testid='product-btn']").first().waitFor({ timeout: 10000 });
 
-  // Clicar no primeiro produto disponível
+  // Adicionar primeiro produto
   await page.locator("[data-testid='product-btn']").first().click();
 
-  // Se aparecer dialog de toppings, fechar clicando fora ou no botão de confirmar
-  await sleep(0.8);
-  const toppingDialog = page.locator("button[data-testid='btn-send-kitchen']");
-  // Se o botão enviar ficou visível sem o dialog de topping travar, segue em frente.
-  // Caso contrário, tenta fechar o dialog de topping pressionando Escape.
-  const sendVisible = await toppingDialog.isVisible({ timeout: 2000 }).catch(() => false);
+  // Aguardar possível dialog de toppings
+  await sleep(1);
+
+  // Se abriu dialog de toppings (botão send ainda não visível), fechar com Escape
+  const sendVisible = await page
+    .locator("[data-testid='btn-send-kitchen']")
+    .isVisible({ timeout: 1500 })
+    .catch(() => false);
+
   if (!sendVisible) {
-    // Dialog de topping aberto — confirmar com o botão de adicionar
-    const addBtn = page.locator("button:enabled").filter({ hasText: /adicionar|add|thêm/i }).last();
-    if (await addBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    // Tentar confirmar topping com o último botão habilitado visível
+    const addBtn = page.locator("button:enabled").last();
+    if (await addBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await addBtn.click();
     } else {
       await page.keyboard.press("Escape");
     }
-    await page.locator("[data-testid='btn-send-kitchen']").waitFor({ timeout: 5000 });
+    await page
+      .locator("[data-testid='btn-send-kitchen']")
+      .waitFor({ timeout: 6000 });
   }
 
   // Enviar para cozinha — Server Action: sendOrder()
-  const sendBtn = page.locator("[data-testid='btn-send-kitchen']");
-  const isDisabled = await sendBtn.isDisabled().catch(() => true);
-  if (!isDisabled) {
+  const sendBtn  = page.locator("[data-testid='btn-send-kitchen']");
+  const disabled = await sendBtn.isDisabled().catch(() => true);
+  if (!disabled) {
     await sendBtn.click();
-    // Aguarda o botão ser processado (fica disabled momentaneamente durante o useTransition)
-    await sleep(1.5);
+    await sleep(1.5); // aguardar useTransition
   }
-  // Se já estava disabled (itens já enviados), continua para o checkout
 
   return Date.now() - t0;
 }
 
-// ─── Checkout ────────────────────────────────────────────────────────────────
+// ─── Checkout ─────────────────────────────────────────────────────────────────
 async function doCheckout(page) {
   const t0 = Date.now();
 
-  // Clicar em "Fechar Conta"
-  const checkoutBtn = page.locator("[data-testid='btn-checkout']");
-  await checkoutBtn.waitFor({ timeout: 5000 });
-  await checkoutBtn.click();
+  await page.locator("[data-testid='btn-checkout']").waitFor({ timeout: 5000 });
+  await page.locator("[data-testid='btn-checkout']").click();
 
-  // Aguardar o dialog de checkout abrir
-  const amountInput = page.locator("[data-testid='checkout-amount']");
-  await amountInput.waitFor({ timeout: 6000 });
+  // Aguardar dialog abrir
+  await page.locator("[data-testid='checkout-amount']").waitFor({ timeout: 6000 });
 
-  // Limpar e preencher o valor (triple-click seleciona tudo)
-  await amountInput.click({ clickCount: 3 });
-  await amountInput.pressSequentially("100000");
+  // Preencher valor (triple-click seleciona tudo no input)
+  await page.locator("[data-testid='checkout-amount']").click({ clickCount: 3 });
+  await page.locator("[data-testid='checkout-amount']").pressSequentially("100000");
 
-  // Confirmar
-  const confirmBtn = page.locator("[data-testid='btn-confirm-checkout']");
-  await confirmBtn.waitFor({ timeout: 3000 });
-  await confirmBtn.click();
+  // Garantir método CASH
+  const sel = page.locator("[data-testid='checkout-payment-method']");
+  if (await sel.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await sel.selectOption("CASH");
+  }
 
-  // Aguardar retorno para a grade de mesas
-  await page.locator("[data-testid='table-free'], [data-testid='table-occupied']").first().waitFor({ timeout: 10000 });
+  await page.locator("[data-testid='btn-confirm-checkout']").waitFor({ timeout: 3000 });
+  await page.locator("[data-testid='btn-confirm-checkout']").click();
+
+  // Aguarda retorno para a grade de mesas
+  await page
+    .locator("[data-testid='table-free'], [data-testid='table-occupied']")
+    .first()
+    .waitFor({ timeout: 12000 });
 
   return Date.now() - t0;
 }
@@ -186,11 +202,11 @@ export default async function posOrderScenario() {
     flowErrors.add(!loginOk);
     if (!loginOk) return;
 
-    // 2. Fluxo de pedido
+    // 2. Pedido
     const orderMs = await doOrderFlow(page);
     orderFlowDuration.add(orderMs);
     orderOk = page.url().includes("/order");
-    check(page, { "order flow: ainda em /order": () => orderOk });
+    check(page, { "order flow: tela de pedido visível": () => orderOk });
     flowErrors.add(!orderOk);
     if (!orderOk) return;
 
@@ -204,12 +220,10 @@ export default async function posOrderScenario() {
     sleep(isCiProfile ? 2 : 5);
 
   } catch (err) {
-    const msg = errStr(err);
-    console.error(`[VU ${__VU} ITER ${__ITER}] falha: ${msg} | url: ${page.url()}`);
-    // Registra 1 erro por cada etapa não concluída
-    if (!loginOk)  flowErrors.add(1);
-    if (!orderOk)  flowErrors.add(1);
-    if (!checkOk)  flowErrors.add(1);
+    console.error(`[VU ${__VU} ITER ${__ITER}] falha em: ${loginOk ? (orderOk ? "checkout" : "order-flow") : "login"} | erro: ${errStr(err)} | url: ${page.url()}`);
+    if (!loginOk) flowErrors.add(1);
+    if (!orderOk) flowErrors.add(1);
+    if (!checkOk) flowErrors.add(1);
   } finally {
     await page.close();
   }

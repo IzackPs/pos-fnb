@@ -18,7 +18,10 @@ export default function LoginPage() {
   // Seta data-hydrated no form assim que o React monta no cliente.
   // O atributo nunca existe no HTML do SSR, então é um indicador confiável
   // de que o onSubmit já está registrado — usado pelo k6/browser test.
-  useEffect(() => { setHydrated(true); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => setHydrated(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

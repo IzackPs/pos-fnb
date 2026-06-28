@@ -67,18 +67,18 @@ async function doLogin(page) {
 
   await page.goto(`${BASE}/login`);
 
-  // Aguardar o input aparecer (SSR já renderizou)
-  await page.locator("[data-testid='login-username']").waitFor({ timeout: 8000 });
-
-  // CRÍTICO: Aguardar hidratação do React.
-  // Sem isso, o click no submit dispara o submit nativo do <form> (GET),
-  // ignorando o e.preventDefault() do handleSubmit que ainda não foi registrado.
-  await page.waitForFunction(() => {
-    const btn = document.querySelector("[data-testid='login-submit']");
-    if (!btn) return false;
-    // React anexa __reactFiber* ou __reactInternalInstance* ao DOM node após hidratar
-    return Object.keys(btn).some((k) => k.startsWith("__react"));
-  }, { timeout: 10000 });
+  // ESPERA DE HIDRATAÇÃO — a chave de todo o fluxo.
+  //
+  // O login.tsx usa signIn() do NextAuth com redirect:false + location.href manual.
+  // O <form> não tem method/action, então sem o onSubmit registrado pelo React,
+  // o browser submete como GET nativo e manda as credenciais como query params.
+  //
+  // Solução: o login.tsx seta data-hydrated="true" no form via useEffect().
+  // Esse atributo NUNCA existe no HTML gerado pelo SSR — só aparece depois
+  // que o React monta no cliente. Esperar por ele é 100% confiável.
+  await page
+    .locator("[data-testid='login-form'][data-hydrated='true']")
+    .waitFor({ timeout: 10000 });
 
   await page.locator("[data-testid='login-username']").fill(USERNAME);
   await page.locator("[data-testid='login-password']").fill(PASSWORD);
@@ -95,6 +95,7 @@ async function doLogin(page) {
 
   return Date.now() - t0;
 }
+
 
 // ─── Fluxo de pedido ──────────────────────────────────────────────────────────
 async function doOrderFlow(page) {

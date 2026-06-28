@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -11,6 +11,14 @@ export default function LoginPage() {
   const { t } = useI18n();
   const [pending, start] = useTransition();
   const [form, setForm] = useState({ username: "", password: "" });
+  // data-hydrated é setado pelo useEffect — nunca existe no HTML do SSR.
+  // O k6/browser espera por esse atributo antes de clicar em submit,
+  // garantindo que o React montou e o onSubmit está registrado.
+  const [hydrated, setHydrated] = useState(false);
+  // Seta data-hydrated no form assim que o React monta no cliente.
+  // O atributo nunca existe no HTML do SSR, então é um indicador confiável
+  // de que o onSubmit já está registrado — usado pelo k6/browser test.
+  useEffect(() => { setHydrated(true); }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,7 +58,12 @@ export default function LoginPage() {
 
         {/* Login form */}
         <div className="w-full max-w-sm">
-          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg shadow-amber-100/50 border border-gray-100 p-6 space-y-5">
+          <form
+            data-testid="login-form"
+            data-hydrated={hydrated ? "true" : undefined}
+            onSubmit={handleSubmit}
+            className="bg-white rounded-2xl shadow-lg shadow-amber-100/50 border border-gray-100 p-6 space-y-5"
+          >
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-700">{t.login.username}</label>
               <input

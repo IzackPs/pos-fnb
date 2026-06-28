@@ -367,6 +367,7 @@ export function TableGridView({
 
             return (
               <button key={table.id} disabled={disabled}
+                data-testid={hasOrder ? "table-occupied" : "table-free"}
                 onClick={() => handleTableCardAction({
                   mergeMode,
                   splitMode,
@@ -550,6 +551,7 @@ function OrderDetailView({
         {/* Actions */}
         <div className="grid grid-cols-3 gap-1.5 px-3 py-2.5 shrink-0 border-t border-gray-200">
           <button onClick={onSend} disabled={pending || !canSend}
+            data-testid="btn-send-kitchen"
             className="col-span-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-40 transition-all touch-manipulation">
             <Send className="h-4 w-4" /> {t.order.sendToKitchen}</button>
           <button onClick={onTempBill} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all touch-manipulation">
@@ -558,7 +560,9 @@ function OrderDetailView({
             <Merge className="h-3 w-3" /> {t.order.merge}</button>
           <button onClick={onSplit} className="py-2.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 font-semibold text-xs flex items-center justify-center gap-1 active:scale-[0.98] transition-all touch-manipulation">
             <Split className="h-3 w-3" /> {t.order.split}</button>
-          <button onClick={() => handleCheckoutClick(compact)} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
+          <button onClick={() => handleCheckoutClick(compact)}
+            data-testid="btn-checkout"
+            className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
             <Banknote className="h-4 w-4" /> {t.order.checkout}</button>
         </div>
       </div>
@@ -754,6 +758,7 @@ function OrderDetailView({
             <div className={`grid ${isTablet ? "grid-cols-3 sm:grid-cols-4 md:grid-cols-5" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7"} gap-2`}>
               {activeCat?.products.map(p => (
                 <button key={p.id} onClick={() => onAddItem(p)}
+                  data-testid="product-btn"
                   className="bg-white rounded-lg p-3 text-left border border-gray-200 hover:border-amber-300 hover:shadow-sm active:scale-[0.97] transition-all">
                   <div className="flex items-center gap-1">
                     <UtensilsCrossed className="h-3 w-3 text-amber-500 shrink-0" />
@@ -1021,13 +1026,13 @@ export function OrderClient({ areas, categories }: Readonly<{ areas: Area[]; cat
             <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-1.5 text-amber-600"><span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail!.totalAmount)}{t.common.d}</span></div>
           </div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.paymentMethod}</label>
-            <select className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
+            <select data-testid="checkout-payment-method" className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
               <option value="CASH">💵 {t.order.cash}</option><option value="BANK_TRANSFER">🏦 {t.order.transfer}</option><option value="MOMO">📱 Momo</option></select></div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.amount}</label>
-            <input type="text" inputMode="numeric" style={{ textAlign: 'right' }} className="w-full h-11 px-4 rounded-lg border border-gray-200 text-lg font-mono font-bold" value={paymentAmount ? Number(paymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = paymentAmount || ""} onBlur={e => { const raw = e.target.value.replace(/\D/g, ""); setPaymentAmount(raw); }} onChange={e => { const raw = e.target.value.replace(/\D/g, ""); setPaymentAmount(raw); }} placeholder="0" /></div>
+            <input data-testid="checkout-amount" type="text" inputMode="numeric" style={{ textAlign: 'right' }} className="w-full h-11 px-4 rounded-lg border border-gray-200 text-lg font-mono font-bold" value={paymentAmount ? Number(paymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = paymentAmount || ""} onBlur={e => { const raw = e.target.value.replace(/\D/g, ""); setPaymentAmount(raw); }} onChange={e => { const raw = e.target.value.replace(/\D/g, ""); setPaymentAmount(raw); }} placeholder="0" /></div>
           <div className="flex gap-3">
             <button onClick={() => setCheckoutDialog(false)} className="flex-1 h-11 rounded-lg border border-gray-200 font-medium text-sm text-gray-600">{t.order.cancel}</button>
-            <button onClick={confirmCheckout} disabled={pending} className="flex-1 h-11 rounded-lg bg-red-500 text-white font-semibold text-sm">{t.order.checkout}</button>
+            <button data-testid="btn-confirm-checkout" onClick={confirmCheckout} disabled={pending} className="flex-1 h-11 rounded-lg bg-red-500 text-white font-semibold text-sm">{t.order.checkout}</button>
           </div>
         </div>
       </MobileSheet>}

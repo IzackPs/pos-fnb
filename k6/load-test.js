@@ -56,7 +56,6 @@ function login() {
   const jar = http.cookieJar();
   const csrf = getCsrfToken(jar);
 
-  const start = Date.now();
   const res = http.post(
     `${BASE}/api/auth/callback/credentials`,
     {
@@ -68,7 +67,7 @@ function login() {
     },
     { redirects: 0, jar },
   );
-  loginDuration.add(Date.now() - start);
+  loginDuration.add(res.timings.duration);
 
   const ok = check(res, {
     "login redirects": (r) => r.status === 302 || r.status === 200,
@@ -88,20 +87,25 @@ export default function runLoadScenario() {
     vuJar = login();
   }
 
-  const start = Date.now();
   const dash = http.get(`${BASE}/dashboard`, {
     jar: vuJar,
     tags: { type: "read" },
   });
-  dashboardDuration.add(Date.now() - start);
+  dashboardDuration.add(dash.timings.duration);
 
-  const ok = check(dash, {
-    "dashboard 200": (r) => r.status === 200 || r.status === 302,
+  const dashOk = check(dash, {
+    // 302 aqui significa sessão expirada (redireciona para /login) — falha real.
+    "dashboard 200": (r) => r.status === 200,
   });
-  errorRate.add(!ok);
+  errorRate.add(!dashOk);
 
-  http.get(`${BASE}/order`, { jar: vuJar, tags: { type: "read" } });
-  http.get(`${BASE}/inventory`, { jar: vuJar, tags: { type: "read" } });
+  const orderRes = http.get(`${BASE}/order`, { jar: vuJar, tags: { type: "read" } });
+  const orderOk = check(orderRes, { "order 200": (r) => r.status === 200 });
+  errorRate.add(!orderOk);
+
+  const invRes = http.get(`${BASE}/inventory`, { jar: vuJar, tags: { type: "read" } });
+  const invOk = check(invRes, { "inventory 200": (r) => r.status === 200 });
+  errorRate.add(!invOk);
 
   sleep(1);
 }

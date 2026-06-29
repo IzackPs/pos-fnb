@@ -146,373 +146,391 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
-describe("order module (integration, real Postgres)", () => {
-  it("loads the order menu from seeded categories/products", async () => {
-    const categories = await getCategoriesWithProducts();
-    const products = categories.flatMap((c) => c.products);
-    expect(products.some((p) => p.id === icedTeaId)).toBe(true);
-    // Only available products are offered for ordering.
-    expect(products.every((p) => p.isAvailable)).toBe(true);
-  });
-
-  it("exposes the test area/table in the floor view", async () => {
-    const areas = await getAreasWithTables();
-    const area = areas.find((a) => a.id === AREA_ID);
-    expect(area).toBeDefined();
-    expect(area!.tables.some((t) => t.id === TABLE_A_ID)).toBe(true);
-  });
-
-  it("opens a table, creating one OPEN order with a sequential number", async () => {
-    const order = await openTable(TABLE_A_ID, 3);
-    expect(order.status).toBe("OPEN");
-    expect(order.guestCount).toBe(3);
-    expect(order.orderNumber).toBeGreaterThan(0);
-
-    const persisted = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(persisted.tableId).toBe(TABLE_A_ID);
-    expect(persisted.totalAmount).toBe(0);
-  });
-
-  it("is idempotent: re-opening a busy table returns the same order", async () => {
-    const first = await openTable(TABLE_A_ID, 2);
-    const second = await openTable(TABLE_A_ID, 2);
-    expect(second.id).toBe(first.id);
-
-    const openCount = await db.order.count({
-      where: { tableId: TABLE_A_ID, status: { in: ["OPEN", "SENT"] } },
+describe("módulo de pedidos (integração, Postgres real)", () => {
+  describe("Cardápio e visão do salão", () => {
+    it("carrega o cardápio a partir das categorias/produtos do seed", async () => {
+      const categories = await getCategoriesWithProducts();
+      const products = categories.flatMap((c) => c.products);
+      expect(products.some((p) => p.id === icedTeaId)).toBe(true);
+      // Only available products are offered for ordering.
+      expect(products.every((p) => p.isAvailable)).toBe(true);
     });
-    expect(openCount).toBe(1);
-  });
 
-  it("adds an item and recomputes subtotal, VAT and total from tax rates", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    await addItem(order.id, icedTeaId, 2); // 5000 x 2, VAT 8%, no excise
-
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.subtotal).toBe(10000);
-    expect(updated.vatAmount).toBeCloseTo(800, 5);
-    expect(updated.exciseTaxAmount).toBe(0);
-    // total is the documented invariant: subtotal + taxes - discount + service.
-    expect(updated.totalAmount).toBeCloseTo(
-      updated.subtotal + updated.vatAmount + updated.exciseTaxAmount - updated.discountAmount + updated.serviceCharge,
-      5,
-    );
-  });
-
-  it("accumulates excise tax for excisable products (beer)", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    await addItem(order.id, localBeerId, 1); // 20000, VAT 10%, excise 65%
-
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.subtotal).toBe(20000);
-    expect(updated.vatAmount).toBeCloseTo(2000, 5);
-    expect(updated.exciseTaxAmount).toBeCloseTo(13000, 5);
-  });
-
-  it("updates quantity and recomputes totals", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    const item = await addItem(order.id, icedTeaId, 1);
-    await updateItemQuantity(item.id, 5);
-
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.subtotal).toBe(25000);
-  });
-
-  it("removes an item and drops it from the order total", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    const a = await addItem(order.id, icedTeaId, 2);
-    await addItem(order.id, localBeerId, 1);
-    await removeItem(a.id);
-
-    const remaining = await db.orderItem.findMany({ where: { orderId: order.id } });
-    expect(remaining.map((i) => i.id)).not.toContain(a.id);
-
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.subtotal).toBe(20000); // only the beer remains
-  });
-
-  it("cancels an item without deleting it and excludes it from totals", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    const item = await addItem(order.id, icedTeaId, 2);
-    await cancelItem(item.id, adminUserId, "customer changed mind");
-
-    const cancelled = await db.orderItem.findUniqueOrThrow({ where: { id: item.id } });
-    expect(cancelled.status).toBe("CANCELLED");
-    expect(cancelled.cancelledBy).toBe(adminUserId);
-
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.subtotal).toBe(0); // cancelled items are not billed
-  });
-
-  it("sends the order to the kitchen, flipping order and item status to SENT", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    await addItem(order.id, icedTeaId, 1);
-    await sendOrder(order.id, AREA_ID);
-
-    const sent = await db.order.findUniqueOrThrow({
-      where: { id: order.id },
-      include: { items: true },
+    it("exibe a área/mesa de teste na visão do salão", async () => {
+      const areas = await getAreasWithTables();
+      const area = areas.find((a) => a.id === AREA_ID);
+      expect(area).toBeDefined();
+      expect(area!.tables.some((t) => t.id === TABLE_A_ID)).toBe(true);
     });
-    expect(sent.status).toBe("SENT");
-    expect(sent.items.every((i) => i.status === "SENT")).toBe(true);
-    expect(createPrintJob).toHaveBeenCalled();
-  });
 
-  it("getOrder returns the fully hydrated order graph", async () => {
-    const order = await openTable(TABLE_A_ID, 2);
-    await addItem(order.id, icedTeaId, 1);
-
-    const full = await getOrder(order.id);
-    expect(full).not.toBeNull();
-    expect(full!.table.area.id).toBe(AREA_ID);
-    expect(full!.items).toHaveLength(1);
-    expect(full!.items[0].product.id).toBe(icedTeaId);
-  });
-
-  it("checks out a NORMAL order: records payment, marks PAID and posts cash flow income", async () => {
-    const order = await openTable(TABLE_A_ID, 2);
-    await addItem(order.id, icedTeaId, 2);
-    await sendOrder(order.id, AREA_ID);
-
-    const beforeCheckout = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    const total = beforeCheckout.totalAmount;
-
-    await checkoutOrder(order.id, [{ method: "CASH", amount: total }], adminUserId);
-
-    const paid = await db.order.findUniqueOrThrow({
-      where: { id: order.id },
-      include: { payments: true },
+    it("getActiveAreasWithTables retorna o mesmo payload de getAreasWithTables", async () => {
+      const active = await getActiveAreasWithTables();
+      const all = await getAreasWithTables();
+      expect(active.map((a) => a.id)).toEqual(all.map((a) => a.id));
+      expect(active.some((a) => a.id === AREA_ID)).toBe(true);
     });
-    expect(paid.status).toBe("PAID");
-    expect(paid.closedAt).not.toBeNull();
-    expect(paid.userId).toBe(adminUserId);
-    expect(paid.payments).toHaveLength(1);
-    expect(paid.payments[0].method).toBe("CASH");
-    expect(paid.payments[0].amount).toBeCloseTo(total, 5);
-    expect(paid.payments[0].status).toBe("COMPLETED");
-
-    const income = await db.cashFlow.findFirst({ where: { referenceId: order.id } });
-    expect(income).not.toBeNull();
-    expect(income!.type).toBe("INCOME");
-    expect(income!.categoryId).toBe("inc-sales");
-    expect(income!.amount).toBeCloseTo(total, 5);
-
-    // Inventory module is enabled in the seed -> stock deduction is invoked
-    // (mocked here, but the order module correctly delegates to it).
-    expect(autoDeductStockForOrder).toHaveBeenCalledWith(order.id);
   });
 
-  it("does NOT post cash flow income for a COMP (complimentary) order", async () => {
-    const order = await openTable(TABLE_A_ID, 1, "COMP");
-    expect(order.type).toBe("COMP");
-    await addItem(order.id, icedTeaId, 1);
+  describe("Abertura de mesa", () => {
+    it("abre uma mesa criando um pedido OPEN com número sequencial", async () => {
+      const order = await openTable(TABLE_A_ID, 3);
+      expect(order.status).toBe("OPEN");
+      expect(order.guestCount).toBe(3);
+      expect(order.orderNumber).toBeGreaterThan(0);
 
-    await checkoutOrder(order.id, [{ method: "COMP", amount: 0 }], adminUserId);
-
-    const paid = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(paid.status).toBe("PAID");
-
-    const income = await db.cashFlow.findFirst({ where: { referenceId: order.id } });
-    expect(income).toBeNull();
-  });
-
-  it("splits items evenly onto a free table in the same area", async () => {
-    const order = await openTable(TABLE_A_ID, 4);
-    await addItem(order.id, icedTeaId, 4); // qty 4 -> 2 stay, 2 move
-
-    const newOrder = await splitItemsEvenly(order.id, await firstItemIds(order.id));
-
-    expect(newOrder.tableId).toBe(TABLE_B_ID);
-    expect(newOrder.parentOrderId).toBe(order.id);
-
-    const original = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    const split = await db.order.findUniqueOrThrow({ where: { id: newOrder.id } });
-    // 2 servings each at 5000 -> subtotal 10000 on both sides.
-    expect(original.subtotal).toBe(10000);
-    expect(split.subtotal).toBe(10000);
-  });
-
-  it("getActiveAreasWithTables returns the same payload as getAreasWithTables", async () => {
-    const active = await getActiveAreasWithTables();
-    const all = await getAreasWithTables();
-    expect(active.map((a) => a.id)).toEqual(all.map((a) => a.id));
-    expect(active.some((a) => a.id === AREA_ID)).toBe(true);
-  });
-
-  it("updateOrderGuest persists a new guest count", async () => {
-    const order = await openTable(TABLE_A_ID, 2);
-    await updateOrderGuest(order.id, 6);
-
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.guestCount).toBe(6);
-  });
-
-  it("applies the seeded 5% service fee to the order total", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    await addItem(order.id, icedTeaId, 2); // subtotal 10000
-
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.serviceCharge).toBeCloseTo(updated.subtotal * SERVICE_FEE_RATE, 5); // 500
-    expect(updated.totalAmount).toBeCloseTo(
-      updated.subtotal + updated.vatAmount + updated.exciseTaxAmount - updated.discountAmount + updated.serviceCharge,
-      5,
-    );
-  });
-
-  it("adds an item with toppings and bills topping price per unit", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    // Beef Noodle Soup 65000 + Size L topping 10000, quantity 2.
-    const item = await addItem(order.id, beefSoupId, 2, [{ toppingId: "top-l", price: 10000 }]);
-
-    const persisted = await db.orderItem.findUniqueOrThrow({
-      where: { id: item.id },
-      include: { toppings: true },
+      const persisted = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(persisted.tableId).toBe(TABLE_A_ID);
+      expect(persisted.totalAmount).toBe(0);
     });
-    expect(persisted.toppings).toHaveLength(1);
-    expect(persisted.toppings[0].toppingId).toBe("top-l");
 
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    // subtotal = (unitPrice 65000 * 2) + (topping 10000 * 2) = 150000.
-    expect(updated.subtotal).toBe(150000);
-  });
+    it("é idempotente: reabrir uma mesa ocupada retorna o mesmo pedido", async () => {
+      const first = await openTable(TABLE_A_ID, 2);
+      const second = await openTable(TABLE_A_ID, 2);
+      expect(second.id).toBe(first.id);
 
-  it("getTempBill returns the same hydrated graph as getOrder", async () => {
-    const order = await openTable(TABLE_A_ID, 2);
-    await addItem(order.id, icedTeaId, 1);
-
-    const bill = await getTempBill(order.id);
-    expect(bill).not.toBeNull();
-    expect(bill!.id).toBe(order.id);
-    expect(bill!.table.area.id).toBe(AREA_ID);
-    expect(bill!.items).toHaveLength(1);
-  });
-
-  it("printTempBill dispatches a print job for an existing order", async () => {
-    const order = await openTable(TABLE_A_ID, 1);
-    await addItem(order.id, icedTeaId, 1);
-
-    await printTempBill(order.id);
-    expect(createPrintJob).toHaveBeenCalledWith(
-      expect.objectContaining({ orderId: order.id, type: "TEMP_BILL" }),
-    );
-  });
-
-  it("mergeTables folds source orders into the target and moves their items", async () => {
-    const target = await openTable(TABLE_A_ID, 2);
-    await addItem(target.id, icedTeaId, 1); // 5000
-    const source = await openTable(TABLE_B_ID, 2);
-    await addItem(source.id, localBeerId, 1); // 20000
-
-    await mergeTables([source.id], TABLE_A_ID);
-
-    const mergedSource = await db.order.findUniqueOrThrow({ where: { id: source.id } });
-    expect(mergedSource.status).toBe("MERGED");
-    expect(mergedSource.parentOrderId).toBe(target.id);
-    expect(mergedSource.closedAt).not.toBeNull();
-
-    const mergedTarget = await db.order.findUniqueOrThrow({
-      where: { id: target.id },
-      include: { items: true },
+      const openCount = await db.order.count({
+        where: { tableId: TABLE_A_ID, status: { in: ["OPEN", "SENT"] } },
+      });
+      expect(openCount).toBe(1);
     });
-    expect(mergedTarget.mergedFrom).toBe(JSON.stringify([source.id]));
-    expect(mergedTarget.items).toHaveLength(2);
-    expect(mergedTarget.subtotal).toBe(25000); // 5000 + 20000 after recalc
-  });
 
-  it("splitItems moves selected items to a new SPLIT order, leaving the origin open", async () => {
-    const order = await openTable(TABLE_A_ID, 2);
-    await addItem(order.id, icedTeaId, 1); // 5000, stays
-    const b = await addItem(order.id, localBeerId, 1); // 20000, moves
+    it("updateOrderGuest persiste a nova quantidade de pessoas", async () => {
+      const order = await openTable(TABLE_A_ID, 2);
+      await updateOrderGuest(order.id, 6);
 
-    await splitItems(order.id, [b.id], TABLE_B_ID);
-
-    const newOrder = await db.order.findFirstOrThrow({
-      where: { parentOrderId: order.id, tableId: TABLE_B_ID },
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.guestCount).toBe(6);
     });
-    expect(newOrder.status).toBe("SPLIT");
-    expect(newOrder.orderNumberSuffix).toBe("1");
-    expect(newOrder.splitFrom).toBe(order.id);
-
-    const moved = await db.orderItem.findUniqueOrThrow({ where: { id: b.id } });
-    expect(moved.orderId).toBe(newOrder.id);
-
-    // The origin keeps item `a`, so it is NOT auto-closed.
-    const origin = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(origin.status).toBe("OPEN");
-    expect(origin.subtotal).toBe(5000);
-    expect(newOrder.subtotal).toBe(20000);
   });
 
-  it("splitItems closes the origin as SPLIT when all items move out", async () => {
-    const order = await openTable(TABLE_A_ID, 2);
-    const a = await addItem(order.id, icedTeaId, 1);
+  describe("Itens do pedido", () => {
+    it("adiciona um item e recalcula subtotal, VAT e total a partir das alíquotas", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      await addItem(order.id, icedTeaId, 2); // 5000 x 2, VAT 8%, no excise
 
-    await splitItems(order.id, [a.id], TABLE_B_ID);
-
-    const origin = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(origin.status).toBe("SPLIT");
-    expect(origin.closedAt).not.toBeNull();
-  });
-
-  it("records multiple split payments with references on checkout", async () => {
-    const order = await openTable(TABLE_A_ID, 2);
-    await addItem(order.id, icedTeaId, 2);
-    const before = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    const total = before.totalAmount;
-    const half = total / 2;
-
-    await checkoutOrder(
-      order.id,
-      [
-        { method: "CASH", amount: half },
-        { method: "CARD", amount: half, reference: "auth-12345" },
-      ],
-      adminUserId,
-    );
-
-    const paid = await db.order.findUniqueOrThrow({
-      where: { id: order.id },
-      include: { payments: { orderBy: { method: "asc" } } },
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.subtotal).toBe(10000);
+      expect(updated.vatAmount).toBeCloseTo(800, 5);
+      expect(updated.exciseTaxAmount).toBe(0);
+      // total is the documented invariant: subtotal + taxes - discount + service.
+      expect(updated.totalAmount).toBeCloseTo(
+        updated.subtotal + updated.vatAmount + updated.exciseTaxAmount - updated.discountAmount + updated.serviceCharge,
+        5,
+      );
     });
-    expect(paid.status).toBe("PAID");
-    expect(paid.payments).toHaveLength(2);
-    const card = paid.payments.find((p) => p.method === "CARD");
-    expect(card!.reference).toBe("auth-12345");
-    expect(paid.payments.every((p) => p.status === "COMPLETED")).toBe(true);
 
-    const income = await db.cashFlow.findFirstOrThrow({ where: { referenceId: order.id } });
-    expect(income.amount).toBeCloseTo(total, 5); // single income line for the order total
+    it("acumula imposto seletivo para produtos tributados (cerveja)", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      await addItem(order.id, localBeerId, 1); // 20000, VAT 10%, excise 65%
+
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.subtotal).toBe(20000);
+      expect(updated.vatAmount).toBeCloseTo(2000, 5);
+      expect(updated.exciseTaxAmount).toBeCloseTo(13000, 5);
+    });
+
+    it("adiciona um item com toppings e cobra o preço do topping por unidade", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      // Beef Noodle Soup 65000 + Size L topping 10000, quantity 2.
+      const item = await addItem(order.id, beefSoupId, 2, [{ toppingId: "top-l", price: 10000 }]);
+
+      const persisted = await db.orderItem.findUniqueOrThrow({
+        where: { id: item.id },
+        include: { toppings: true },
+      });
+      expect(persisted.toppings).toHaveLength(1);
+      expect(persisted.toppings[0].toppingId).toBe("top-l");
+
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      // subtotal = (unitPrice 65000 * 2) + (topping 10000 * 2) = 150000.
+      expect(updated.subtotal).toBe(150000);
+    });
+
+    it("atualiza a quantidade e recalcula os totais", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      const item = await addItem(order.id, icedTeaId, 1);
+      await updateItemQuantity(item.id, 5);
+
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.subtotal).toBe(25000);
+    });
+
+    it("remove um item e o exclui do total do pedido", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      const a = await addItem(order.id, icedTeaId, 2);
+      await addItem(order.id, localBeerId, 1);
+      await removeItem(a.id);
+
+      const remaining = await db.orderItem.findMany({ where: { orderId: order.id } });
+      expect(remaining.map((i) => i.id)).not.toContain(a.id);
+
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.subtotal).toBe(20000); // only the beer remains
+    });
+
+    it("cancela um item sem deletá-lo e o exclui dos totais", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      const item = await addItem(order.id, icedTeaId, 2);
+      await cancelItem(item.id, adminUserId, "customer changed mind");
+
+      const cancelled = await db.orderItem.findUniqueOrThrow({ where: { id: item.id } });
+      expect(cancelled.status).toBe("CANCELLED");
+      expect(cancelled.cancelledBy).toBe(adminUserId);
+
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.subtotal).toBe(0); // cancelled items are not billed
+    });
   });
 
-  it("opens a karaoke table as a KARAOKE order and auto-adds a time item", async () => {
-    const order = await openTable(KARAOKE_TABLE_ID, 4);
+  describe("Taxas e encargos de serviço", () => {
+    it("aplica a taxa de serviço de 5% do seed ao total do pedido", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      await addItem(order.id, icedTeaId, 2); // subtotal 10000
 
-    const persisted = await db.order.findUniqueOrThrow({
-      where: { id: order.id },
-      include: { items: { include: { product: true } } },
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.serviceCharge).toBeCloseTo(updated.subtotal * SERVICE_FEE_RATE, 5); // 500
+      expect(updated.totalAmount).toBeCloseTo(
+        updated.subtotal + updated.vatAmount + updated.exciseTaxAmount - updated.discountAmount + updated.serviceCharge,
+        5,
+      );
     });
-    // Area is KARAOKE -> type is forced to KARAOKE regardless of the default.
-    expect(persisted.type).toBe("KARAOKE");
-    expect(persisted.karaokePricingId).toBe(KARAOKE_PRICING_ID);
-
-    const timeItem = persisted.items.find((i) => i.product.slug === KARAOKE_PRODUCT_SLUG);
-    expect(timeItem).toBeDefined();
-    expect(timeItem!.quantity).toBeGreaterThanOrEqual(1);
-    expect(timeItem!.unitPrice).toBe(50000);
   });
 
-  it("refreshKaraokeTime recomputes the karaoke order without duplicating the time item", async () => {
-    const order = await openTable(KARAOKE_TABLE_ID, 2);
+  describe("Envio para a cozinha", () => {
+    it("envia o pedido para a cozinha, mudando status do pedido e itens para SENT", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      await addItem(order.id, icedTeaId, 1);
+      await sendOrder(order.id, AREA_ID);
 
-    await refreshKaraokeTime(order.id);
-
-    const items = await db.orderItem.findMany({
-      where: { orderId: order.id, product: { slug: KARAOKE_PRODUCT_SLUG }, status: { not: "CANCELLED" } },
+      const sent = await db.order.findUniqueOrThrow({
+        where: { id: order.id },
+        include: { items: true },
+      });
+      expect(sent.status).toBe("SENT");
+      expect(sent.items.every((i) => i.status === "SENT")).toBe(true);
+      expect(createPrintJob).toHaveBeenCalled();
     });
-    expect(items).toHaveLength(1); // upserted, not appended
+  });
 
-    const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
-    expect(updated.subtotal).toBeGreaterThanOrEqual(50000);
+  describe("Consulta de pedido e conta parcial", () => {
+    it("getOrder retorna o grafo completo do pedido hidratado", async () => {
+      const order = await openTable(TABLE_A_ID, 2);
+      await addItem(order.id, icedTeaId, 1);
+
+      const full = await getOrder(order.id);
+      expect(full).not.toBeNull();
+      expect(full!.table.area.id).toBe(AREA_ID);
+      expect(full!.items).toHaveLength(1);
+      expect(full!.items[0].product.id).toBe(icedTeaId);
+    });
+
+    it("getTempBill retorna o mesmo grafo hidratado de getOrder", async () => {
+      const order = await openTable(TABLE_A_ID, 2);
+      await addItem(order.id, icedTeaId, 1);
+
+      const bill = await getTempBill(order.id);
+      expect(bill).not.toBeNull();
+      expect(bill!.id).toBe(order.id);
+      expect(bill!.table.area.id).toBe(AREA_ID);
+      expect(bill!.items).toHaveLength(1);
+    });
+
+    it("printTempBill dispara um job de impressão para um pedido existente", async () => {
+      const order = await openTable(TABLE_A_ID, 1);
+      await addItem(order.id, icedTeaId, 1);
+
+      await printTempBill(order.id);
+      expect(createPrintJob).toHaveBeenCalledWith(
+        expect.objectContaining({ orderId: order.id, type: "TEMP_BILL" }),
+      );
+    });
+  });
+
+  describe("Fechamento e pagamento", () => {
+    it("fecha um pedido NORMAL: registra pagamento, marca PAID e lança receita no caixa", async () => {
+      const order = await openTable(TABLE_A_ID, 2);
+      await addItem(order.id, icedTeaId, 2);
+      await sendOrder(order.id, AREA_ID);
+
+      const beforeCheckout = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      const total = beforeCheckout.totalAmount;
+
+      await checkoutOrder(order.id, [{ method: "CASH", amount: total }], adminUserId);
+
+      const paid = await db.order.findUniqueOrThrow({
+        where: { id: order.id },
+        include: { payments: true },
+      });
+      expect(paid.status).toBe("PAID");
+      expect(paid.closedAt).not.toBeNull();
+      expect(paid.userId).toBe(adminUserId);
+      expect(paid.payments).toHaveLength(1);
+      expect(paid.payments[0].method).toBe("CASH");
+      expect(paid.payments[0].amount).toBeCloseTo(total, 5);
+      expect(paid.payments[0].status).toBe("COMPLETED");
+
+      const income = await db.cashFlow.findFirst({ where: { referenceId: order.id } });
+      expect(income).not.toBeNull();
+      expect(income!.type).toBe("INCOME");
+      expect(income!.categoryId).toBe("inc-sales");
+      expect(income!.amount).toBeCloseTo(total, 5);
+
+      // Inventory module is enabled in the seed -> stock deduction is invoked
+      // (mocked here, but the order module correctly delegates to it).
+      expect(autoDeductStockForOrder).toHaveBeenCalledWith(order.id);
+    });
+
+    it("NÃO lança receita no caixa para um pedido COMP (cortesia)", async () => {
+      const order = await openTable(TABLE_A_ID, 1, "COMP");
+      expect(order.type).toBe("COMP");
+      await addItem(order.id, icedTeaId, 1);
+
+      await checkoutOrder(order.id, [{ method: "COMP", amount: 0 }], adminUserId);
+
+      const paid = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(paid.status).toBe("PAID");
+
+      const income = await db.cashFlow.findFirst({ where: { referenceId: order.id } });
+      expect(income).toBeNull();
+    });
+
+    it("registra múltiplos pagamentos com referência no fechamento", async () => {
+      const order = await openTable(TABLE_A_ID, 2);
+      await addItem(order.id, icedTeaId, 2);
+      const before = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      const total = before.totalAmount;
+      const half = total / 2;
+
+      await checkoutOrder(
+        order.id,
+        [
+          { method: "CASH", amount: half },
+          { method: "CARD", amount: half, reference: "auth-12345" },
+        ],
+        adminUserId,
+      );
+
+      const paid = await db.order.findUniqueOrThrow({
+        where: { id: order.id },
+        include: { payments: { orderBy: { method: "asc" } } },
+      });
+      expect(paid.status).toBe("PAID");
+      expect(paid.payments).toHaveLength(2);
+      const card = paid.payments.find((p) => p.method === "CARD");
+      expect(card!.reference).toBe("auth-12345");
+      expect(paid.payments.every((p) => p.status === "COMPLETED")).toBe(true);
+
+      const income = await db.cashFlow.findFirstOrThrow({ where: { referenceId: order.id } });
+      expect(income.amount).toBeCloseTo(total, 5); // single income line for the order total
+    });
+  });
+
+  describe("Mesclar e dividir mesas", () => {
+    it("mergeTables funde pedidos de origem no destino e move seus itens", async () => {
+      const target = await openTable(TABLE_A_ID, 2);
+      await addItem(target.id, icedTeaId, 1); // 5000
+      const source = await openTable(TABLE_B_ID, 2);
+      await addItem(source.id, localBeerId, 1); // 20000
+
+      await mergeTables([source.id], TABLE_A_ID);
+
+      const mergedSource = await db.order.findUniqueOrThrow({ where: { id: source.id } });
+      expect(mergedSource.status).toBe("MERGED");
+      expect(mergedSource.parentOrderId).toBe(target.id);
+      expect(mergedSource.closedAt).not.toBeNull();
+
+      const mergedTarget = await db.order.findUniqueOrThrow({
+        where: { id: target.id },
+        include: { items: true },
+      });
+      expect(mergedTarget.mergedFrom).toBe(JSON.stringify([source.id]));
+      expect(mergedTarget.items).toHaveLength(2);
+      expect(mergedTarget.subtotal).toBe(25000); // 5000 + 20000 after recalc
+    });
+
+    it("splitItems move os itens selecionados para um novo pedido SPLIT, mantendo a origem aberta", async () => {
+      const order = await openTable(TABLE_A_ID, 2);
+      await addItem(order.id, icedTeaId, 1); // 5000, stays
+      const b = await addItem(order.id, localBeerId, 1); // 20000, moves
+
+      await splitItems(order.id, [b.id], TABLE_B_ID);
+
+      const newOrder = await db.order.findFirstOrThrow({
+        where: { parentOrderId: order.id, tableId: TABLE_B_ID },
+      });
+      expect(newOrder.status).toBe("SPLIT");
+      expect(newOrder.orderNumberSuffix).toBe("1");
+      expect(newOrder.splitFrom).toBe(order.id);
+
+      const moved = await db.orderItem.findUniqueOrThrow({ where: { id: b.id } });
+      expect(moved.orderId).toBe(newOrder.id);
+
+      // The origin keeps item `a`, so it is NOT auto-closed.
+      const origin = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(origin.status).toBe("OPEN");
+      expect(origin.subtotal).toBe(5000);
+      expect(newOrder.subtotal).toBe(20000);
+    });
+
+    it("splitItems fecha a origem como SPLIT quando todos os itens saem", async () => {
+      const order = await openTable(TABLE_A_ID, 2);
+      const a = await addItem(order.id, icedTeaId, 1);
+
+      await splitItems(order.id, [a.id], TABLE_B_ID);
+
+      const origin = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(origin.status).toBe("SPLIT");
+      expect(origin.closedAt).not.toBeNull();
+    });
+
+    it("splitItemsEvenly divide os itens igualmente em uma mesa livre da mesma área", async () => {
+      const order = await openTable(TABLE_A_ID, 4);
+      await addItem(order.id, icedTeaId, 4); // qty 4 -> 2 stay, 2 move
+
+      const newOrder = await splitItemsEvenly(order.id, await firstItemIds(order.id));
+
+      expect(newOrder.tableId).toBe(TABLE_B_ID);
+      expect(newOrder.parentOrderId).toBe(order.id);
+
+      const original = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      const split = await db.order.findUniqueOrThrow({ where: { id: newOrder.id } });
+      // 2 servings each at 5000 -> subtotal 10000 on both sides.
+      expect(original.subtotal).toBe(10000);
+      expect(split.subtotal).toBe(10000);
+    });
+  });
+
+  describe("Karaokê", () => {
+    it("abre uma mesa de karaokê como pedido KARAOKE e adiciona automaticamente um item de tempo", async () => {
+      const order = await openTable(KARAOKE_TABLE_ID, 4);
+
+      const persisted = await db.order.findUniqueOrThrow({
+        where: { id: order.id },
+        include: { items: { include: { product: true } } },
+      });
+      // Area is KARAOKE -> type is forced to KARAOKE regardless of the default.
+      expect(persisted.type).toBe("KARAOKE");
+      expect(persisted.karaokePricingId).toBe(KARAOKE_PRICING_ID);
+
+      const timeItem = persisted.items.find((i) => i.product.slug === KARAOKE_PRODUCT_SLUG);
+      expect(timeItem).toBeDefined();
+      expect(timeItem!.quantity).toBeGreaterThanOrEqual(1);
+      expect(timeItem!.unitPrice).toBe(50000);
+    });
+
+    it("refreshKaraokeTime recalcula o pedido de karaokê sem duplicar o item de tempo", async () => {
+      const order = await openTable(KARAOKE_TABLE_ID, 2);
+
+      await refreshKaraokeTime(order.id);
+
+      const items = await db.orderItem.findMany({
+        where: { orderId: order.id, product: { slug: KARAOKE_PRODUCT_SLUG }, status: { not: "CANCELLED" } },
+      });
+      expect(items).toHaveLength(1); // upserted, not appended
+
+      const updated = await db.order.findUniqueOrThrow({ where: { id: order.id } });
+      expect(updated.subtotal).toBeGreaterThanOrEqual(50000);
+    });
   });
 });
 

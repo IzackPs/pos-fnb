@@ -146,7 +146,7 @@ afterAll(async () => {
   await db.$disconnect();
 });
 
-describe("módulo de pedidos (integração, Postgres real)", () => {
+describe("Módulo de pedidos", () => {
   describe("Cardápio e visão do salão", () => {
     it("carrega o cardápio a partir das categorias/produtos do seed", async () => {
       const categories = await getCategoriesWithProducts();

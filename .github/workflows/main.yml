@@ -288,6 +288,9 @@ jobs:
       - name: Run integration smoke
         run: npm run test:integration
 
+      - name: Run order module integration tests
+        run: npm run test:integration:db
+
   # ─── Load Test (k6) ────────────────────────────────────────────────────────
   load:
     name: Load Test (k6)

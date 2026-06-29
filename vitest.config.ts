@@ -13,6 +13,9 @@ export default defineConfig({
     globals: true,
     testTimeout: 10000,
     setupFiles: [resolve(__dirname, "src/test/setup.ts")],
+    // Integration tests hit a real Postgres DB and run via
+    // vitest.integration.config.ts — keep them out of the mocked unit run.
+    exclude: ["node_modules/**", "dist/**", ".next/**", "**/*.integration.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov", "html"],

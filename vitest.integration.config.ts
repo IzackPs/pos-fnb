@@ -15,6 +15,12 @@ export default defineConfig({
     // Node, not jsdom: these exercise server-side data flow, no DOM needed.
     environment: "node",
     globals: true,
+    // Verbose reporter prints the full describe/it tree (every case name) so CI
+    // logs show each scenario instead of the collapsed "(N tests)" summary line.
+    reporters: ["verbose"],
+    // Mute the "[PRINT] ..." logs from printOrderTicket so the verbose tree
+    // stays readable; other console output is preserved.
+    onConsoleLog: (log) => (log.includes("[PRINT]") ? false : undefined),
     include: ["src/**/*.integration.test.ts"],
     // Real DB round-trips + seed lookups are slower than mocked unit tests.
     testTimeout: 30000,
